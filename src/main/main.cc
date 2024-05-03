@@ -9,7 +9,7 @@
 #include "attention_broker.grpc.pb.h"
 #include "attention_broker.pb.h"
 
-#include "attention_broker.h"
+#include "attention_broker_server.h"
 
 void run_server(uint16_t port) {
   std::string server_address = "0.0.0.0:50051";
