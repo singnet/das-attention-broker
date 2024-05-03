@@ -1,12 +1,11 @@
-#load("@rules_cc//cc:defs.bzl", "cc_binary")
+package(default_visibility = ["//visibility:public"])
 
-cc_binary(
-    name = "attention_broker",
-    srcs = [],
-    defines = ["BAZEL_BUILD"],
+cc_library(
+    name = "main_lib",
+    srcs = glob(["*.cc"]),
+    hdrs = glob(["*.h"]),
     deps = [
         "//grpc_server:grpc_server_lib",
-        "//main:main_lib",
         "@com_github_singnet_das_proto//:attention_broker_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
