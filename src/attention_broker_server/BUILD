@@ -1,7 +1,7 @@
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "grpc_server_lib",
+    name = "attention_broker_server_lib",
     srcs = glob(["*.cc"]),
     hdrs = glob(["*.h"]),
     includes = ["."],

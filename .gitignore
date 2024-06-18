@@ -2,3 +2,9 @@ bin/
 .*.swp
 *.o
 nogit/*
+src/MODULE.bazel
+src/MODULE.bazel.lock
+src/bazel-bin
+src/bazel-out
+src/bazel-src
+src/bazel-testlogs

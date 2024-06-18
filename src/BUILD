@@ -5,7 +5,7 @@ cc_binary(
     srcs = [],
     defines = ["BAZEL_BUILD"],
     deps = [
-        "//grpc_server:grpc_server_lib",
+        "//attention_broker_server:attention_broker_server_lib",
         "//main:main_lib",
         "@com_github_singnet_das_proto//:attention_broker_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",

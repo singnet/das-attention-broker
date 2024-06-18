@@ -9,11 +9,11 @@
 #include "attention_broker.grpc.pb.h"
 #include "attention_broker.pb.h"
 
-#include "attention_broker_server.h"
+#include "AttentionBrokerServer.h"
 
-void run_server(uint16_t port) {
+void run_server(unsigned int port) {
   std::string server_address = "0.0.0.0:50051";
-  AttentionBrokerServer service;
+  attention_broker_server::AttentionBrokerServer service;
   grpc::EnableDefaultHealthCheckService(true);
   grpc::reflection::InitProtoReflectionServerBuilderPlugin();
   ServerBuilder builder;
