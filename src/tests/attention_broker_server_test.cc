@@ -19,9 +19,6 @@ class TestRequestQueue: public RequestQueue {
     public:
         TestRequestQueue(unsigned int n) : RequestQueue(n) {
         }
-        void *test_dequeue() {
-            return dequeue();
-        }
         unsigned int test_current_size() {
             return current_size();
         }
@@ -60,12 +57,10 @@ TEST(AttentionBrokerTest, Basics) {
 
 TEST(AttentionBrokerTest, RequestQueues) {
     
-    AttentionBrokerServer service;
     das::Empty empty;
     das::HandleCount handle_count;
     das::HandleList handle_list;
     das::Ack ack;
-    ServerContext *context = NULL;
 
     TestRequestQueue q1((unsigned int) 5);
     EXPECT_TRUE(q1.test_current_size() == 5);
