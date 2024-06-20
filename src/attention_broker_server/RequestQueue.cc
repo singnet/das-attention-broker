@@ -1,3 +1,4 @@
+#include "AttentionBrokerServer.h"
 #include "RequestQueue.h"
 
 using namespace attention_broker_server;
@@ -11,6 +12,9 @@ RequestQueue::RequestQueue(unsigned int initial_size) {
     count = 0;
     start = 0;
     end = 0;
+}
+
+RequestQueue::RequestQueue() : RequestQueue(AttentionBrokerServer::REQUEST_QUEUE_INTIAL_SIZE) {
 }
 
 RequestQueue::~RequestQueue() {
@@ -28,9 +32,6 @@ void RequestQueue::enqueue(void *request) {
     request_queue_mutex.unlock();
 }
 
-// --------------------------------------------------------------------------------
-// Protected methods
-
 void *RequestQueue::dequeue() {
     void *answer = NULL;
     request_queue_mutex.lock();
@@ -43,6 +44,9 @@ void *RequestQueue::dequeue() {
     return answer;
 }
 
+// --------------------------------------------------------------------------------
+// Protected methods
+
 unsigned int RequestQueue::current_size() {
     return size;
 }
@@ -53,6 +57,10 @@ unsigned int RequestQueue::current_start() {
 
 unsigned int RequestQueue::current_end() {
     return end;
+}
+
+unsigned int RequestQueue::current_count() {
+    return count;
 }
 
 // --------------------------------------------------------------------------------

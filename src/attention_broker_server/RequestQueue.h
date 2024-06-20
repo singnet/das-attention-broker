@@ -10,17 +10,19 @@ class RequestQueue {
 
 public:
 
-    RequestQueue(unsigned int initial_size);
+    RequestQueue();
+    RequestQueue(unsigned int size);
     ~RequestQueue();
 
     void enqueue(void *request);
+    void *dequeue();
 
 protected:
 
-    void *dequeue();
     unsigned int current_size();
     unsigned int current_start();
     unsigned int current_end();
+    unsigned int current_count();
 
 private:
 
@@ -35,6 +37,6 @@ private:
     void enlarge_request_queue();
 };
 
-}
+} // namespace attention_broker_server
 
 #endif // _ATTENTION_BROKER_SERVER_REQUESTQUEUE_H
