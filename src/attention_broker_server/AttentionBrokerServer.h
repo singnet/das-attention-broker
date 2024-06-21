@@ -3,7 +3,7 @@
 
 #include "attention_broker.grpc.pb.h"
 #include "RequestQueue.h"
-#include "WorkerThreadPool.h"
+#include "WorkerThreads.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -38,7 +38,7 @@ class AttentionBrokerServer final: public AttentionBroker::Service {
         bool rpc_api_enabled = true;
         RequestQueue *stimulus_requests;
         RequestQueue *correlation_requests;
-        WorkerThreadPool *worker_threads;
+        WorkerThreads *worker_threads;
 };
 
 } // namespace attention_broker_server
