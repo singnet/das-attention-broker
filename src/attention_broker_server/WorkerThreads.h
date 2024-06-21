@@ -1,5 +1,5 @@
-#ifndef _ATTENTION_BROKER_SERVER_WORKERTHREADPOOL_H
-#define _ATTENTION_BROKER_SERVER_WORKERTHREADPOOL_H
+#ifndef _ATTENTION_BROKER_SERVER_WORKERTHREADS_H
+#define _ATTENTION_BROKER_SERVER_WORKERTHREADS_H
 
 #include <iostream>
 #include <chrono>
@@ -16,12 +16,12 @@ namespace attention_broker_server {
 /**
  *
  */
-class WorkerThreadPool {
+class WorkerThreads {
 
 public:
 
-    WorkerThreadPool(RequestQueue *stimulus, RequestQueue *correlation);
-    ~WorkerThreadPool();
+    WorkerThreads(RequestQueue *stimulus, RequestQueue *correlation);
+    ~WorkerThreads();
 
     void graceful_stop();
 
@@ -45,4 +45,4 @@ private:
 
 } // namespace attention_broker_server
 
-#endif // _ATTENTION_BROKER_SERVER_WORKERTHREADPOOL_H
+#endif // _ATTENTION_BROKER_SERVER_WORKERTHREADS_H

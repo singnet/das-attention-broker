@@ -3,7 +3,7 @@
 #include "AttentionBrokerServer.h"
 #include "Utils.h"
 #include "RequestSelector.h"
-#include "WorkerThreadPool.h"
+#include "WorkerThreads.h"
 
 using namespace attention_broker_server;
 using namespace std;
@@ -11,14 +11,14 @@ using namespace std;
 // --------------------------------------------------------------------------------
 // Public methods
 
-WorkerThreadPool::WorkerThreadPool(RequestQueue *stimulus, RequestQueue *correlation) {
+WorkerThreads::WorkerThreads(RequestQueue *stimulus, RequestQueue *correlation) {
     cout << "Building thread pool" << endl;
     stimulus_requests = stimulus;
     correlation_requests = correlation;
     threads_count = AttentionBrokerServer::WORKER_THREADS_COUNT;
     for (unsigned int i = 0; i < threads_count; i++) {
         threads.push_back(new thread(
-            &WorkerThreadPool::worker_thread, 
+            &WorkerThreads::worker_thread, 
             this, 
             i,
             stimulus_requests,
@@ -26,10 +26,10 @@ WorkerThreadPool::WorkerThreadPool(RequestQueue *stimulus, RequestQueue *correla
     }
 }
 
-WorkerThreadPool::~WorkerThreadPool() {
+WorkerThreads::~WorkerThreads() {
 }
 
-void WorkerThreadPool::graceful_stop() {
+void WorkerThreads::graceful_stop() {
     stop_flag_mutex.lock();
     stop_flag = true;
     stop_flag_mutex.unlock();
@@ -41,7 +41,7 @@ void WorkerThreadPool::graceful_stop() {
 // --------------------------------------------------------------------------------
 // Private methods
 
-void WorkerThreadPool::worker_thread(
+void WorkerThreads::worker_thread(
     unsigned int thread_id, 
     RequestQueue *stimulus_requests, 
     RequestQueue *correlation_requests) {
@@ -77,4 +77,5 @@ void WorkerThreadPool::worker_thread(
             stop_flag_mutex.unlock();
         }
     }
+    delete selector;
 }
