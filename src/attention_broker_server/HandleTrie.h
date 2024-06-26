@@ -24,49 +24,20 @@ public:
     class TrieNode {
         public:
             TrieNode();
-            virtual ~TrieNode();
-            virtual void insert(
-                unsigned char *key, 
-                unsigned int last_char, 
-                unsigned int cursor, 
-                TrieValue *value) = 0;
-            virtual TrieValue *lookup(
-                unsigned char *key,
-                unsigned int last_char,
-                unsigned int cursor) = 0;
-    };
-
-    class InternalTrieNode : public TrieNode {
-        public:
-            InternalTrieNode();
-            ~InternalTrieNode();
-            virtual void insert(
+            ~TrieNode();
+            void insert(
                 unsigned char *key, 
                 unsigned int last_char, 
                 unsigned int cursor, 
                 TrieValue *value);
-            virtual TrieValue *lookup(
+            TrieValue *lookup(
                 unsigned char *key,
                 unsigned int last_char,
                 unsigned int cursor);
             TrieNode **children;
-    };
-
-    class TrieLeaf : public TrieNode {
-        public:
-            TrieLeaf(TrieValue *value);
-            ~TrieLeaf();
-            virtual void insert(
-                unsigned char *key, 
-                unsigned int last_char, 
-                unsigned int cursor, 
-                TrieValue *value);
-            virtual TrieValue *lookup(
-                unsigned char *key,
-                unsigned int last_char,
-                unsigned int cursor);
             TrieValue *value;
-            //string suffix;
+            string suffix;
+            unsigned char suffix_start;
     };
 
     TrieNode *root;
@@ -82,22 +53,22 @@ private:
     static unsigned char TLB[256];
     static bool TLB_INITIALIZED;
     static void TLB_INIT() {
-        TLB['0'] = 0;
-        TLB['1'] = 1;
-        TLB['2'] = 2;
-        TLB['3'] = 3;
-        TLB['4'] = 4;
-        TLB['5'] = 5;
-        TLB['6'] = 6;
-        TLB['7'] = 7;
-        TLB['8'] = 8;
-        TLB['9'] = 9;
-        TLB['a'] = TLB['A'] = 10;
-        TLB['b'] = TLB['B'] = 11;
-        TLB['c'] = TLB['C'] = 12;
-        TLB['d'] = TLB['D'] = 13;
-        TLB['e'] = TLB['E'] = 14;
-        TLB['f'] = TLB['F'] = 15;
+        TLB[(unsigned char) '0'] = 0;
+        TLB[(unsigned char) '1'] = 1;
+        TLB[(unsigned char) '2'] = 2;
+        TLB[(unsigned char) '3'] = 3;
+        TLB[(unsigned char) '4'] = 4;
+        TLB[(unsigned char) '5'] = 5;
+        TLB[(unsigned char) '6'] = 6;
+        TLB[(unsigned char) '7'] = 7;
+        TLB[(unsigned char) '8'] = 8;
+        TLB[(unsigned char) '9'] = 9;
+        TLB[(unsigned char) 'a'] = TLB[(unsigned char) 'A'] = 10;
+        TLB[(unsigned char) 'b'] = TLB[(unsigned char) 'B'] = 11;
+        TLB[(unsigned char) 'c'] = TLB[(unsigned char) 'C'] = 12;
+        TLB[(unsigned char) 'd'] = TLB[(unsigned char) 'D'] = 13;
+        TLB[(unsigned char) 'e'] = TLB[(unsigned char) 'E'] = 14;
+        TLB[(unsigned char) 'f'] = TLB[(unsigned char) 'F'] = 15;
         TLB_INITIALIZED = true;
     }
 };

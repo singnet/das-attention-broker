@@ -11,12 +11,12 @@ using namespace std;
 class TestValue: public HandleTrie::TrieValue {
     public:
         unsigned int count;
-        TestValue() {
-            count = 1;
+        TestValue(int count = 1) {
+            this->count = count;
         }
 };
 
-unsigned char TLB[16] = {
+char R_TLB[16] = {
     '0',
     '1',
     '2',
@@ -35,11 +35,75 @@ unsigned char TLB[16] = {
     'f',
 };
 
-/*
 TEST(HandleTrieTest, Basics) {
     
+    HandleTrie trie(4);
+    TestValue *value;
+
+    trie.insert("ABCD", new TestValue(3));
+    value = (TestValue *) trie.lookup("ABCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 3);
+    value = (TestValue *) trie.lookup("ABCX");
+    EXPECT_TRUE(value == NULL);
+
+    trie.insert("ABCX", new TestValue(4));
+    value = (TestValue *) trie.lookup("ABCX");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 4);
+    value = (TestValue *) trie.lookup("ABCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 3);
+
+    trie.insert("ABXD", new TestValue(5));
+    value = (TestValue *) trie.lookup("ABXD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 5);
+
+    trie.insert("XBCD", new TestValue(6));
+    value = (TestValue *) trie.lookup("XBCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 6);
+
+    trie.insert("AXCD", new TestValue(7));
+    value = (TestValue *) trie.lookup("AXCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 7);
+
+    value = (TestValue *) trie.lookup("ABCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 3);
+    value = (TestValue *) trie.lookup("ABCX");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 4);
+    value = (TestValue *) trie.lookup("ABXD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 5);
+    value = (TestValue *) trie.lookup("XBCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 6);
+    value = (TestValue *) trie.lookup("AXCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 7);
+
+    value = (TestValue *) trie.lookup("ABXX");
+    EXPECT_TRUE(value == NULL);
+    value = (TestValue *) trie.lookup("AXCX");
+    EXPECT_TRUE(value == NULL);
+    value = (TestValue *) trie.lookup("AXXD");
+    EXPECT_TRUE(value == NULL);
+    value = (TestValue *) trie.lookup("XBCX");
+    EXPECT_TRUE(value == NULL);
+    value = (TestValue *) trie.lookup("XBXD");
+    EXPECT_TRUE(value == NULL);
+    value = (TestValue *) trie.lookup("XXCD");
+    EXPECT_TRUE(value == NULL);
+}
+
+TEST(HandleTrieTest, RandomStress) {
+    
     char buffer[1000];
-    map<string, int> baseline;
+    map<string, unsigned int> baseline;
     TestValue *value;
 
     for (unsigned int key_size: {2, 5, 10, 100}) {
@@ -47,7 +111,7 @@ TEST(HandleTrieTest, Basics) {
         HandleTrie *trie = new HandleTrie(key_size);
         for (unsigned int i = 0; i < 100000; i++) {
             for (unsigned int j = 0; j < key_size; j++) {
-                buffer[j] = TLB[(rand() % 16)];
+                buffer[j] = R_TLB[(rand() % 16)];
             }
             buffer[key_size] = 0;
             string s = buffer;
@@ -65,6 +129,7 @@ TEST(HandleTrieTest, Basics) {
         }
         for (auto const& pair : baseline) {
             value = (TestValue *) trie->lookup(pair.first);
+            EXPECT_TRUE(value != NULL);
             EXPECT_EQ(pair.second, value->count);
         }
         delete trie;
@@ -82,7 +147,7 @@ TEST(HandleTrieTest, hasher) {
         HandleTrie *trie = new HandleTrie(key_size);
         for (unsigned int i = 0; i < 100000; i++) {
             for (unsigned int j = 0; j < key_size; j++) {
-                buffer[j] = TLB[(rand() % 16)];
+                buffer[j] = R_TLB[(rand() % 16)];
             }
             buffer[key_size] = 0;
             string s = buffer;
@@ -100,13 +165,11 @@ TEST(HandleTrieTest, hasher) {
         }
         for (auto const& pair : baseline) {
             value = (TestValue *) trie->lookup(pair.first);
-            //cout << pair.second << " " << value->count << endl;
             EXPECT_EQ(pair.second, value->count);
         }
         delete trie;
     }
 }
-*/
 
 TEST(HandleTrieTest, benchmark) {
     char buffer[1000];
@@ -114,14 +177,14 @@ TEST(HandleTrieTest, benchmark) {
     TestValue *value;
     StopWatch timer_std;
     StopWatch timer_trie;
-    unsigned int n_insertions = 200000;
+    unsigned int n_insertions = 1000000;
 
     timer_std.start();
-    for (unsigned int key_count: {1, 2}) {
+    for (unsigned int key_count: {1, 2, 5}) {
         unsigned int key_size = (HANDLE_HASH_SIZE - 1) * key_count;
         for (unsigned int i = 0; i < n_insertions; i++) {
             for (unsigned int j = 0; j < key_size; j++) {
-                buffer[j] = TLB[(rand() % 16)];
+                buffer[j] = R_TLB[(rand() % 16)];
             }
             buffer[key_size] = 0;
             string s = buffer;
@@ -135,12 +198,12 @@ TEST(HandleTrieTest, benchmark) {
 
 
     timer_trie.start();
-    for (unsigned int key_count: {1, 2}) {
+    for (unsigned int key_count: {1, 2, 5}) {
         unsigned int key_size = (HANDLE_HASH_SIZE - 1) * key_count;
         HandleTrie *trie = new HandleTrie(key_size);
         for (unsigned int i = 0; i < n_insertions; i++) {
             for (unsigned int j = 0; j < key_size; j++) {
-                buffer[j] = TLB[(rand() % 16)];
+                buffer[j] = R_TLB[(rand() % 16)];
             }
             buffer[key_size] = 0;
             string s = buffer;
@@ -154,7 +217,9 @@ TEST(HandleTrieTest, benchmark) {
         }
     }
     timer_trie.stop();
+    cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
     cout << "stdlib: " + timer_std.str_time() << endl;
     cout << "trie: " + timer_trie.str_time() << endl;
-    EXPECT_EQ(true, false);
+    cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
+    //EXPECT_EQ(true, false);
 }
