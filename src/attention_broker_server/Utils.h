@@ -2,10 +2,26 @@
 #define _ATTENTION_BROKER_SERVER_UTILS_H
 
 #include <string>
+#include <chrono>
 
 using namespace std;
 
 namespace attention_broker_server {
+
+class StopWatch {
+    public:
+        StopWatch();
+        ~StopWatch();
+        void start();
+        void stop();
+        void reset();
+        unsigned long milliseconds();
+        string str_time();
+    private:
+        bool running;
+        chrono::steady_clock::time_point start_time;
+        chrono::steady_clock::duration accumulator;
+};
 
 /**
  *

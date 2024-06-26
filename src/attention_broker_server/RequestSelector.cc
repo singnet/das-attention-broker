@@ -28,6 +28,10 @@ EvenThreadCount::EvenThreadCount(
     even_thread_id = ((thread_id % 2) == 0);
 }
 
+EvenThreadCount::~EvenThreadCount() {
+}
+
+
 RequestSelector *RequestSelector::factory(
     SelectorType selector_type, 
     unsigned int thread_id, 

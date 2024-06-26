@@ -12,7 +12,9 @@ cc_test(
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
         "//attention_broker_server:attention_broker_server_lib",
+        "@mbedcrypto//:lib",
     ],
+    linkstatic = 1
 )
 
 cc_test(
@@ -29,7 +31,9 @@ cc_test(
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
         "//attention_broker_server:attention_broker_server_lib",
+        "@mbedcrypto//:lib",
     ],
+    linkstatic = 1
 )
 
 cc_test(
@@ -46,7 +50,9 @@ cc_test(
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
         "//attention_broker_server:attention_broker_server_lib",
+        "@mbedcrypto//:lib",
     ],
+    linkstatic = 1
 )
 
 cc_test(
@@ -63,5 +69,26 @@ cc_test(
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
         "//attention_broker_server:attention_broker_server_lib",
+        "@mbedcrypto//:lib",
     ],
+    linkstatic = 1
+)
+
+cc_test(
+    name = "handle_trie_test",
+    srcs = ["handle_trie_test.cc"],
+    size = "small",
+    copts = [
+      "-Iexternal/gtest/googletest/include",
+      "-Iexternal/gtest/googletest",
+    ],
+    deps = [
+        "@com_github_google_googletest//:gtest_main",
+        "@com_github_singnet_das_proto//:attention_broker_cc_grpc",
+        "@com_github_grpc_grpc//:grpc++",
+        "@com_github_grpc_grpc//:grpc++_reflection",
+        "//attention_broker_server:attention_broker_server_lib",
+        "@mbedcrypto//:lib",
+    ],
+    linkstatic = 1
 )
