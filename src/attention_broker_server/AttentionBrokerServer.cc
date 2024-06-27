@@ -8,7 +8,7 @@ using namespace attention_broker_server;
 AttentionBrokerServer::AttentionBrokerServer() {
     stimulus_requests = new RequestQueue(REQUEST_QUEUE_INTIAL_SIZE);
     correlation_requests = new RequestQueue(REQUEST_QUEUE_INTIAL_SIZE);
-    worker_threads = new WorkerThreadPool(stimulus_requests, correlation_requests);
+    worker_threads = new WorkerThreads(stimulus_requests, correlation_requests);
 }
 
 AttentionBrokerServer::~AttentionBrokerServer() {

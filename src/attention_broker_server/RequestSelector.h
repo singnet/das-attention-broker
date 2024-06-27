@@ -23,7 +23,7 @@ class RequestSelector {
 public:
 
     RequestSelector(unsigned int thread_id, RequestQueue *stimulus, RequestQueue *correlation);
-    ~RequestSelector();
+    virtual ~RequestSelector();
 
     static RequestSelector *factory(
         SelectorType selector_type, 
@@ -43,6 +43,8 @@ protected:
 class EvenThreadCount : public RequestSelector {
 
 public:
+
+    ~EvenThreadCount();
 
     EvenThreadCount(unsigned int thread_id, RequestQueue *stimulus, RequestQueue *correlation);
     pair<RequestType, void *> next();

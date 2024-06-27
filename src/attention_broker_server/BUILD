@@ -9,5 +9,6 @@ cc_library(
         "@com_github_singnet_das_proto//:attention_broker_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
+        "//hasher:hasher_lib"
     ],
 )
