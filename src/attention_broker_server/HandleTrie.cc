@@ -60,6 +60,7 @@ void HandleTrie::insert(string key, TrieValue *value) {
     TrieNode *child;
     TrieNode *split;
     unsigned char key_cursor = 0;
+    tree_cursor->trie_node_mutex.lock();
     while (true) {
         unsigned char c = TLB[(unsigned char) key[key_cursor]];
         if (tree_cursor->children[c] == NULL) {
@@ -67,10 +68,12 @@ void HandleTrie::insert(string key, TrieValue *value) {
                 unsigned char c_key_pred  = TLB[(unsigned char) key[key_cursor -1]];
                 if (key[key_cursor] == tree_cursor->suffix[key_cursor]) {
                     child = new TrieNode();
+                    child->trie_node_mutex.lock();
                     child->children[c] = tree_cursor;
-                    parent->children[c_key_pred] = child;
-                    parent = child;
                     tree_cursor->suffix_start++;
+                    parent->children[c_key_pred] = child;
+                    parent->trie_node_mutex.unlock();
+                    parent = child;
                     key_cursor++;
                 } else {
                     child = new TrieNode();
@@ -83,6 +86,10 @@ void HandleTrie::insert(string key, TrieValue *value) {
                     split->children[c] = child;
                     split->children[c_tree_cursor] = tree_cursor;
                     parent->children[c_key_pred] = split;
+                    parent->trie_node_mutex.unlock();
+                    if (tree_cursor != parent) {
+                        tree_cursor->trie_node_mutex.unlock();
+                    }
                     break;
                 }
             } else {
@@ -91,11 +98,38 @@ void HandleTrie::insert(string key, TrieValue *value) {
                 child->suffix_start = key_cursor + 1;
                 child->value = value;
                 tree_cursor->children[c] = child;
+                parent->trie_node_mutex.unlock();
+                if (tree_cursor != parent) {
+                    tree_cursor->trie_node_mutex.unlock();
+                }
                 break;
             }
         } else {
+            if (tree_cursor != parent) {
+                parent->trie_node_mutex.unlock();
+            }
             parent = tree_cursor;
             tree_cursor = tree_cursor->children[c];
+            tree_cursor->trie_node_mutex.lock();
+            if (tree_cursor->suffix_start > 0) {
+                bool match = true;
+                unsigned int n = key.size();
+                for (unsigned int i = key_cursor; i < n; i++) {
+                    if (key[i] != tree_cursor->suffix[i]) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) {
+                    tree_cursor->value->merge(value);
+                    if (tree_cursor != parent) {
+                        parent->trie_node_mutex.unlock();
+                    }
+                    tree_cursor->trie_node_mutex.unlock();
+                    break;
+                }
+            }
+            tree_cursor->trie_node_mutex.unlock();
             key_cursor++;
         }
     }
@@ -108,7 +142,9 @@ HandleTrie::TrieValue *HandleTrie::lookup(string key) {
     }
 
     TrieNode *tree_cursor = root;
+    TrieValue *value;
     unsigned char key_cursor = 0;
+    tree_cursor->trie_node_mutex.lock();
     while (tree_cursor != NULL) {
         if (tree_cursor->suffix_start > 0) {
             bool match = true;
@@ -116,17 +152,25 @@ HandleTrie::TrieValue *HandleTrie::lookup(string key) {
             for (unsigned int i = key_cursor; i < n; i++) {
                 if (key[i] != tree_cursor->suffix[i]) {
                     match = false;
+                    break;
                 }
             }
             if (match) {
-                return tree_cursor->value;
+                value = tree_cursor->value;
             } else {
-                return NULL;
+                value = NULL;
             }
+            tree_cursor->trie_node_mutex.unlock();
+            return value;
         } else {
             unsigned char c = TLB[(unsigned char) key[key_cursor]];
-            tree_cursor = tree_cursor->children[c];
+            TrieNode *child = tree_cursor->children[c];
+            tree_cursor->trie_node_mutex.unlock();
+            tree_cursor = child;
             key_cursor++;
+            if (tree_cursor != NULL) {
+                tree_cursor->trie_node_mutex.lock();
+            }
         }
     }
     return NULL;

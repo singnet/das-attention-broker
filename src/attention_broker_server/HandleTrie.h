@@ -1,6 +1,8 @@
 #ifndef _ATTENTION_BROKER_SERVER_HANDLETRIE_H
 #define _ATTENTION_BROKER_SERVER_HANDLETRIE_H
 
+#include <mutex>
+
 #define TRIE_ALPHABET_SIZE ((unsigned int) 16)
 
 using namespace std;
@@ -19,6 +21,7 @@ public:
             TrieValue();
         public:
             virtual ~TrieValue();
+            virtual void merge(TrieValue *other) = 0;
     };
 
     class TrieNode {
@@ -38,6 +41,7 @@ public:
             TrieValue *value;
             string suffix;
             unsigned char suffix_start;
+            mutex trie_node_mutex;
     };
 
     TrieNode *root;
