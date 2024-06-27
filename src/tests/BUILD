@@ -77,7 +77,7 @@ cc_test(
 cc_test(
     name = "handle_trie_test",
     srcs = ["handle_trie_test.cc"],
-    size = "small",
+    size = "medium",
     copts = [
       "-Iexternal/gtest/googletest/include",
       "-Iexternal/gtest/googletest",
