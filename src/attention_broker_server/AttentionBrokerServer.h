@@ -1,9 +1,12 @@
 #ifndef _ATTENTION_BROKER_SERVER_ATTENTIONBROKERSERVER_H
 #define _ATTENTION_BROKER_SERVER_ATTENTIONBROKERSERVER_H
 
+#include <string>
+#include <unordered_map>
 #include "attention_broker.grpc.pb.h"
 #include "RequestQueue.h"
 #include "WorkerThreads.h"
+#include "HebbianNetwork.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -22,6 +25,7 @@ class AttentionBrokerServer final: public AttentionBroker::Service {
 
         static const unsigned int REQUEST_QUEUE_INTIAL_SIZE = 1000;
         static const unsigned int WORKER_THREADS_COUNT = 10;
+        static const string GLOBAL_CONTEXT;
 
         // RPC API
           
@@ -39,6 +43,7 @@ class AttentionBrokerServer final: public AttentionBroker::Service {
         RequestQueue *stimulus_requests;
         RequestQueue *correlation_requests;
         WorkerThreads *worker_threads;
+        unordered_map<string, HebbianNetwork *> hebbian_network;
 };
 
 } // namespace attention_broker_server

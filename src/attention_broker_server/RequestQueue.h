@@ -1,7 +1,6 @@
 #ifndef _ATTENTION_BROKER_SERVER_REQUESTQUEUE_H
 #define _ATTENTION_BROKER_SERVER_REQUESTQUEUE_H
 
-#include <unordered_map>
 #include <mutex>
 
 namespace attention_broker_server {

@@ -122,6 +122,7 @@ void HandleTrie::insert(string key, TrieValue *value) {
                 }
                 if (match) {
                     tree_cursor->value->merge(value);
+                    delete value;
                     if (tree_cursor != parent) {
                         parent->trie_node_mutex.unlock();
                     }
