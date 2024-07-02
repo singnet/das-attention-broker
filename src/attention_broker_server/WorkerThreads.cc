@@ -1,9 +1,11 @@
 #include <cstdlib>
 
 #include "AttentionBrokerServer.h"
+#include "attention_broker.grpc.pb.h"
 #include "Utils.h"
 #include "RequestSelector.h"
 #include "WorkerThreads.h"
+#include "HebbianNetworkUpdater.h"
 
 using namespace attention_broker_server;
 using namespace std;
@@ -52,6 +54,7 @@ void WorkerThreads::worker_thread(
             thread_id,
             stimulus_requests,
             correlation_requests);
+    HebbianNetworkUpdater *updater = HebbianNetworkUpdater::factory(HebbianNetworkUpdaterType::EXACT_COUNT);
     pair<RequestType, void *> request;
     bool stop = false;
     while (! stop) {
@@ -64,6 +67,7 @@ void WorkerThreads::worker_thread(
                 }
                 case RequestType::CORRELATION: {
                     cout << "Thread <" << thread_id << "> processing correlation request" << endl;
+                    //updater->correlation((das::HandleList *) request.second);
                     break;
                 }
                 default: {

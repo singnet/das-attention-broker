@@ -1,6 +1,7 @@
 #ifndef _ATTENTION_BROKER_SERVER_REQUESTSELECTOR_H
 #define _ATTENTION_BROKER_SERVER_REQUESTSELECTOR_H
 
+#include "HebbianNetwork.h"
 #include "RequestQueue.h"
 
 namespace attention_broker_server {
@@ -22,7 +23,6 @@ class RequestSelector {
 
 public:
 
-    RequestSelector(unsigned int thread_id, RequestQueue *stimulus, RequestQueue *correlation);
     virtual ~RequestSelector();
 
     static RequestSelector *factory(
@@ -35,6 +35,7 @@ public:
 
 protected:
 
+    RequestSelector(unsigned int thread_id, RequestQueue *stimulus, RequestQueue *correlation);
     unsigned int thread_id;
     RequestQueue *stimulus;
     RequestQueue *correlation;

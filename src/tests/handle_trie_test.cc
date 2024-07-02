@@ -7,6 +7,7 @@
 #include "Utils.h"
 #include "expression_hasher.h"
 #include "HandleTrie.h"
+#include "RequestSelector.h"
 
 using namespace attention_broker_server;
 using namespace std;
