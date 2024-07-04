@@ -10,7 +10,7 @@
 #include "RequestSelector.h"
 #include "test_utils.h"
 
-#define HANDLE_SPACE_SIZE ((unsigned int) 10)
+#define HANDLE_SPACE_SIZE ((unsigned int) 100)
 
 using namespace attention_broker_server;
 using namespace std;
@@ -295,7 +295,6 @@ TEST(HandleTrieTest, benchmark) {
     }
     timer_std.stop();
 
-
     timer_trie.start();
     for (unsigned int key_count: {1, 2, 5}) {
         unsigned int key_size = (HANDLE_HASH_SIZE - 1) * key_count;
@@ -316,10 +315,10 @@ TEST(HandleTrieTest, benchmark) {
         }
     }
     timer_trie.stop();
-    cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
+    cout << "=======================================================" << endl;
     cout << "stdlib: " + timer_std.str_time() << endl;
     cout << "trie: " + timer_trie.str_time() << endl;
-    cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
+    cout << "=======================================================" << endl;
     //EXPECT_EQ(true, false);
 }
 
@@ -396,10 +395,6 @@ TEST(HandleTrieTest, multithread) {
         }
     }
     timer.stop();
-    cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
-    cout << "total time: " + timer.str_time() << endl;
-    cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
-    //EXPECT_EQ(true, false);
 }
 
 TEST(HandleTrieTest, multithread_limited_handle_set) {
