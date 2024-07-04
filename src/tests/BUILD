@@ -57,7 +57,7 @@ cc_test(
 
 cc_test(
     name = "worker_threads_test",
-    srcs = ["worker_threads_test.cc"],
+    srcs = ["worker_threads_test.cc", "test_utils.cc", "test_utils.h"],
     size = "small",
     copts = [
       "-Iexternal/gtest/googletest/include",
@@ -76,7 +76,7 @@ cc_test(
 
 cc_test(
     name = "handle_trie_test",
-    srcs = ["handle_trie_test.cc"],
+    srcs = ["handle_trie_test.cc", "test_utils.cc", "test_utils.h"],
     size = "medium",
     copts = [
       "-Iexternal/gtest/googletest/include",

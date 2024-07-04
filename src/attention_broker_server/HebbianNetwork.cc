@@ -22,11 +22,8 @@ void HebbianNetwork::add_node(string handle) {
 }
 
 void HebbianNetwork::add_symmetric_edge(string handle1, string handle2) {
-    if (handle1.compare(handle2) < 0) {
-        symmetric_edge_count->insert(handle1 + handle2, new HebbianNetwork::AccumulatorValue());
-    } else {
-        symmetric_edge_count->insert(handle2 + handle1, new HebbianNetwork::AccumulatorValue());
-    }
+    string composite = handle1 + handle2;
+    symmetric_edge_count->insert(composite, new HebbianNetwork::AccumulatorValue());
 }
 
 unsigned int HebbianNetwork::get_node_count(string handle) {
@@ -40,11 +37,13 @@ unsigned int HebbianNetwork::get_node_count(string handle) {
 
 unsigned int HebbianNetwork::get_symmetric_edge_count(string handle1, string handle2) {
     AccumulatorValue *value;
+    string composite;
     if (handle1.compare(handle2) < 0) {
-        value = (AccumulatorValue *) symmetric_edge_count->lookup(handle1 + handle2);
+        composite = handle1 + handle2;
     } else {
-        value = (AccumulatorValue *) symmetric_edge_count->lookup(handle2 + handle1);
+        composite = handle2 + handle1;
     }
+    value = (AccumulatorValue *) symmetric_edge_count->lookup(composite);
     if (value == NULL) {
         return 0;
     } else {

@@ -35,11 +35,14 @@ ExactCountHebbianUpdater::~ExactCountHebbianUpdater() {
 
 void ExactCountHebbianUpdater::correlation(das::HandleList *request) {
     HebbianNetwork *network = (HebbianNetwork *) request->hebbian_network();
-    for (const string &s1: ((das::HandleList *) request)->handle_list()) {
-        network->add_node(s1);
-        for (const string &s2: ((das::HandleList *) request)->handle_list()) {
-            network->add_symmetric_edge(s1, s2);
+    if (network != NULL) {
+        for (const string &s1: ((das::HandleList *) request)->handle_list()) {
+            network->add_node(s1);
+            for (const string &s2: ((das::HandleList *) request)->handle_list()) {
+                if (s1.compare(s2) < 0) {
+                    network->add_symmetric_edge(s1, s2);
+                }
+            }
         }
     }
 }
-

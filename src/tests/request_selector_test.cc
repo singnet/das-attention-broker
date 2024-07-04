@@ -14,7 +14,7 @@ class TestMessage {
         }
 };
 
-TEST(RequestSelectorTest, EvenThreadCount) {
+TEST(RequestSelectorTest, even_thread_count) {
     
     RequestQueue *stimulus = new RequestQueue(1);
     RequestQueue *correlation = new RequestQueue(1);

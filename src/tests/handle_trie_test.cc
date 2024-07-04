@@ -8,6 +8,9 @@
 #include "expression_hasher.h"
 #include "HandleTrie.h"
 #include "RequestSelector.h"
+#include "test_utils.h"
+
+#define HANDLE_SPACE_SIZE ((unsigned int) 10)
 
 using namespace attention_broker_server;
 using namespace std;
@@ -53,7 +56,7 @@ char R_TLB[16] = {
     'f',
 };
 
-TEST(HandleTrieTest, Basics) {
+TEST(HandleTrieTest, basics) {
     
     HandleTrie trie(4);
     TestValue *value;
@@ -196,7 +199,7 @@ TEST(HandleTrieTest, merge) {
     EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XXXX"))->count == 2);
 }
 
-TEST(HandleTrieTest, RandomStress) {
+TEST(HandleTrieTest, random_stress) {
     
     char buffer[1000];
     map<string, unsigned int> baseline;
@@ -348,6 +351,22 @@ void visitor(HandleTrie *trie, unsigned int n_visits) {
     }
 }
 
+void producer2(HandleTrie *trie, unsigned int n_insertions, string *handles) {
+    AccumulatorValue *value;
+    for (unsigned int i = 0; i < n_insertions; i++) {
+        string s = handles[rand() % HANDLE_SPACE_SIZE];
+        value = new AccumulatorValue();
+        trie->insert(s, value);
+    }
+}
+
+void visitor2(HandleTrie *trie, unsigned int n_visits, string *handles) {
+    for (unsigned int i = 0; i < n_visits; i++) {
+        string s = handles[rand() % HANDLE_SPACE_SIZE];
+        trie->lookup(s);
+    }
+}
+
 TEST(HandleTrieTest, multithread) {
     vector<thread *> producers;
     vector<thread *> visitors;
@@ -381,4 +400,36 @@ TEST(HandleTrieTest, multithread) {
     cout << "total time: " + timer.str_time() << endl;
     cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
     //EXPECT_EQ(true, false);
+}
+
+TEST(HandleTrieTest, multithread_limited_handle_set) {
+    string handles[HANDLE_SPACE_SIZE];
+    for (unsigned int i = 0; i < HANDLE_SPACE_SIZE; i++) {
+        handles[i] = random_handle();
+    }
+    vector<thread *> producers;
+    vector<thread *> visitors;
+    unsigned int n_insertions = 100000;
+    unsigned int n_visits = 100000;
+    for (int n_producers: {2, 10, 100}) {
+        for (int n_visitors: {2, 10, 100}) {
+            unsigned int key_size = HANDLE_HASH_SIZE - 1;
+            HandleTrie *trie = new HandleTrie(key_size);
+            for (int i = 0; i < n_producers; i++) {
+                producers.push_back(new thread(&producer2, trie, n_insertions, handles));
+            }
+            for (int i = 0; i < n_visitors; i++) {
+                visitors.push_back(new thread(&visitor2, trie, n_visits, handles));
+            }
+            for (thread *t: producers) {
+                t->join();
+            }
+            for (thread *t: visitors) {
+                t->join();
+            }
+            delete trie;
+            producers.clear();
+            visitors.clear();
+        }
+    }
 }

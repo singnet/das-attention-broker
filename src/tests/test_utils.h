@@ -2,7 +2,9 @@
 #define _ATTENTION_BROKER_SERVER_TESTS_TESTUTILS
 
 #include <string>
+using namespace std;
 
-std::string random_handle();
+string random_handle();
+string prefixed_random_handle(string prefix);
 
 #endif

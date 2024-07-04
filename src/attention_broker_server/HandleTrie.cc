@@ -49,7 +49,7 @@ HandleTrie::~HandleTrie() {
     delete root;
 }
 
-void HandleTrie::insert(string key, TrieValue *value) {
+void HandleTrie::insert(const string &key, TrieValue *value) {
 
     if (key.size() != key_size) {
         Utils::error("Invalid key size: " + to_string(key.size()) + " != " + to_string(key_size));
@@ -107,8 +107,8 @@ void HandleTrie::insert(string key, TrieValue *value) {
         } else {
             if (tree_cursor != parent) {
                 parent->trie_node_mutex.unlock();
+                parent = tree_cursor;
             }
-            parent = tree_cursor;
             tree_cursor = tree_cursor->children[c];
             tree_cursor->trie_node_mutex.lock();
             if (tree_cursor->suffix_start > 0) {
@@ -130,13 +130,12 @@ void HandleTrie::insert(string key, TrieValue *value) {
                     break;
                 }
             }
-            tree_cursor->trie_node_mutex.unlock();
             key_cursor++;
         }
     }
 }
 
-HandleTrie::TrieValue *HandleTrie::lookup(string key) {
+HandleTrie::TrieValue *HandleTrie::lookup(const string &key) {
 
     if (key.size() != key_size) {
         Utils::error("Invalid key size: " + to_string(key.size()) + " != " + to_string(key_size));
