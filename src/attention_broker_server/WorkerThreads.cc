@@ -14,7 +14,6 @@ using namespace std;
 // Public methods
 
 WorkerThreads::WorkerThreads(RequestQueue *stimulus, RequestQueue *correlation) {
-    cout << "Building thread pool" << endl;
     stimulus_requests = stimulus;
     correlation_requests = correlation;
     threads_count = AttentionBrokerServer::WORKER_THREADS_COUNT;
@@ -48,7 +47,6 @@ void WorkerThreads::worker_thread(
     RequestQueue *stimulus_requests, 
     RequestQueue *correlation_requests) {
 
-    cout << "Started thread <" << thread_id << ">" << endl;
     RequestSelector *selector = RequestSelector::factory(
             SelectorType::EVEN_THREAD_COUNT,
             thread_id,
@@ -62,12 +60,10 @@ void WorkerThreads::worker_thread(
         if (request.second != NULL) {
             switch (request.first) {
                 case RequestType::STIMULUS: {
-                    cout << "Thread <" << thread_id << "> processing stimulus request" << endl;
                     break;
                 }
                 case RequestType::CORRELATION: {
-                    cout << "Thread <" << thread_id << "> processing correlation request" << endl;
-                    //updater->correlation((das::HandleList *) request.second);
+                    updater->correlation((das::HandleList *) request.second);
                     break;
                 }
                 default: {
@@ -77,7 +73,9 @@ void WorkerThreads::worker_thread(
         } else {
             this_thread::sleep_for(chrono::milliseconds(100));
             stop_flag_mutex.lock();
-            stop = true;
+            if (stop_flag) {
+                stop = true;
+            }
             stop_flag_mutex.unlock();
         }
     }

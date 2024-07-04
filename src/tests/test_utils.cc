@@ -31,3 +31,18 @@ string random_handle() {
     string s = buffer;
     return s;
 }
+
+string prefixed_random_handle(string prefix) {
+    char buffer[HANDLE_HASH_SIZE];
+    unsigned int key_size = HANDLE_HASH_SIZE - 1;
+    for (unsigned int i = 0; i < key_size; i++) {
+        if (i < prefix.size()) {
+            buffer[i] = prefix[i];
+        } else {
+            buffer[i] = REVERSE_TLB[(rand() % 16)];
+        }
+    }
+    buffer[key_size] = 0;
+    string s = buffer;
+    return s;
+}

@@ -31,7 +31,7 @@ class TestMessage {
         }
 };
 
-TEST(RequestQueueTest, RequestQueues) {
+TEST(RequestQueueTest, basics) {
     
     das::Empty empty;
     das::HandleCount handle_count;
@@ -78,4 +78,3 @@ TEST(RequestQueueTest, RequestQueues) {
     EXPECT_EQ((char *) q1.dequeue(), "13");
     EXPECT_EQ((char *) q1.dequeue(), "14");
 }
-

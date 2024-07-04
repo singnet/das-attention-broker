@@ -49,8 +49,8 @@ public:
 
     HandleTrie(unsigned int key_size);
     ~HandleTrie();
-    void insert(string key, TrieValue *value);
-    TrieValue *lookup(string key);
+    void insert(const string &key, TrieValue *value);
+    TrieValue *lookup(const string &key);
 
 private:
 

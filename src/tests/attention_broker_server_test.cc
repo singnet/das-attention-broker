@@ -15,7 +15,7 @@
 
 using namespace attention_broker_server;
 
-TEST(AttentionBrokerTest, Basics) {
+TEST(AttentionBrokerTest, basics) {
     
     AttentionBrokerServer service;
     das::Empty empty;
