@@ -2,9 +2,10 @@
 #include <set>
 
 #include "gtest/gtest.h"
-#include "test_utils.h"
 #include "Utils.h"
+#include "test_utils.h"
 #include "HebbianNetwork.h"
+#include "expression_hasher.h"
 
 using namespace attention_broker_server;
 
@@ -44,4 +45,49 @@ TEST(HebbianNetwork, basics) {
     EXPECT_TRUE(network.get_symmetric_edge_count(h4, h1) == 1);
     EXPECT_TRUE(network.get_symmetric_edge_count(h1, h5) == 0);
     EXPECT_TRUE(network.get_symmetric_edge_count(h5, h1) == 0);
+}
+
+TEST(HebbianNetwork, stress) {
+    
+    HebbianNetwork network;
+    StopWatch timer_insertion;
+    StopWatch timer_lookup;
+    StopWatch timer_total;
+    unsigned int handle_space_size = 500;
+    unsigned int num_insertions = (handle_space_size * 2) * (handle_space_size * 2);
+    unsigned int num_lookups = 10 * num_insertions;
+
+    string *handles = build_handle_space(handle_space_size);
+
+    timer_insertion.start();
+    timer_total.start();
+
+    for (unsigned int i = 0; i < num_insertions; i++) {
+        string h1 = handles[rand() % handle_space_size];
+        string h2 = handles[rand() % handle_space_size];
+        network.add_node(h1);
+        network.add_node(h2);
+        network.add_symmetric_edge(h1, h2);
+    }
+
+    timer_insertion.stop();
+    timer_lookup.start();
+
+    for (unsigned int i = 0; i < num_lookups; i++) {
+        string h1 = handles[rand() % handle_space_size];
+        string h2 = handles[rand() % handle_space_size];
+        network.get_node_count(h1);
+        network.get_node_count(h2);
+        network.get_symmetric_edge_count(h1, h2);
+    }
+
+    timer_lookup.stop();
+    timer_total.stop();
+
+    cout << "==================================================================" << endl;
+    cout << "Insertions: " << timer_insertion.str_time() << endl;
+    cout << "Lookups: " << timer_lookup.str_time() << endl;
+    cout << "Total: " << timer_total.str_time() << endl;
+    cout << "==================================================================" << endl;
+    //EXPECT_TRUE(false);
 }
