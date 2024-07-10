@@ -6,6 +6,7 @@
 #include "RequestSelector.h"
 #include "WorkerThreads.h"
 #include "HebbianNetworkUpdater.h"
+#include "StimulusSpreader.h"
 
 using namespace attention_broker_server;
 using namespace std;
@@ -53,6 +54,7 @@ void WorkerThreads::worker_thread(
             stimulus_requests,
             correlation_requests);
     HebbianNetworkUpdater *updater = HebbianNetworkUpdater::factory(HebbianNetworkUpdaterType::EXACT_COUNT);
+    StimulusSpreader *stimulus_spreader = StimulusSpreader::factory(StimulusSpreaderType::TOKEN);
     pair<RequestType, void *> request;
     bool stop = false;
     while (! stop) {
@@ -60,6 +62,7 @@ void WorkerThreads::worker_thread(
         if (request.second != NULL) {
             switch (request.first) {
                 case RequestType::STIMULUS: {
+                    stimulus_spreader->spread_stimuli((das::HandleCount *) request.second);
                     break;
                 }
                 case RequestType::CORRELATION: {

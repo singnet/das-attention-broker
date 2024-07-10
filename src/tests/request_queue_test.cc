@@ -1,9 +1,5 @@
 #include "gtest/gtest.h"
 
-#include "common.pb.h"
-#include "attention_broker.grpc.pb.h"
-#include "attention_broker.pb.h"
-
 #include "AttentionBrokerServer.h"
 
 using namespace attention_broker_server;
@@ -34,8 +30,6 @@ class TestMessage {
 TEST(RequestQueueTest, basics) {
     
     das::Empty empty;
-    das::HandleCount handle_count;
-    das::HandleList handle_list;
     das::Ack ack;
 
     TestRequestQueue q1((unsigned int) 5);

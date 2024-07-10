@@ -34,6 +34,7 @@ public:
     ~Utils();
 
     static void error(string msg);
+    static void warning(string msg);
     static bool flip_coin(double true_probability = 0.5);
 };
 

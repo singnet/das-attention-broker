@@ -1,3 +1,4 @@
+#include <iostream>
 #include "HebbianNetwork.h"
 #include "expression_hasher.h"
 
@@ -8,45 +9,70 @@ using namespace attention_broker_server;
 // Public methods
 
 HebbianNetwork::HebbianNetwork() {
-    node_count = new HandleTrie(HANDLE_HASH_SIZE - 1);
-    symmetric_edge_count = new HandleTrie(2 * (HANDLE_HASH_SIZE - 1));
+    nodes = new HandleTrie(HANDLE_HASH_SIZE - 1);
+    edges = new HandleTrie(2 * (HANDLE_HASH_SIZE - 1));
+    tokens_mutex.lock();
+    tokens_to_distribute = 1.0;
+    tokens_mutex.unlock();
 }
 
 HebbianNetwork::~HebbianNetwork() {
-    delete node_count;
-    delete symmetric_edge_count;
+    delete nodes;
+    delete edges;
 }
 
 void HebbianNetwork::add_node(string handle) {
-    node_count->insert(handle, new HebbianNetwork::AccumulatorValue());
+    nodes->insert(handle, new HebbianNetwork::Node());
 }
 
-void HebbianNetwork::add_symmetric_edge(string handle1, string handle2) {
+void HebbianNetwork::add_edge(string handle1, string handle2) {
     string composite = handle1 + handle2;
-    symmetric_edge_count->insert(composite, new HebbianNetwork::AccumulatorValue());
+    edges->insert(composite, new HebbianNetwork::Edge());
 }
 
 unsigned int HebbianNetwork::get_node_count(string handle) {
-    AccumulatorValue *value = (AccumulatorValue *) node_count->lookup(handle);
-    if (value == NULL) {
+    Node *node = (Node *) nodes->lookup(handle);
+    if (node == NULL) {
         return 0;
     } else {
-        return value->count;
+        return node->count;
     }
 }
 
-unsigned int HebbianNetwork::get_symmetric_edge_count(string handle1, string handle2) {
-    AccumulatorValue *value;
+ImportanceType HebbianNetwork::get_node_importance(string handle) {
+    Node *node = (Node *) nodes->lookup(handle);
+    if (node == NULL) {
+        return 0;
+    } else {
+        return node->importance;
+    }
+}
+
+unsigned int HebbianNetwork::get_edge_count(string handle1, string handle2) {
+    Edge *edge;
     string composite;
     if (handle1.compare(handle2) < 0) {
         composite = handle1 + handle2;
     } else {
         composite = handle2 + handle1;
     }
-    value = (AccumulatorValue *) symmetric_edge_count->lookup(composite);
-    if (value == NULL) {
+    edge = (Edge *) edges->lookup(composite);
+    if (edge == NULL) {
         return 0;
     } else {
-        return value->count;
+        return edge->count;
     }
+}
+
+ImportanceType HebbianNetwork::alienate_tokens() {
+    ImportanceType answer;
+    tokens_mutex.lock();
+    answer = tokens_to_distribute;
+    tokens_to_distribute = 0.0;
+    tokens_mutex.unlock();
+    return answer;
+}
+
+void HebbianNetwork::update_nodes(bool (*visit_function)(HandleTrie::TrieNode *node, void *data), void *data) {
+    nodes->traverse(false, visit_function, data);
 }

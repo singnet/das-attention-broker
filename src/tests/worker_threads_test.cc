@@ -116,27 +116,27 @@ TEST(WorkerThreads, hebbian_network_updater_basics) {
     EXPECT_TRUE(network.get_node_count(h5) == 2);
     EXPECT_TRUE(network.get_node_count(h6) == 2);
 
-    EXPECT_TRUE(network.get_symmetric_edge_count(h1, h2) == 2);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h2, h1) == 2);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h1, h3) == 1);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h3, h1) == 1);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h1, h4) == 1);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h4, h1) == 1);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h1, h5) == 1);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h5, h1) == 1);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h2, h5) == 2);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h5, h2) == 2);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h2, h3) == 1);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h3, h2) == 1);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h2, h4) == 1);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h4, h2) == 1);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h3, h4) == 1);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h4, h3) == 1);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h1, h1) == 0);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h2, h2) == 0);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h5, h3) == 0);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h3, h5) == 0);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h6, h6) == 0);
+    EXPECT_TRUE(network.get_edge_count(h1, h2) == 2);
+    EXPECT_TRUE(network.get_edge_count(h2, h1) == 2);
+    EXPECT_TRUE(network.get_edge_count(h1, h3) == 1);
+    EXPECT_TRUE(network.get_edge_count(h3, h1) == 1);
+    EXPECT_TRUE(network.get_edge_count(h1, h4) == 1);
+    EXPECT_TRUE(network.get_edge_count(h4, h1) == 1);
+    EXPECT_TRUE(network.get_edge_count(h1, h5) == 1);
+    EXPECT_TRUE(network.get_edge_count(h5, h1) == 1);
+    EXPECT_TRUE(network.get_edge_count(h2, h5) == 2);
+    EXPECT_TRUE(network.get_edge_count(h5, h2) == 2);
+    EXPECT_TRUE(network.get_edge_count(h2, h3) == 1);
+    EXPECT_TRUE(network.get_edge_count(h3, h2) == 1);
+    EXPECT_TRUE(network.get_edge_count(h2, h4) == 1);
+    EXPECT_TRUE(network.get_edge_count(h4, h2) == 1);
+    EXPECT_TRUE(network.get_edge_count(h3, h4) == 1);
+    EXPECT_TRUE(network.get_edge_count(h4, h3) == 1);
+    EXPECT_TRUE(network.get_edge_count(h1, h1) == 0);
+    EXPECT_TRUE(network.get_edge_count(h2, h2) == 0);
+    EXPECT_TRUE(network.get_edge_count(h5, h3) == 0);
+    EXPECT_TRUE(network.get_edge_count(h3, h5) == 0);
+    EXPECT_TRUE(network.get_edge_count(h6, h6) == 0);
 
     pool->graceful_stop();
 
@@ -209,8 +209,8 @@ TEST(WorkerThreads, hebbian_network_updater_stress) {
             }
             EXPECT_TRUE(network->get_node_count(h1) == node_count[h1]);
             EXPECT_TRUE(network->get_node_count(h2) == node_count[h2]);
-            EXPECT_TRUE(network->get_symmetric_edge_count(h1, h2) == edge_count[composite]);
-            EXPECT_TRUE(network->get_symmetric_edge_count(h2, h1) == edge_count[composite]);
+            EXPECT_TRUE(network->get_edge_count(h1, h2) == edge_count[composite]);
+            EXPECT_TRUE(network->get_edge_count(h2, h1) == edge_count[composite]);
         }
     }
     pool->graceful_stop();

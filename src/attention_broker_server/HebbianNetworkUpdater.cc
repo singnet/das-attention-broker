@@ -40,7 +40,7 @@ void ExactCountHebbianUpdater::correlation(das::HandleList *request) {
             network->add_node(s1);
             for (const string &s2: ((das::HandleList *) request)->handle_list()) {
                 if (s1.compare(s2) < 0) {
-                    network->add_symmetric_edge(s1, s2);
+                    network->add_edge(s1, s2);
                 }
             }
         }

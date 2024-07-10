@@ -10,7 +10,7 @@
 #include "RequestSelector.h"
 #include "test_utils.h"
 
-#define HANDLE_SPACE_SIZE ((unsigned int) 10)
+#define HANDLE_SPACE_SIZE ((unsigned int) 100)
 
 using namespace attention_broker_server;
 using namespace std;
@@ -56,6 +56,25 @@ char R_TLB[16] = {
     'f',
 };
 
+bool visit1(HandleTrie::TrieNode *node, void *data) {
+    TestValue *value = (TestValue *) node->value;
+    value->count += *((unsigned int *) data);
+    return false;
+}
+
+bool visit2(HandleTrie::TrieNode *node, void *data) {
+    TestValue *value = (TestValue *) node->value;
+    value->count += 1;
+    return false;
+}
+
+void visitor3(HandleTrie *trie, unsigned int n) {
+    for (unsigned int i = 0; i < n; i++) {
+        trie->traverse(Utils::flip_coin(), &visit2, NULL);
+    }
+}
+
+
 TEST(HandleTrieTest, basics) {
     
     HandleTrie trie(4);
@@ -65,60 +84,164 @@ TEST(HandleTrieTest, basics) {
     value = (TestValue *) trie.lookup("ABCD");
     EXPECT_TRUE(value != NULL);
     EXPECT_TRUE(value->count == 3);
-    value = (TestValue *) trie.lookup("ABCX");
+    value = (TestValue *) trie.lookup("ABCF");
     EXPECT_TRUE(value == NULL);
 
-    trie.insert("ABCX", new TestValue(4));
-    value = (TestValue *) trie.lookup("ABCX");
+    trie.insert("ABCF", new TestValue(4));
+    value = (TestValue *) trie.lookup("ABCF");
     EXPECT_TRUE(value != NULL);
     EXPECT_TRUE(value->count == 4);
     value = (TestValue *) trie.lookup("ABCD");
     EXPECT_TRUE(value != NULL);
     EXPECT_TRUE(value->count == 3);
 
-    trie.insert("ABXD", new TestValue(5));
-    value = (TestValue *) trie.lookup("ABXD");
+    trie.insert("ABFD", new TestValue(5));
+    value = (TestValue *) trie.lookup("ABFD");
     EXPECT_TRUE(value != NULL);
     EXPECT_TRUE(value->count == 5);
 
-    trie.insert("XBCD", new TestValue(6));
-    value = (TestValue *) trie.lookup("XBCD");
+    trie.insert("FBCD", new TestValue(6));
+    value = (TestValue *) trie.lookup("FBCD");
     EXPECT_TRUE(value != NULL);
     EXPECT_TRUE(value->count == 6);
 
-    trie.insert("AXCD", new TestValue(7));
-    value = (TestValue *) trie.lookup("AXCD");
+    trie.insert("AFCD", new TestValue(7));
+    value = (TestValue *) trie.lookup("AFCD");
     EXPECT_TRUE(value != NULL);
     EXPECT_TRUE(value->count == 7);
 
     value = (TestValue *) trie.lookup("ABCD");
     EXPECT_TRUE(value != NULL);
     EXPECT_TRUE(value->count == 3);
-    value = (TestValue *) trie.lookup("ABCX");
+    value = (TestValue *) trie.lookup("ABCF");
     EXPECT_TRUE(value != NULL);
     EXPECT_TRUE(value->count == 4);
-    value = (TestValue *) trie.lookup("ABXD");
+    value = (TestValue *) trie.lookup("ABFD");
     EXPECT_TRUE(value != NULL);
     EXPECT_TRUE(value->count == 5);
-    value = (TestValue *) trie.lookup("XBCD");
+    value = (TestValue *) trie.lookup("FBCD");
     EXPECT_TRUE(value != NULL);
     EXPECT_TRUE(value->count == 6);
-    value = (TestValue *) trie.lookup("AXCD");
+    value = (TestValue *) trie.lookup("AFCD");
     EXPECT_TRUE(value != NULL);
     EXPECT_TRUE(value->count == 7);
 
-    value = (TestValue *) trie.lookup("ABXX");
+    value = (TestValue *) trie.lookup("ABFF");
     EXPECT_TRUE(value == NULL);
-    value = (TestValue *) trie.lookup("AXCX");
+    value = (TestValue *) trie.lookup("AFCF");
     EXPECT_TRUE(value == NULL);
-    value = (TestValue *) trie.lookup("AXXD");
+    value = (TestValue *) trie.lookup("AFFD");
     EXPECT_TRUE(value == NULL);
-    value = (TestValue *) trie.lookup("XBCX");
+    value = (TestValue *) trie.lookup("FBCF");
     EXPECT_TRUE(value == NULL);
-    value = (TestValue *) trie.lookup("XBXD");
+    value = (TestValue *) trie.lookup("FBFD");
     EXPECT_TRUE(value == NULL);
-    value = (TestValue *) trie.lookup("XXCD");
+    value = (TestValue *) trie.lookup("FFCD");
     EXPECT_TRUE(value == NULL);
+
+    unsigned int delta = 7;
+    trie.traverse(false, &visit1, &delta);
+    value = (TestValue *) trie.lookup("ABCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 3 + delta);
+    value = (TestValue *) trie.lookup("ABCF");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 4 + delta);
+    value = (TestValue *) trie.lookup("ABFD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 5 + delta);
+    value = (TestValue *) trie.lookup("FBCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 6 + delta);
+    value = (TestValue *) trie.lookup("AFCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 7 + delta);
+}
+
+TEST(HandleTrieTest, traverse) {
+    
+    HandleTrie trie(4);
+    TestValue *value;
+
+    trie.insert("ABCD", new TestValue(3));
+    value = (TestValue *) trie.lookup("ABCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 3);
+    value = (TestValue *) trie.lookup("ABCF");
+    EXPECT_TRUE(value == NULL);
+
+    trie.insert("ABCF", new TestValue(4));
+    value = (TestValue *) trie.lookup("ABCF");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 4);
+    value = (TestValue *) trie.lookup("ABCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 3);
+
+    trie.insert("ABFD", new TestValue(5));
+    value = (TestValue *) trie.lookup("ABFD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 5);
+
+    trie.insert("FBCD", new TestValue(6));
+    value = (TestValue *) trie.lookup("FBCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 6);
+
+    trie.insert("AFCD", new TestValue(7));
+    value = (TestValue *) trie.lookup("AFCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 7);
+
+    value = (TestValue *) trie.lookup("ABCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 3);
+    value = (TestValue *) trie.lookup("ABCF");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 4);
+    value = (TestValue *) trie.lookup("ABFD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 5);
+    value = (TestValue *) trie.lookup("FBCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 6);
+    value = (TestValue *) trie.lookup("AFCD");
+    EXPECT_TRUE(value != NULL);
+    EXPECT_TRUE(value->count == 7);
+
+    value = (TestValue *) trie.lookup("ABFF");
+    EXPECT_TRUE(value == NULL);
+    value = (TestValue *) trie.lookup("AFCF");
+    EXPECT_TRUE(value == NULL);
+    value = (TestValue *) trie.lookup("AFFD");
+    EXPECT_TRUE(value == NULL);
+    value = (TestValue *) trie.lookup("FBCF");
+    EXPECT_TRUE(value == NULL);
+    value = (TestValue *) trie.lookup("FBFD");
+    EXPECT_TRUE(value == NULL);
+    value = (TestValue *) trie.lookup("FFCD");
+    EXPECT_TRUE(value == NULL);
+
+    vector<thread *> visitors;
+    unsigned int n_visits = 100000;
+    unsigned int n_threads = 32;
+    for (unsigned int i = 0; i < n_threads; i++) {
+        visitors.push_back(new thread(&visitor3, &trie, n_visits));
+    }
+    for (thread *t: visitors) {
+        t->join();
+    }
+
+    value = (TestValue *) trie.lookup("ABCD");
+    EXPECT_TRUE(value->count == 3 + n_visits * n_threads);
+    value = (TestValue *) trie.lookup("ABCF");
+    EXPECT_TRUE(value->count == 4 + n_visits * n_threads);
+    value = (TestValue *) trie.lookup("ABFD");
+    EXPECT_TRUE(value->count == 5 + n_visits * n_threads);
+    value = (TestValue *) trie.lookup("FBCD");
+    EXPECT_TRUE(value->count == 6 + n_visits * n_threads);
+    value = (TestValue *) trie.lookup("AFCD");
+    EXPECT_TRUE(value->count == 7 + n_visits * n_threads);
 }
 
 TEST(HandleTrieTest, merge) {
@@ -126,77 +249,77 @@ TEST(HandleTrieTest, merge) {
     HandleTrie trie(4);
 
     trie.insert("ABCD", new AccumulatorValue());
-    trie.insert("ABCX", new AccumulatorValue());
-    trie.insert("ABXD", new AccumulatorValue());
-    trie.insert("ABXX", new AccumulatorValue());
-    trie.insert("AXCD", new AccumulatorValue());
-    trie.insert("AXCX", new AccumulatorValue());
-    trie.insert("AXXD", new AccumulatorValue());
-    trie.insert("AXXX", new AccumulatorValue());
-    trie.insert("XBCD", new AccumulatorValue());
-    trie.insert("XBCX", new AccumulatorValue());
-    trie.insert("XBXD", new AccumulatorValue());
-    trie.insert("XBXX", new AccumulatorValue());
-    trie.insert("XXCD", new AccumulatorValue());
-    trie.insert("XXCX", new AccumulatorValue());
-    trie.insert("XXXD", new AccumulatorValue());
-    trie.insert("XXXX", new AccumulatorValue());
+    trie.insert("ABCF", new AccumulatorValue());
+    trie.insert("ABFD", new AccumulatorValue());
+    trie.insert("ABFF", new AccumulatorValue());
+    trie.insert("AFCD", new AccumulatorValue());
+    trie.insert("AFCF", new AccumulatorValue());
+    trie.insert("AFFD", new AccumulatorValue());
+    trie.insert("AFFF", new AccumulatorValue());
+    trie.insert("FBCD", new AccumulatorValue());
+    trie.insert("FBCF", new AccumulatorValue());
+    trie.insert("FBFD", new AccumulatorValue());
+    trie.insert("FBFF", new AccumulatorValue());
+    trie.insert("FFCD", new AccumulatorValue());
+    trie.insert("FFCF", new AccumulatorValue());
+    trie.insert("FFFD", new AccumulatorValue());
+    trie.insert("FFFF", new AccumulatorValue());
 
     EXPECT_TRUE(((AccumulatorValue *) trie.lookup("ABCD"))->count == 1);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("ABCX"))->count == 1);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("ABXD"))->count == 1);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("ABXX"))->count == 1);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("AXCD"))->count == 1);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("AXCX"))->count == 1);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("AXXD"))->count == 1);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("AXXX"))->count == 1);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XBCD"))->count == 1);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XBCX"))->count == 1);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XBXD"))->count == 1);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XBXX"))->count == 1);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XXCD"))->count == 1);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XXCX"))->count == 1);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XXXD"))->count == 1);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XXXX"))->count == 1);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("ABCF"))->count == 1);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("ABFD"))->count == 1);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("ABFF"))->count == 1);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("AFCD"))->count == 1);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("AFCF"))->count == 1);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("AFFD"))->count == 1);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("AFFF"))->count == 1);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FBCD"))->count == 1);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FBCF"))->count == 1);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FBFD"))->count == 1);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FBFF"))->count == 1);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FFCD"))->count == 1);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FFCF"))->count == 1);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FFFD"))->count == 1);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FFFF"))->count == 1);
 
-    trie.insert("ABXX", new AccumulatorValue());
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("ABXX"))->count == 2);
-    trie.insert("XXCD", new AccumulatorValue());
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XXCD"))->count == 2);
+    trie.insert("ABFF", new AccumulatorValue());
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("ABFF"))->count == 2);
+    trie.insert("FFCD", new AccumulatorValue());
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FFCD"))->count == 2);
 
     trie.insert("ABCD", new AccumulatorValue());
-    trie.insert("ABCX", new AccumulatorValue());
-    trie.insert("ABXD", new AccumulatorValue());
-    trie.insert("ABXX", new AccumulatorValue());
-    trie.insert("AXCD", new AccumulatorValue());
-    trie.insert("AXCX", new AccumulatorValue());
-    trie.insert("AXXD", new AccumulatorValue());
-    trie.insert("AXXX", new AccumulatorValue());
-    trie.insert("XBCD", new AccumulatorValue());
-    trie.insert("XBCX", new AccumulatorValue());
-    trie.insert("XBXD", new AccumulatorValue());
-    trie.insert("XBXX", new AccumulatorValue());
-    trie.insert("XXCD", new AccumulatorValue());
-    trie.insert("XXCX", new AccumulatorValue());
-    trie.insert("XXXD", new AccumulatorValue());
-    trie.insert("XXXX", new AccumulatorValue());
+    trie.insert("ABCF", new AccumulatorValue());
+    trie.insert("ABFD", new AccumulatorValue());
+    trie.insert("ABFF", new AccumulatorValue());
+    trie.insert("AFCD", new AccumulatorValue());
+    trie.insert("AFCF", new AccumulatorValue());
+    trie.insert("AFFD", new AccumulatorValue());
+    trie.insert("AFFF", new AccumulatorValue());
+    trie.insert("FBCD", new AccumulatorValue());
+    trie.insert("FBCF", new AccumulatorValue());
+    trie.insert("FBFD", new AccumulatorValue());
+    trie.insert("FBFF", new AccumulatorValue());
+    trie.insert("FFCD", new AccumulatorValue());
+    trie.insert("FFCF", new AccumulatorValue());
+    trie.insert("FFFD", new AccumulatorValue());
+    trie.insert("FFFF", new AccumulatorValue());
 
     EXPECT_TRUE(((AccumulatorValue *) trie.lookup("ABCD"))->count == 2);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("ABCX"))->count == 2);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("ABXD"))->count == 2);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("ABXX"))->count == 3);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("AXCD"))->count == 2);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("AXCX"))->count == 2);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("AXXD"))->count == 2);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("AXXX"))->count == 2);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XBCD"))->count == 2);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XBCX"))->count == 2);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XBXD"))->count == 2);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XBXX"))->count == 2);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XXCD"))->count == 3);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XXCX"))->count == 2);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XXXD"))->count == 2);
-    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("XXXX"))->count == 2);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("ABCF"))->count == 2);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("ABFD"))->count == 2);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("ABFF"))->count == 3);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("AFCD"))->count == 2);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("AFCF"))->count == 2);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("AFFD"))->count == 2);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("AFFF"))->count == 2);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FBCD"))->count == 2);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FBCF"))->count == 2);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FBFD"))->count == 2);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FBFF"))->count == 2);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FFCD"))->count == 3);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FFCF"))->count == 2);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FFFD"))->count == 2);
+    EXPECT_TRUE(((AccumulatorValue *) trie.lookup("FFFF"))->count == 2);
 }
 
 TEST(HandleTrieTest, random_stress) {
@@ -295,7 +418,6 @@ TEST(HandleTrieTest, benchmark) {
     }
     timer_std.stop();
 
-
     timer_trie.start();
     for (unsigned int key_count: {1, 2, 5}) {
         unsigned int key_size = (HANDLE_HASH_SIZE - 1) * key_count;
@@ -316,10 +438,10 @@ TEST(HandleTrieTest, benchmark) {
         }
     }
     timer_trie.stop();
-    cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
+    cout << "=======================================================" << endl;
     cout << "stdlib: " + timer_std.str_time() << endl;
     cout << "trie: " + timer_trie.str_time() << endl;
-    cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
+    cout << "=======================================================" << endl;
     //EXPECT_EQ(true, false);
 }
 
@@ -396,10 +518,6 @@ TEST(HandleTrieTest, multithread) {
         }
     }
     timer.stop();
-    cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
-    cout << "total time: " + timer.str_time() << endl;
-    cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
-    //EXPECT_EQ(true, false);
 }
 
 TEST(HandleTrieTest, multithread_limited_handle_set) {

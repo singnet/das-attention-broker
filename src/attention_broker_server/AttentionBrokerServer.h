@@ -29,9 +29,9 @@ class AttentionBrokerServer final: public AttentionBroker::Service {
 
         // RPC API
           
-        Status ping(ServerContext* context, const das::Empty* request, das::Ack* reply) override;
-        Status stimulate(ServerContext* context, const das::HandleCount* request, das::Ack* reply) override;
-        Status correlate(ServerContext* context, const das::HandleList* request, das::Ack* reply) override;
+        Status ping(ServerContext* grpc_context, const das::Empty* request, das::Ack* reply) override;
+        Status stimulate(ServerContext* grpc_context, const das::HandleCount* request, das::Ack* reply) override;
+        Status correlate(ServerContext* grpc_context, const das::HandleList* request, das::Ack* reply) override;
 
         // Other public methods
 
@@ -44,6 +44,8 @@ class AttentionBrokerServer final: public AttentionBroker::Service {
         RequestQueue *correlation_requests;
         WorkerThreads *worker_threads;
         unordered_map<string, HebbianNetwork *> hebbian_network;
+
+        HebbianNetwork *select_hebbian_network(const string &context);
 };
 
 } // namespace attention_broker_server

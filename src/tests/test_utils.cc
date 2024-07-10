@@ -46,3 +46,11 @@ string prefixed_random_handle(string prefix) {
     string s = buffer;
     return s;
 }
+
+string *build_handle_space(unsigned int size) {
+    string *answer = new string[size];
+    for (unsigned int i = 0; i < size; i++) {
+        answer[i] = random_handle();
+    }
+    return answer;
+}
