@@ -32,19 +32,19 @@ TEST(HebbianNetwork, basics) {
     network.add_node(h5);
     EXPECT_TRUE(network.get_node_count(h5) == 1);
 
-    network.add_symmetric_edge(h1, h2);
-    network.add_symmetric_edge(h1, h3);
-    network.add_symmetric_edge(h1, h4);
-    network.add_symmetric_edge(h1, h2);
+    network.add_edge(h1, h2);
+    network.add_edge(h1, h3);
+    network.add_edge(h1, h4);
+    network.add_edge(h1, h2);
 
-    EXPECT_TRUE(network.get_symmetric_edge_count(h1, h2) == 2);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h2, h1) == 2);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h1, h3) == 1);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h3, h1) == 1);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h1, h4) == 1);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h4, h1) == 1);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h1, h5) == 0);
-    EXPECT_TRUE(network.get_symmetric_edge_count(h5, h1) == 0);
+    EXPECT_TRUE(network.get_edge_count(h1, h2) == 2);
+    EXPECT_TRUE(network.get_edge_count(h2, h1) == 2);
+    EXPECT_TRUE(network.get_edge_count(h1, h3) == 1);
+    EXPECT_TRUE(network.get_edge_count(h3, h1) == 1);
+    EXPECT_TRUE(network.get_edge_count(h1, h4) == 1);
+    EXPECT_TRUE(network.get_edge_count(h4, h1) == 1);
+    EXPECT_TRUE(network.get_edge_count(h1, h5) == 0);
+    EXPECT_TRUE(network.get_edge_count(h5, h1) == 0);
 }
 
 TEST(HebbianNetwork, stress) {
@@ -67,7 +67,7 @@ TEST(HebbianNetwork, stress) {
         string h2 = handles[rand() % handle_space_size];
         network.add_node(h1);
         network.add_node(h2);
-        network.add_symmetric_edge(h1, h2);
+        network.add_edge(h1, h2);
     }
 
     timer_insertion.stop();
@@ -78,7 +78,7 @@ TEST(HebbianNetwork, stress) {
         string h2 = handles[rand() % handle_space_size];
         network.get_node_count(h1);
         network.get_node_count(h2);
-        network.get_symmetric_edge_count(h1, h2);
+        network.get_edge_count(h1, h2);
     }
 
     timer_lookup.stop();
@@ -90,4 +90,11 @@ TEST(HebbianNetwork, stress) {
     cout << "Total: " << timer_total.str_time() << endl;
     cout << "==================================================================" << endl;
     //EXPECT_TRUE(false);
+}
+
+TEST(HebbianNetwork, alienate_tokens) {
+    HebbianNetwork network;
+    EXPECT_TRUE(network.alienate_tokens() == 1.0);
+    EXPECT_TRUE(network.alienate_tokens() == 0.0);
+    EXPECT_TRUE(network.alienate_tokens() == 0.0);
 }

@@ -32,7 +32,7 @@ void AttentionBrokerServer::graceful_shutdown() {
 
 // RPC API
 
-Status AttentionBrokerServer::ping(ServerContext* context, const das::Empty *request, das::Ack* reply) {
+Status AttentionBrokerServer::ping(ServerContext* grpc_context, const das::Empty *request, das::Ack* reply) {
     reply->set_msg("PING");
     if (rpc_api_enabled) {
         return Status::OK;
@@ -41,9 +41,12 @@ Status AttentionBrokerServer::ping(ServerContext* context, const das::Empty *req
     }
 }
 
-Status AttentionBrokerServer::stimulate(ServerContext* context, const das::HandleCount *request, das::Ack* reply) {
-    ((das::HandleCount *) request)->set_hebbian_network((long) hebbian_network[GLOBAL_CONTEXT]);
-    stimulus_requests->enqueue((void *) request);
+Status AttentionBrokerServer::stimulate(ServerContext* grpc_context, const das::HandleCount *request, das::Ack* reply) {
+    if (request->handle_count_size() > 0) {
+        HebbianNetwork *network = select_hebbian_network(request->context());
+        ((das::HandleCount *) request)->set_hebbian_network((long) network);
+        stimulus_requests->enqueue((void *) request);
+    }
     reply->set_msg("STIMULATE");
     if (rpc_api_enabled) {
         return Status::OK;
@@ -52,16 +55,38 @@ Status AttentionBrokerServer::stimulate(ServerContext* context, const das::Handl
     }
 }
 
-Status AttentionBrokerServer::correlate(ServerContext* context, const das::HandleList *request, das::Ack* reply) {
-    ((das::HandleList *) request)->set_hebbian_network((long) hebbian_network[GLOBAL_CONTEXT]);
-    correlation_requests->enqueue((void *) request);
+Status AttentionBrokerServer::correlate(ServerContext* grpc_context, const das::HandleList *request, das::Ack* reply) {
+    if (request->handle_list_size() > 0) {
+        HebbianNetwork *network = select_hebbian_network(request->context());
+        ((das::HandleList *) request)->set_hebbian_network((long) network);
+        correlation_requests->enqueue((void *) request);
+    }
     reply->set_msg("CORRELATE");
     if (rpc_api_enabled) {
         return Status::OK;
-    } else{
+    } else {
         return Status::CANCELLED;
     }
 }
 
 // --------------------------------------------------------------------------------
 // Private methods
+//
+
+HebbianNetwork *AttentionBrokerServer::select_hebbian_network(const string &context) {
+    HebbianNetwork *network;
+    if ((context != "") && (hebbian_network.find(context) != hebbian_network.end())) {
+        network = hebbian_network[context];
+    }
+    if (context == "") {
+        network = hebbian_network[GLOBAL_CONTEXT];
+    } else {
+        if (hebbian_network.find(context) == hebbian_network.end()) {
+            network = new HebbianNetwork();
+            hebbian_network[context] = network;
+        } else {
+            network = hebbian_network[context];
+        }
+    }
+    return network;
+}

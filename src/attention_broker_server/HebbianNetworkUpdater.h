@@ -19,7 +19,6 @@ class HebbianNetworkUpdater {
 public:
 
     static HebbianNetworkUpdater *factory(HebbianNetworkUpdaterType instance_type);
-
     virtual ~HebbianNetworkUpdater();
 
     virtual void correlation(das::HandleList* request) = 0;

@@ -44,13 +44,11 @@ public:
             mutex trie_node_mutex;
     };
 
-    TrieNode *root;
-    unsigned int key_size;
-
     HandleTrie(unsigned int key_size);
     ~HandleTrie();
     void insert(const string &key, TrieValue *value);
     TrieValue *lookup(const string &key);
+    void traverse(bool keep_root_locked, bool (*visit_function)(TrieNode *node, void *data), void *data);
 
 private:
 
@@ -75,6 +73,9 @@ private:
         TLB[(unsigned char) 'f'] = TLB[(unsigned char) 'F'] = 15;
         TLB_INITIALIZED = true;
     }
+
+    TrieNode *root;
+    unsigned int key_size;
 };
 
 } // namespace attention_broker_server

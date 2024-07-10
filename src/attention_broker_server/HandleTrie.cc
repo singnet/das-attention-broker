@@ -2,6 +2,7 @@
 #include "expression_hasher.h"
 #include "HandleTrie.h"
 #include <iostream>
+#include <stack>
 
 using namespace attention_broker_server;
 
@@ -17,7 +18,7 @@ HandleTrie::TrieNode::TrieNode() {
         children[i] = NULL;
     }
     this->value = NULL;
-    suffix_start = 0;
+    this->suffix_start = 0;
 }
 
 HandleTrie::TrieNode::~TrieNode() {
@@ -174,4 +175,41 @@ HandleTrie::TrieValue *HandleTrie::lookup(const string &key) {
         }
     }
     return NULL;
+}
+
+void HandleTrie::traverse(bool keep_root_locked, bool (*visit_function)(TrieNode *node, void *data), void *data) {
+    
+    stack<TrieNode *> node_stack;
+    TrieNode *cursor;
+    node_stack.push(root);
+
+    while (! node_stack.empty()) {
+        cursor = node_stack.top();
+        node_stack.pop();
+        cursor->trie_node_mutex.lock();
+        if (cursor->suffix_start > 0) {
+            if (visit_function(cursor, data)) {
+                if (keep_root_locked && (root != cursor)) {
+                    root->trie_node_mutex.unlock();
+                }
+                cursor->trie_node_mutex.unlock();
+                return;
+            }
+        } else {
+            for (unsigned int i = TRIE_ALPHABET_SIZE - 1; ; i--) {
+                if (cursor->children[i] != NULL) {
+                    node_stack.push(cursor->children[i]);
+                }
+                if (i == 0) {
+                    break;
+                }
+            }
+        }
+        if ((! keep_root_locked) || (cursor != root)) {
+            cursor->trie_node_mutex.unlock();
+        }
+    }
+    if (keep_root_locked) {
+        root->trie_node_mutex.unlock();
+    }
 }
