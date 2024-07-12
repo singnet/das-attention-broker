@@ -2,6 +2,7 @@
 #define _ATTENTION_BROKER_SERVER_HANDLETRIE_H
 
 #include <mutex>
+#include <string>
 
 #define TRIE_ALPHABET_SIZE ((unsigned int) 16)
 
@@ -22,33 +23,31 @@ public:
         public:
             virtual ~TrieValue();
             virtual void merge(TrieValue *other) = 0;
+            virtual string to_string();
+
     };
 
     class TrieNode {
         public:
             TrieNode();
             ~TrieNode();
-            void insert(
-                unsigned char *key, 
-                unsigned int last_char, 
-                unsigned int cursor, 
-                TrieValue *value);
-            TrieValue *lookup(
-                unsigned char *key,
-                unsigned int last_char,
-                unsigned int cursor);
+
             TrieNode **children;
             TrieValue *value;
             string suffix;
             unsigned char suffix_start;
             mutex trie_node_mutex;
+
+            string to_string();
     };
 
     HandleTrie(unsigned int key_size);
     ~HandleTrie();
-    void insert(const string &key, TrieValue *value);
+    TrieValue *insert(const string &key, TrieValue *value);
     TrieValue *lookup(const string &key);
     void traverse(bool keep_root_locked, bool (*visit_function)(TrieNode *node, void *data), void *data);
+
+    TrieNode *root;
 
 private:
 
@@ -74,7 +73,6 @@ private:
         TLB_INITIALIZED = true;
     }
 
-    TrieNode *root;
     unsigned int key_size;
 };
 

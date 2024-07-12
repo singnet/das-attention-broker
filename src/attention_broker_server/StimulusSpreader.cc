@@ -52,11 +52,10 @@ void TokenSpreader::distribute_wages(HebbianNetwork *network, das::HandleCount *
             wages.insert(pair.first, new DoubleValue(normalized_amount));
         }
     }
-    network->update_nodes(&deposit_wages, &wages);
+    network->update_nodes(false, &deposit_wages, &wages);
 }
 
 void TokenSpreader::spread_activation() {
-    
 }
 
 void TokenSpreader::spread_stimuli(das::HandleCount *request) {

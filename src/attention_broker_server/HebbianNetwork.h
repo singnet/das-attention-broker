@@ -3,6 +3,7 @@
 
 #include <string>
 #include <mutex>
+#include <forward_list>
 #include "HandleTrie.h"
 
 using namespace std;
@@ -22,14 +23,6 @@ public:
     HebbianNetwork();
     ~HebbianNetwork();
 
-    void add_node(string handle);
-    void add_edge(string handle1, string handle2);
-    unsigned int get_node_count(string handle);
-    ImportanceType get_node_importance(string handle);
-    unsigned int get_edge_count(string handle1, string handle2);
-    ImportanceType alienate_tokens();
-    void update_nodes(bool (*visit_function)(HandleTrie::TrieNode *node, void *data), void *data);
-
     // Node and Link don't inherit from a common "Atom" class to avoid having virtual methods,
     // which couldn't be properly inlined.
 
@@ -45,18 +38,43 @@ public:
             count += ((Node *) other)->count;
             importance += ((Node *) other)->importance;
         }
+        string to_string();
     };
 
     class Edge: public HandleTrie::TrieValue {
         public:
         unsigned int count;
+        Node *node1;
+        Node *node2;
         Edge() {
             count = 1;
+            node1 = node2 = NULL;
         }
         inline void merge(HandleTrie::TrieValue *other) {
             count += ((Edge *) other)->count;
         }
+        string to_string();
     };
+
+    Node *add_node(string handle);
+    Edge *add_edge(string handle1, string handle2, Node *node1, Node *node2);
+    Node *lookup_node(string handle);
+    Edge *lookup_edge(string handle);
+    unsigned int get_node_count(string handle);
+    ImportanceType get_node_importance(string handle);
+    unsigned int get_edge_count(string handle1, string handle2);
+    ImportanceType alienate_tokens();
+    void update_nodes(
+        bool keep_root_locked,
+        bool (*visit_function)(HandleTrie::TrieNode *node, void *data),
+        void *data);
+    void update_neighbors(
+        bool keep_root_locked,
+        bool (*visit_function)(
+            HebbianNetwork::Node *,
+            forward_list<Node *> &targets,
+            void *data),
+        void *data);
 
 private:
 

@@ -29,11 +29,37 @@ HandleTrie::TrieNode::~TrieNode() {
     delete value;
 }
 
+string HandleTrie::TrieValue::to_string() {
+    return "";
+}
+
 bool HandleTrie::TLB_INITIALIZED = false;
 unsigned char HandleTrie::TLB[256];
 
 // --------------------------------------------------------------------------------
 // Public methods
+
+
+string HandleTrie::TrieNode::to_string() {
+    string answer;
+    if (suffix_start == 0) {
+        answer = "''";
+    } else {
+        int n = suffix.size() - suffix_start;
+        answer = suffix.substr(0, suffix_start) + "." + suffix.substr(suffix_start, n);
+    }
+    answer += " [";
+    for (unsigned int i = 0; i < TRIE_ALPHABET_SIZE; i++) {
+        if (children[i] != NULL) {
+            answer += ("*");
+        }
+    }
+    answer += "] ";
+    if (value != NULL) {
+        answer += value->to_string();
+    }
+    return answer;
+}
 
 HandleTrie::HandleTrie(unsigned int key_size) {
     if (key_size == 0 || key_size > 255) {
@@ -50,7 +76,7 @@ HandleTrie::~HandleTrie() {
     delete root;
 }
 
-void HandleTrie::insert(const string &key, TrieValue *value) {
+HandleTrie::TrieValue *HandleTrie::insert(const string &key, TrieValue *value) {
 
     if (key.size() != key_size) {
         Utils::error("Invalid key size: " + to_string(key.size()) + " != " + to_string(key_size));
@@ -91,7 +117,7 @@ void HandleTrie::insert(const string &key, TrieValue *value) {
                     if (tree_cursor != parent) {
                         tree_cursor->trie_node_mutex.unlock();
                     }
-                    break;
+                    return child->value;
                 }
             } else {
                 child = new TrieNode();
@@ -103,7 +129,7 @@ void HandleTrie::insert(const string &key, TrieValue *value) {
                 if (tree_cursor != parent) {
                     tree_cursor->trie_node_mutex.unlock();
                 }
-                break;
+                return child->value;
             }
         } else {
             if (tree_cursor != parent) {
@@ -128,7 +154,7 @@ void HandleTrie::insert(const string &key, TrieValue *value) {
                         parent->trie_node_mutex.unlock();
                     }
                     tree_cursor->trie_node_mutex.unlock();
-                    break;
+                    return tree_cursor->value;
                 }
             }
             key_cursor++;
