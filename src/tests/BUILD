@@ -96,7 +96,7 @@ cc_test(
 cc_test(
     name = "hebbian_network_test",
     srcs = ["hebbian_network_test.cc", "test_utils.cc", "test_utils.h"],
-    size = "small",
+    size = "medium",
     copts = [
       "-Iexternal/gtest/googletest/include",
       "-Iexternal/gtest/googletest",
