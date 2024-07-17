@@ -108,15 +108,18 @@ bool visit1(HandleTrie::TrieNode *node, void *data) {
 }
 
 bool visit2(
-    HebbianNetwork::Node *node, 
+    HandleTrie::TrieNode *node,
+    HebbianNetwork::Node *source, 
     forward_list<HebbianNetwork::Node *> &targets, 
+    unsigned int targets_size,
+    ImportanceType sum_weights,
     void *data) {
 
     unsigned int fan_max = *((unsigned int *) data);
     double stimulus = 1.0 / (double) fan_max;
     for (auto target: targets) {
         target->importance += stimulus;
-        node->importance -= stimulus;
+        source->importance -= stimulus;
     }
     return false;
 }
@@ -154,7 +157,7 @@ TEST(HebbianNetwork, update_neighbors) {
                     }
                 }
                 network->update_nodes(false, &visit1, NULL);
-                network->update_neighbors(false, &visit2, &fan_max);
+                network->update_neighbors(false, true, &visit2, &fan_max);
 
                 for (unsigned int h = 0; h < num_nodes; h++) {
                     ImportanceType v = network->get_node_importance(handles[h]);

@@ -1,8 +1,8 @@
 #include <iostream>
 #include <stack>
 #include "HebbianNetwork.h"
+#include "Utils.h"
 #include "expression_hasher.h"
-
 
 using namespace attention_broker_server;
 
@@ -101,13 +101,13 @@ void HebbianNetwork::update_nodes(
     nodes->traverse(keep_root_locked, visit_function, data);
 }
 
-
 static inline void release_locks(
     HandleTrie::TrieNode *root,
     HandleTrie::TrieNode *cursor,
-    bool keep_root_locked) {
+    bool keep_root_locked,
+    bool release_root_after_end) {
 
-    if (keep_root_locked && (root != cursor)) {
+    if (keep_root_locked && release_root_after_end && (root != cursor)) {
         root->trie_node_mutex.unlock();
     }
     cursor->trie_node_mutex.unlock();
@@ -115,18 +115,28 @@ static inline void release_locks(
 
 void HebbianNetwork::update_neighbors(
     bool keep_root_locked,
+    bool release_root_after_end,
     bool (*visit_function)(
-        HebbianNetwork::Node *,
+        HandleTrie::TrieNode *node,
+        HebbianNetwork::Node *source,
         forward_list<HebbianNetwork::Node *> &targets,
+        unsigned int targets_size,
+        ImportanceType sum_weights,
         void *data),
     void *data) {
 
+    if ((! keep_root_locked) && (! release_root_after_end)) {
+        Utils::error("Invalid parameters: keep_root_locked == " + to_string(keep_root_locked) + \
+                     " release_root_after_end == " + to_string(release_root_after_end));
+    }
     HandleTrie::TrieNode *root = edges->root;
     std::stack<tuple<bool, unsigned int, HandleTrie::TrieNode *>> stack;
     HandleTrie::TrieNode *cursor = NULL;
     HebbianNetwork::Edge *edge_value = NULL;
     HebbianNetwork::Node *source = NULL;
     forward_list<HebbianNetwork::Node *> targets;
+    unsigned int targets_size = 0;
+    ImportanceType sum_weights = 0.0;
     unsigned int level;
     bool second_handle_flag = false;
     unsigned int target_threshold = HANDLE_HASH_SIZE - 1;
@@ -143,28 +153,36 @@ void HebbianNetwork::update_neighbors(
         cursor->trie_node_mutex.lock();
 
         if ((current_state == LOOKING_FOR_SECOND_HANDLE) && ! second_handle_flag) {
-            if (visit_function(source, targets, data)) {
-                release_locks(root, cursor, keep_root_locked);
+            if (visit_function(cursor, source, targets, targets_size, sum_weights, data)) {
+                release_locks(root, cursor, keep_root_locked, release_root_after_end);
                 return;
             }
             current_state = LOOKING_FOR_FIRST_HANDLE;
             targets.clear();
+            targets_size = 0;
+            sum_weights = 0.0;
         }
         if (cursor->suffix_start > 0) {
             if (current_state == LOOKING_FOR_FIRST_HANDLE) {
                 edge_value = (HebbianNetwork::Edge *) cursor->value;
                 source = edge_value->node1;
                 targets.push_front(edge_value->node2);
-                if (visit_function(source, targets, data)) {
-                    release_locks(root, cursor, keep_root_locked);
+                targets_size++;
+                sum_weights += edge_value->count / source->count;
+                if (visit_function(cursor, source, targets, targets_size, sum_weights, data)) {
+                    release_locks(root, cursor, keep_root_locked, release_root_after_end);
                     return;
                 }
                 targets.clear();
+                targets_size = 0;
+                sum_weights = 0;
             } else {
                 // current_state == LOOKING_FOR_SECOND_HANDLE
                 edge_value = (HebbianNetwork::Edge *) cursor->value;
                 source = edge_value->node1;
                 targets.push_front(edge_value->node2);
+                targets_size++;
+                sum_weights += edge_value->count / source->count;
             }
         } else {
             unsigned int deeper_level = level + 1;
@@ -186,10 +204,7 @@ void HebbianNetwork::update_neighbors(
         }
     }
     if (current_state == LOOKING_FOR_SECOND_HANDLE) {
-        visit_function(source, targets, data);
+        visit_function(cursor, source, targets, targets_size, sum_weights, data);
     }
-    release_locks(root, cursor, keep_root_locked);
-    if (keep_root_locked) {
-        root->trie_node_mutex.unlock();
-    }
+    release_locks(root, cursor, keep_root_locked, release_root_after_end);
 }

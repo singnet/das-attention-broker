@@ -2,6 +2,7 @@
 #define _ATTENTION_BROKER_SERVER_STIMULUSSPREADER_H
 
 #include "attention_broker.grpc.pb.h"
+#include "Utils.h"
 #include "HebbianNetwork.h"
 
 using namespace std;
@@ -39,19 +40,33 @@ public:
     TokenSpreader();
     ~TokenSpreader();
 
+    typedef struct {
+        ImportanceType rent_rate;
+        ImportanceType total_rent;
+        HandleTrie *importance_changes;
+        unsigned int fan_max;
+        ImportanceType spreading_rate_lowerbound;
+        ImportanceType spreading_rate_range_size;
+    } StimuliData;
+
     void spread_stimuli(das::HandleCount *request);
     void spread_activation();
-    void distribute_wages(HebbianNetwork *network, das::HandleCount *handle_count, ImportanceType &tokens_to_spread);
+    void distribute_wages(das::HandleCount *handle_count, ImportanceType &total_to_spread, StimuliData *data);
 
-    class DoubleValue: public HandleTrie::TrieValue {
+    class ImportanceChanges: public HandleTrie::TrieValue {
         public:
-            double value;
-            DoubleValue(double v) {
-                value = v;
+            ImportanceType rent;
+            ImportanceType wages;
+            ImportanceChanges(ImportanceType r, ImportanceType w) {
+                rent = r;
+                wages = w;
             }
             void merge(TrieValue *other) {
+                rent += ((ImportanceChanges *) other)->rent;
+                wages += ((ImportanceChanges *) other)->wages;
             }
     };
+
 };
 
 } // namespace attention_broker_server

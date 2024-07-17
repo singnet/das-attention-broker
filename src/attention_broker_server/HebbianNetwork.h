@@ -30,6 +30,7 @@ public:
         public:
         unsigned int count;
         ImportanceType importance;
+        ImportanceType stimuli_to_spread;
         Node() {
             count = 1;
             importance = 0.0;
@@ -70,9 +71,13 @@ public:
         void *data);
     void update_neighbors(
         bool keep_root_locked,
+        bool release_root_after_end,
         bool (*visit_function)(
-            HebbianNetwork::Node *,
+            HandleTrie::TrieNode *node,
+            HebbianNetwork::Node *source,
             forward_list<Node *> &targets,
+            unsigned int targets_size,
+            ImportanceType sum_weights,
             void *data),
         void *data);
 
