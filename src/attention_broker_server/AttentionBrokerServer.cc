@@ -7,6 +7,7 @@ using namespace attention_broker_server;
 // Public methods
   
 const string AttentionBrokerServer::GLOBAL_CONTEXT = "global";
+const double AttentionBrokerServer::RENT_RATE = 0.1;
 
 AttentionBrokerServer::AttentionBrokerServer() {
     stimulus_requests = new RequestQueue(REQUEST_QUEUE_INTIAL_SIZE);

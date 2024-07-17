@@ -25,6 +25,7 @@ class AttentionBrokerServer final: public AttentionBroker::Service {
 
         static const unsigned int REQUEST_QUEUE_INTIAL_SIZE = 1000;
         static const unsigned int WORKER_THREADS_COUNT = 10;
+        static const double RENT_RATE;
         static const string GLOBAL_CONTEXT;
 
         // RPC API
