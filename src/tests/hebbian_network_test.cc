@@ -51,7 +51,7 @@ TEST(HebbianNetwork, basics) {
 }
 
 TEST(HebbianNetwork, stress) {
-    
+
     HebbianNetwork network;
     StopWatch timer_insertion;
     StopWatch timer_lookup;
@@ -157,7 +157,7 @@ TEST(HebbianNetwork, update_neighbors) {
                     }
                 }
                 network->update_nodes(false, &visit1, NULL);
-                network->update_neighbors(false, true, &visit2, &fan_max);
+                network->update_neighbors(false, false, &visit2, &fan_max);
 
                 for (unsigned int h = 0; h < num_nodes; h++) {
                     ImportanceType v = network->get_node_importance(handles[h]);

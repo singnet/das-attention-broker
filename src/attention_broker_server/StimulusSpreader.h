@@ -28,6 +28,7 @@ public:
 protected:
 
     StimulusSpreader();
+    unsigned int fan_max;
 
 private:
 
@@ -49,10 +50,6 @@ public:
         ImportanceType spreading_rate_range_size;
     } StimuliData;
 
-    void spread_stimuli(das::HandleCount *request);
-    void spread_activation();
-    void distribute_wages(das::HandleCount *handle_count, ImportanceType &total_to_spread, StimuliData *data);
-
     class ImportanceChanges: public HandleTrie::TrieValue {
         public:
             ImportanceType rent;
@@ -66,6 +63,9 @@ public:
                 wages += ((ImportanceChanges *) other)->wages;
             }
     };
+
+    void spread_stimuli(das::HandleCount *request);
+    void distribute_wages(das::HandleCount *handle_count, ImportanceType &total_to_spread, StimuliData *data);
 
 };
 

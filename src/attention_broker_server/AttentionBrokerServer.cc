@@ -8,6 +8,8 @@ using namespace attention_broker_server;
   
 const string AttentionBrokerServer::GLOBAL_CONTEXT = "global";
 const double AttentionBrokerServer::RENT_RATE = 0.1;
+const double AttentionBrokerServer::SPREADING_RATE_LOWERBOUND = 0.01;
+const double AttentionBrokerServer::SPREADING_RATE_UPPERBOUND = 0.10;
 
 AttentionBrokerServer::AttentionBrokerServer() {
     stimulus_requests = new RequestQueue(REQUEST_QUEUE_INTIAL_SIZE);

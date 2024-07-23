@@ -23,6 +23,8 @@ public:
     HebbianNetwork();
     ~HebbianNetwork();
 
+    unsigned int fan_max;
+
     // Node and Link don't inherit from a common "Atom" class to avoid having virtual methods,
     // which couldn't be properly inlined.
 
@@ -87,7 +89,6 @@ private:
     HandleTrie *edges;
     ImportanceType tokens_to_distribute;
     mutex tokens_mutex;
-
 };
 
 } // namespace attention_broker_server

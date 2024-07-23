@@ -40,6 +40,9 @@ void ExactCountHebbianUpdater::correlation(das::HandleList *request) {
     if (network != NULL) {
         for (const string &s1: ((das::HandleList *) request)->handle_list()) {
             node1 = network->add_node(s1);
+        }
+        for (const string &s1: ((das::HandleList *) request)->handle_list()) {
+            node1 = network->lookup_node(s1);
             for (const string &s2: ((das::HandleList *) request)->handle_list()) {
                 if (s1.compare(s2) < 0) {
                     node2 = network->lookup_node(s2);

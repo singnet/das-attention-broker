@@ -8,6 +8,7 @@
 #include "test_utils.h"
 #include "expression_hasher.h"
 #include "HebbianNetwork.h"
+#include "HebbianNetworkUpdater.h"
 #include "StimulusSpreader.h"
 
 using namespace attention_broker_server;
@@ -24,7 +25,7 @@ TEST(TokenSpreader, distribute_wages) {
 
     TokenSpreader *spreader;
     ImportanceType tokens_to_spread;
-    das::HandleCount *update;
+    das::HandleCount *request;
     TokenSpreader::StimuliData data;
 
     for (unsigned int i = 0; i < num_tests; i++) {
@@ -32,15 +33,15 @@ TEST(TokenSpreader, distribute_wages) {
         spreader = (TokenSpreader *) StimulusSpreader::factory(StimulusSpreaderType::TOKEN);
 
         tokens_to_spread = 1.0;
-        update = new das::HandleCount();
-        (*update->mutable_handle_count())[handles[0]] = 2;
-        (*update->mutable_handle_count())[handles[1]] = 1;
-        (*update->mutable_handle_count())[handles[2]] = 2;
-        (*update->mutable_handle_count())[handles[3]] = 1;
-        (*update->mutable_handle_count())[handles[4]] = 2;
-        (*update->mutable_handle_count())["SUM"] = 8;
+        request = new das::HandleCount();
+        (*request->mutable_handle_count())[handles[0]] = 2;
+        (*request->mutable_handle_count())[handles[1]] = 1;
+        (*request->mutable_handle_count())[handles[2]] = 2;
+        (*request->mutable_handle_count())[handles[3]] = 1;
+        (*request->mutable_handle_count())[handles[4]] = 2;
+        (*request->mutable_handle_count())["SUM"] = 8;
         data.importance_changes = new HandleTrie(HANDLE_HASH_SIZE - 1);
-        spreader->distribute_wages(update, tokens_to_spread, &data);
+        spreader->distribute_wages(request, tokens_to_spread, &data);
 
         EXPECT_TRUE(importance_equals(((TokenSpreader::ImportanceChanges *) data.importance_changes->lookup(handles[0]))->wages, 0.250));
         EXPECT_TRUE(importance_equals(((TokenSpreader::ImportanceChanges *) data.importance_changes->lookup(handles[1]))->wages, 0.125));
@@ -57,73 +58,73 @@ TEST(TokenSpreader, distribute_wages) {
     }
 }
 
-/*
+static HebbianNetwork *build_test_network(string *handles) {
 
-TEST(TokenSpreader, distribute_wages) {
+    HebbianNetwork *network = new HebbianNetwork();
+    das::HandleList *request;
+    ExactCountHebbianUpdater *updater = \
+        (ExactCountHebbianUpdater *) HebbianNetworkUpdater::factory(HebbianNetworkUpdaterType::EXACT_COUNT);
 
-    unsigned int num_tests = 10000;
-    unsigned int total_nodes = 100;
+    request = new das::HandleList();
+    request->set_hebbian_network((unsigned long) network);
+    request->add_handle_list(handles[0]);
+    request->add_handle_list(handles[1]);
+    request->add_handle_list(handles[2]);
+    request->add_handle_list(handles[3]);
+    updater->correlation(request);
 
-    HebbianNetwork *network;
-    TokenSpreader *spreader;
-    ImportanceType tokens_to_spread;
-    das::HandleCount *update;
-    TokenSpreader::StimuliData data;
+    request = new das::HandleList();
+    request->set_hebbian_network((unsigned long) network);
+    request->add_handle_list(handles[1]);
+    request->add_handle_list(handles[2]);
+    request->add_handle_list(handles[4]);
+    request->add_handle_list(handles[5]);
+    updater->correlation(request);
 
-    for (unsigned int i = 0; i < num_tests; i++) {
-        string *handles = build_handle_space(total_nodes);
-        network = new HebbianNetwork();
-        for (unsigned int j = 0; j < total_nodes; j++) {
-            network->add_node(handles[j]);
-        }
-        spreader = (TokenSpreader *) StimulusSpreader::factory(StimulusSpreaderType::TOKEN);
-
-        tokens_to_spread = 1.0;
-        update = new das::HandleCount();
-        (*update->mutable_handle_count())[handles[0]] = 2;
-        (*update->mutable_handle_count())[handles[1]] = 1;
-        (*update->mutable_handle_count())[handles[2]] = 2;
-        (*update->mutable_handle_count())[handles[3]] = 1;
-        (*update->mutable_handle_count())[handles[4]] = 2;
-        (*update->mutable_handle_count())["SUM"] = 8;
-        data.importance_changes = new HandleTrie(HANDLE_HASH_SIZE - 1);
-        spreader->distribute_wages(update, tokens_to_spread, &data);
-
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[0]), 0.25));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[1]), 0.125));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[2]), 0.25));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[3]), 0.125));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[4]), 0.25));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[5]), 0.0));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[6]), 0.0));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[7]), 0.0));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[8]), 0.0));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[9]), 0.0));
-
-        tokens_to_spread = 0.5;
-        update = new das::HandleCount();
-        (*update->mutable_handle_count())[handles[2]] = 1;
-        (*update->mutable_handle_count())[handles[4]] = 2;
-        (*update->mutable_handle_count())[handles[6]] = 2;
-        (*update->mutable_handle_count())[handles[8]] = 1;
-        (*update->mutable_handle_count())["SUM"] = 6;
-        data.importance_changes = new HandleTrie(HANDLE_HASH_SIZE - 1);
-        spreader->distribute_wages(update, tokens_to_spread, &data);
-
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[0]), 0.25));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[1]), 0.125));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[2]), 0.25 + 0.08333));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[3]), 0.125));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[4]), 0.25 + 0.16666));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[5]), 0.0));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[6]), 0.0 + 0.16666));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[7]), 0.0));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[8]), 0.0 + 0.08333));
-        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[9]), 0.0));
-
-        delete network;
-        delete spreader;
-    }
+    return network;
 }
 
-*/
+TEST(TokenSpreader, spread_stimuli) {
+
+    string *handles = build_handle_space(6, true);
+    for (unsigned int i = 0; i < 6; i++) {
+        cout << i << ": " << handles[i] << endl;
+    }
+
+    HebbianNetwork *network = build_test_network(handles);
+
+    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[0]), 0.0000));
+    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[1]), 0.0000));
+    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[2]), 0.0000));
+    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[3]), 0.0000));
+    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[4]), 0.0000));
+    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[5]), 0.0000));
+
+    das::HandleCount *request;
+    TokenSpreader *spreader = \
+        (TokenSpreader *) StimulusSpreader::factory(StimulusSpreaderType::TOKEN);
+
+    request = new das::HandleCount();
+    request->set_hebbian_network((unsigned long) network);
+    (*request->mutable_handle_count())[handles[0]] = 1;
+    (*request->mutable_handle_count())[handles[1]] = 1;
+    (*request->mutable_handle_count())[handles[2]] = 1;
+    (*request->mutable_handle_count())[handles[3]] = 1;
+    (*request->mutable_handle_count())[handles[4]] = 1;
+    (*request->mutable_handle_count())[handles[5]] = 1;
+    (*request->mutable_handle_count())["SUM"] = 6;
+    spreader->spread_stimuli(request);
+
+    double base_importance = (double) 1 / 6;
+    double expected_importance[6];
+    expected_importance[0] = base_importance ;
+
+    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[0]), 0.0000));
+    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[1]), 0.0000));
+    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[2]), 0.0000));
+    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[3]), 0.0000));
+    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[4]), 0.0000));
+    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[5]), 0.0000));
+
+
+}

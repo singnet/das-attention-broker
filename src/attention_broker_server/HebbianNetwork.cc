@@ -12,6 +12,7 @@ using namespace attention_broker_server;
 HebbianNetwork::HebbianNetwork() {
     nodes = new HandleTrie(HANDLE_HASH_SIZE - 1);
     edges = new HandleTrie(2 * (HANDLE_HASH_SIZE - 1));
+    fan_max = 0;
     tokens_mutex.lock();
     tokens_to_distribute = 1.0;
     tokens_mutex.unlock();
@@ -125,13 +126,14 @@ void HebbianNetwork::update_neighbors(
         void *data),
     void *data) {
 
-    if ((! keep_root_locked) && (! release_root_after_end)) {
+    if ((! keep_root_locked) && release_root_after_end) {
         Utils::error("Invalid parameters: keep_root_locked == " + to_string(keep_root_locked) + \
                      " release_root_after_end == " + to_string(release_root_after_end));
     }
     HandleTrie::TrieNode *root = edges->root;
     std::stack<tuple<bool, unsigned int, HandleTrie::TrieNode *>> stack;
     HandleTrie::TrieNode *cursor = NULL;
+    HandleTrie::TrieNode *previous_cursor = NULL;
     HebbianNetwork::Edge *edge_value = NULL;
     HebbianNetwork::Node *source = NULL;
     forward_list<HebbianNetwork::Node *> targets;
@@ -144,8 +146,10 @@ void HebbianNetwork::update_neighbors(
     State current_state = LOOKING_FOR_FIRST_HANDLE;
 
     stack.push(make_tuple(false, 0, root));
+    cursor = root;
 
     while (! stack.empty()) {
+        previous_cursor = cursor;
         second_handle_flag = get<0>(stack.top());
         level = get<1>(stack.top());
         cursor = get<2>(stack.top());
@@ -153,10 +157,17 @@ void HebbianNetwork::update_neighbors(
         cursor->trie_node_mutex.lock();
 
         if ((current_state == LOOKING_FOR_SECOND_HANDLE) && ! second_handle_flag) {
-            if (visit_function(cursor, source, targets, targets_size, sum_weights, data)) {
-                release_locks(root, cursor, keep_root_locked, release_root_after_end);
+            cursor->trie_node_mutex.unlock();
+            previous_cursor->trie_node_mutex.lock();
+            if (targets_size > fan_max) {
+                fan_max = targets_size;
+            }
+            if (visit_function(previous_cursor, source, targets, targets_size, sum_weights, data)) {
+                release_locks(root, previous_cursor, keep_root_locked, release_root_after_end);
                 return;
             }
+            previous_cursor->trie_node_mutex.unlock();
+            cursor->trie_node_mutex.lock();
             current_state = LOOKING_FOR_FIRST_HANDLE;
             targets.clear();
             targets_size = 0;
@@ -169,6 +180,9 @@ void HebbianNetwork::update_neighbors(
                 targets.push_front(edge_value->node2);
                 targets_size++;
                 sum_weights += edge_value->count / source->count;
+                if (targets_size > fan_max) {
+                    fan_max = targets_size;
+                }
                 if (visit_function(cursor, source, targets, targets_size, sum_weights, data)) {
                     release_locks(root, cursor, keep_root_locked, release_root_after_end);
                     return;
@@ -204,6 +218,9 @@ void HebbianNetwork::update_neighbors(
         }
     }
     if (current_state == LOOKING_FOR_SECOND_HANDLE) {
+        if (targets_size > fan_max) {
+            fan_max = targets_size;
+        }
         visit_function(cursor, source, targets, targets_size, sum_weights, data);
     }
     release_locks(root, cursor, keep_root_locked, release_root_after_end);
