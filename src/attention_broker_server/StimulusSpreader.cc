@@ -8,14 +8,13 @@
 
 using namespace attention_broker_server;
 
-StimulusSpreader::StimulusSpreader() {
-    fan_max = 1;
-}
-
 // --------------------------------------------------------------------------------
 // Public methods
 
 StimulusSpreader::~StimulusSpreader() {
+}
+
+StimulusSpreader::StimulusSpreader() {
 }
 
 StimulusSpreader *StimulusSpreader::factory(StimulusSpreaderType instance_type) {
@@ -54,81 +53,48 @@ static bool collect_rent(HandleTrie::TrieNode *node, void *data) {
 }
 
 static bool consolidate_rent_and_wages(HandleTrie::TrieNode *node, void *data) {
-    TokenSpreader::ImportanceChanges *changes = (TokenSpreader::ImportanceChanges *) ((DATA *) data)->importance_changes->lookup(node->suffix);
+    TokenSpreader::ImportanceChanges *changes =\
+        (TokenSpreader::ImportanceChanges *) ((DATA *) data)->importance_changes->lookup(node->suffix);
     ((HebbianNetwork::Node *) node->value)->importance -= changes->rent;
     ((HebbianNetwork::Node *) node->value)->importance += changes->wages;
     return false;
 }
 
-static bool compute_stimulus(
-    HandleTrie::TrieNode *node,
-    HebbianNetwork::Node *source,
-    forward_list<HebbianNetwork::Node *> &targets,
-    unsigned int targets_size,
-    ImportanceType sum_weights,
-    void *data) {
-
-    ImportanceType fan_ratio = (double) targets_size / ((DATA *) data)->fan_max;
+static bool compute_stimulus(HandleTrie::TrieNode *node, void *data) {
+    HebbianNetwork::Node *value = (HebbianNetwork::Node *) node->value;
+    ImportanceType arity_ratio = (double) value->arity / ((DATA *) data)->largest_arity;
     ImportanceType spreading_rate = ((DATA *) data)->spreading_rate_lowerbound + \
                                     (((DATA *) data)->spreading_rate_range_size * \
-                                     fan_ratio);
-
-    ImportanceType to_spread = source->importance * spreading_rate;
-    source->importance -= to_spread;
-    source->stimuli_to_spread = to_spread;
-
+                                     arity_ratio);
+    ImportanceType to_spread = value->importance * spreading_rate;
+    value->importance -= to_spread;
+    value->stimuli_to_spread = to_spread;
     return false;
 }
 
-static bool consolidate_stimulus(
-    HandleTrie::TrieNode *node,
-    HebbianNetwork::Node *source,
-    forward_list<HebbianNetwork::Node *> &targets,
-    unsigned int targets_size,
-    ImportanceType sum_weights,
-    void *data) {
-
-    cout << "consolidate_stimulus() BEGIN" << endl;
-    cout << "node: " << node->to_string() << endl;
-    cout << "source: " << source->to_string() << endl;
-    cout << "targets_size: " << targets_size << endl;
-    cout << "sum_weights: " << sum_weights << endl;
-    ImportanceType to_spread = source->stimuli_to_spread;
-
-    ImportanceType count_source = source->count;
-    cout << "count_source: " << count_source << endl;
-    for (auto target: targets) {
-        cout << "target: " << source->to_string() << endl;
-        cout << "((HebbianNetwork::Edge *) node->value) " << ((HebbianNetwork::Edge *) node->value) << endl;
-        cout << "((HebbianNetwork::Edge *) node->value)->count " << ((HebbianNetwork::Edge *) node->value)->count << endl;
-        ImportanceType count_source_target = ((HebbianNetwork::Edge *) node->value)->count;
-        cout << "count_source_target: " << count_source_target << endl;
-        ImportanceType w = count_source_target / count_source;
-        cout << "w: " << w << endl;
-        ImportanceType stimulus = (w * to_spread) / sum_weights;
-        cout << "stimulus: " << stimulus << endl;
-        cout << "target->importance (before): " << target->importance << endl;
-        target->importance += stimulus;
-        cout << "target->importance  (after): " << target->importance << endl;
-    }
-    cout << "consolidate_stimulus() END" << endl;
+static bool sum_weights(HandleTrie::TrieNode *node, void *data) {
+    HebbianNetwork::Edge *edge = (HebbianNetwork::Edge *) node->value;
+    double w = (double) edge->count / edge->node1->count;
+    ((DATA *) data)->sum_weights += w;
     return false;
 }
 
-static bool update_fan_max(
-    HandleTrie::TrieNode *node,
-    HebbianNetwork::Node *source,
-    forward_list<HebbianNetwork::Node *> &targets,
-    unsigned int targets_size,
-    ImportanceType sum_weights,
-    void *data) {
+static bool deliver_stimulus(HandleTrie::TrieNode *node, void *data) {
+    HebbianNetwork::Edge *edge = (HebbianNetwork::Edge *) node->value;
+    double w = (double) edge->count / edge->node1->count;
+    //ImportanceType stimulus = (w * ((DATA *) data)->to_spread) / (ImportanceType) ((DATA *) data)->sum_weights;
+    ImportanceType stimulus = (w / ((DATA *) data)->sum_weights) * ((DATA *) data)->to_spread;
+    edge->node2->importance += stimulus;
+    return false;
+}
 
-    // Do nothing. Update is carried out in the traversing method.
-    cout << "XXX targets_size: " << targets_size << endl;
-    cout << "source: " << source->to_string() << endl;
-    for (auto target: targets) {
-        cout << "\ttarget: " << target->to_string() << endl;
-    }
+static bool consolidate_stimulus(HandleTrie::TrieNode *node, void *data) {
+    HebbianNetwork::Node *value = (HebbianNetwork::Node *) node->value;
+    ((DATA *) data)->to_spread = value->stimuli_to_spread;
+    ((DATA *) data)->sum_weights = 0.0;
+    value->neighbors->traverse(true, &sum_weights, data);
+    value->neighbors->traverse(true, &deliver_stimulus, data);
+    value->stimuli_to_spread = 0.0;
     return false;
 }
 
@@ -154,48 +120,32 @@ void TokenSpreader::distribute_wages(
 
 void TokenSpreader::spread_stimuli(das::HandleCount *request) {
 
-    //cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
-    //cout << "XXX 1" << endl;
     HebbianNetwork *network = (HebbianNetwork *) request->hebbian_network();
     if (network == NULL) {
         return;
-    }
-    cout << "XXX 2" << endl;
-    if (network->fan_max == 0) {
-        cout << "XXX 2.a" << endl;
-        network->update_neighbors(true, true, &update_fan_max, NULL);
     }
 
     DATA data;
     data.importance_changes = new HandleTrie(HANDLE_HASH_SIZE - 1);
     data.rent_rate = AttentionBrokerServer::RENT_RATE;
     data.spreading_rate_lowerbound = AttentionBrokerServer::SPREADING_RATE_LOWERBOUND;
-    data.spreading_rate_range_size = 
+    data.spreading_rate_range_size = \
         AttentionBrokerServer::SPREADING_RATE_UPPERBOUND - AttentionBrokerServer::SPREADING_RATE_LOWERBOUND;
-    data.fan_max = network->fan_max;
-    cout << "XXX data.fan_max: " << data.fan_max << endl;
-    return;
+    data.largest_arity = network->largest_arity;
+    data.total_rent = 0.0;
 
     // Collect rent
-    cout << "XXX 3" << endl;
-    network->update_nodes(true, &collect_rent, (void *) &data);
-    cout << "XXX 4" << endl;
+    network->visit_nodes(true, &collect_rent, (void *) &data);
+
     // Distribute wages
     ImportanceType total_to_spread = network->alienate_tokens();
-    cout << "XXX 5" << endl;
     total_to_spread += data.total_rent;
-    cout << "XXX 6" << endl;
-    cout << "XXX total_to_spread: " << total_to_spread << endl;
     distribute_wages(request, total_to_spread, &data);
-    cout << "XXX 7" << endl;
 
     // Consolidate changes
-    network->update_nodes(true, &consolidate_rent_and_wages, (void *) &data);
-    cout << "XXX 8" << endl;
+    network->visit_nodes(true, &consolidate_rent_and_wages, (void *) &data);
 
     // Spread activation (1 cycle)
-    network->update_neighbors(true, true, &compute_stimulus, &data);
-    cout << "XXX 9" << endl;
-    network->update_neighbors(true, true, &consolidate_stimulus, &data);
-    cout << "XXX 10" << endl;
+    network->visit_nodes(true, &compute_stimulus, &data);
+    network->visit_nodes(true, &consolidate_stimulus, &data);
 }

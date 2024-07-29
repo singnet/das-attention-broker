@@ -7,6 +7,7 @@
 #include "attention_broker.pb.h"
 #include "test_utils.h"
 #include "expression_hasher.h"
+#include "AttentionBrokerServer.h"
 #include "HebbianNetwork.h"
 #include "HebbianNetworkUpdater.h"
 #include "StimulusSpreader.h"
@@ -86,6 +87,14 @@ static HebbianNetwork *build_test_network(string *handles) {
 
 TEST(TokenSpreader, spread_stimuli) {
 
+    // --------------------------------------------------------------------
+    // NOTE TO REVIEWER: I left debug messages because this code extremely
+    //                   error prone and difficult to debug. Probably we'll
+    //                   need to return to this test to make it pass when
+    //                   we make changes in the tested code.
+    // --------------------------------------------------------------------
+    // Build and check network
+
     string *handles = build_handle_space(6, true);
     for (unsigned int i = 0; i < 6; i++) {
         cout << i << ": " << handles[i] << endl;
@@ -93,12 +102,29 @@ TEST(TokenSpreader, spread_stimuli) {
 
     HebbianNetwork *network = build_test_network(handles);
 
-    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[0]), 0.0000));
-    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[1]), 0.0000));
-    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[2]), 0.0000));
-    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[3]), 0.0000));
-    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[4]), 0.0000));
-    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[5]), 0.0000));
+    unsigned int expected[6][6] = {
+        {0, 1, 1, 1, 0, 0},
+        {1, 0, 2, 1, 1, 1},
+        {1, 2, 0, 1, 1, 1},
+        {1, 1, 1, 0, 0, 0},
+        {0, 1, 1, 0, 0, 1},
+        {0, 1, 1, 0, 1, 0},
+    };
+    for (unsigned int i = 0; i < 6; i++) {
+        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[i]), 0.0000));
+        if (i == 1 || i == 2) {
+            EXPECT_TRUE(network->get_node_count(handles[i]) == 2);
+        } else {
+            EXPECT_TRUE(network->get_node_count(handles[i]) == 1);
+        }
+        for (unsigned int j = 0; j < 6; j++) {
+            cout << i << ", " << j << ": " << expected[i][j] << " " << network->get_asymmetric_edge_count(handles[i], handles[j]) << endl;
+            EXPECT_TRUE(network->get_asymmetric_edge_count(handles[i], handles[j]) == expected[i][j]);
+        }
+    }
+
+    // ----------------------------------------------------------
+    // Build and process simulus spreading request
 
     das::HandleCount *request;
     TokenSpreader *spreader = \
@@ -113,18 +139,91 @@ TEST(TokenSpreader, spread_stimuli) {
     (*request->mutable_handle_count())[handles[4]] = 1;
     (*request->mutable_handle_count())[handles[5]] = 1;
     (*request->mutable_handle_count())["SUM"] = 6;
+    unsigned int SUM = (*request->mutable_handle_count())["SUM"];
     spreader->spread_stimuli(request);
 
+    // ----------------------------------------------------------
+    // Compute expected value for importance of each node
+
+    unsigned int arity[6];
+    arity[0] = 3;
+    arity[1] = 5;
+    arity[2] = 5;
+    arity[3] = 3;
+    arity[4] = 3;
+    arity[5] = 3;
+    unsigned int max_arity = 5;
+
     double base_importance = (double) 1 / 6;
+    double rent = base_importance * AttentionBrokerServer::RENT_RATE;
+    double total_rent = rent * 6;
+    double total_wages = total_rent;
+
+    cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
+    cout << "XXX Expected total rent: " << total_rent << endl;
+    cout << "XXX Expected rent rate: " << AttentionBrokerServer::RENT_RATE << endl;
+
+    double wages[6];
+    for (unsigned int i = 0; i < 6; i++) {
+        wages[i] = ((double) ((*request->mutable_handle_count())[handles[i]])) / SUM * total_wages;
+    }
+
+    double updated[6];
+    for (unsigned int i = 0; i < 6; i++) {
+        updated[i] = base_importance + wages[i] - rent;
+    }
+
+    double to_spread[6];
+    for (unsigned int i = 0; i < 6; i++) {
+        double arity_ratio = (double) arity[i] / max_arity;
+        double lb = AttentionBrokerServer::SPREADING_RATE_LOWERBOUND;
+        double ub = AttentionBrokerServer::SPREADING_RATE_UPPERBOUND;
+        double spreading_rate = lb + (arity_ratio * (ub - lb));
+        to_spread[i] = updated[i] * spreading_rate;
+        cout << "XXX Total to spread: " << to_spread[i] << endl;
+    }
+
+    double sum_weight[6] = {3.0, 3.0, 3.0, 3.0, 3.0, 3.0};
+    double weight[6][6] = {
+        {0.0, 1.0, 1.0, 1.0, 0.0, 0.0},
+        {0.5, 0.0, 1.0, 0.5, 0.5, 0.5},
+        {0.5, 1.0, 0.0, 0.5, 0.5, 0.5},
+        {1.0, 1.0, 1.0, 0.0, 0.0, 0.0},
+        {0.0, 1.0, 1.0, 0.0, 0.0, 1.0},
+        {0.0, 1.0, 1.0, 0.0, 1.0, 0.0},
+    };
+    for (unsigned int i = 0; i < 6; i++) {
+        for (unsigned int j = 0; j < 6; j++) {
+            if (i != j) {
+                cout << "XXX weight[" << i << "][" << j << "]: " << weight[i][j] << endl;
+            }
+        }
+        cout << "XXX sum_weight[" << i << "]: " << sum_weight[i] << endl;
+    }
+
+    double received[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    for (unsigned int i = 0; i < 6; i++) {
+        for (unsigned int j = 0; j < 6; j++) {
+            if (i != j) {
+                double weight_ratio = weight[i][j] / sum_weight[i];
+                double stimulus = weight_ratio * to_spread[i];
+                cout << "XXX stimulus[" << i << "][" << j << "]: " << stimulus << endl;
+                received[j] += stimulus;
+            }
+        }
+    }
+
     double expected_importance[6];
-    expected_importance[0] = base_importance ;
+    for (unsigned int i = 0; i < 6; i++) {
+        expected_importance[i] = updated[i] - to_spread[i] + received[i];
+    }
+    cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
 
-    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[0]), 0.0000));
-    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[1]), 0.0000));
-    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[2]), 0.0000));
-    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[3]), 0.0000));
-    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[4]), 0.0000));
-    EXPECT_TRUE(importance_equals(network->get_node_importance(handles[5]), 0.0000));
+    // ----------------------------------------------------------
+    // Compare result with expected result
 
-
+    for (unsigned int i = 0; i < 6; i++) {
+        cout << expected_importance[i] << " " << network->get_node_importance(handles[i]) << endl;
+        EXPECT_TRUE(importance_equals(network->get_node_importance(handles[i]), expected_importance[i]));
+    }
 }

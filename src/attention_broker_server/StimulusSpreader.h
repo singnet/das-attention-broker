@@ -28,7 +28,6 @@ public:
 protected:
 
     StimulusSpreader();
-    unsigned int fan_max;
 
 private:
 
@@ -45,9 +44,11 @@ public:
         ImportanceType rent_rate;
         ImportanceType total_rent;
         HandleTrie *importance_changes;
-        unsigned int fan_max;
+        unsigned int largest_arity;
         ImportanceType spreading_rate_lowerbound;
         ImportanceType spreading_rate_range_size;
+        ImportanceType to_spread;
+        double sum_weights;
     } StimuliData;
 
     class ImportanceChanges: public HandleTrie::TrieValue {

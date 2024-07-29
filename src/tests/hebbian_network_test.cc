@@ -35,19 +35,19 @@ TEST(HebbianNetwork, basics) {
     network.add_node(h5);
     EXPECT_TRUE(network.get_node_count(h5) == 1);
 
-    network.add_edge(h1, h2, n1, n2);
-    network.add_edge(h1, h3, n1, n3);
-    network.add_edge(h1, h4, n1, n4);
-    network.add_edge(h1, h2, n1, n2);
+    network.add_symmetric_edge(h1, h2, n1, n2);
+    network.add_symmetric_edge(h1, h3, n1, n3);
+    network.add_symmetric_edge(h1, h4, n1, n4);
+    network.add_symmetric_edge(h1, h2, n1, n2);
 
-    EXPECT_TRUE(network.get_edge_count(h1, h2) == 2);
-    EXPECT_TRUE(network.get_edge_count(h2, h1) == 2);
-    EXPECT_TRUE(network.get_edge_count(h1, h3) == 1);
-    EXPECT_TRUE(network.get_edge_count(h3, h1) == 1);
-    EXPECT_TRUE(network.get_edge_count(h1, h4) == 1);
-    EXPECT_TRUE(network.get_edge_count(h4, h1) == 1);
-    EXPECT_TRUE(network.get_edge_count(h1, h5) == 0);
-    EXPECT_TRUE(network.get_edge_count(h5, h1) == 0);
+    EXPECT_TRUE(network.get_asymmetric_edge_count(h1, h2) == 2);
+    EXPECT_TRUE(network.get_asymmetric_edge_count(h2, h1) == 2);
+    EXPECT_TRUE(network.get_asymmetric_edge_count(h1, h3) == 1);
+    EXPECT_TRUE(network.get_asymmetric_edge_count(h3, h1) == 1);
+    EXPECT_TRUE(network.get_asymmetric_edge_count(h1, h4) == 1);
+    EXPECT_TRUE(network.get_asymmetric_edge_count(h4, h1) == 1);
+    EXPECT_TRUE(network.get_asymmetric_edge_count(h1, h5) == 0);
+    EXPECT_TRUE(network.get_asymmetric_edge_count(h5, h1) == 0);
 }
 
 TEST(HebbianNetwork, stress) {
@@ -70,7 +70,7 @@ TEST(HebbianNetwork, stress) {
         string h2 = handles[rand() % handle_space_size];
         HebbianNetwork::Node *n1 = network.add_node(h1);
         HebbianNetwork::Node *n2 = network.add_node(h2);
-        network.add_edge(h1, h2, n1, n2);
+        network.add_symmetric_edge(h1, h2, n1, n2);
     }
 
     timer_insertion.stop();
@@ -81,7 +81,7 @@ TEST(HebbianNetwork, stress) {
         string h2 = handles[rand() % handle_space_size];
         network.get_node_count(h1);
         network.get_node_count(h2);
-        network.get_edge_count(h1, h2);
+        network.get_asymmetric_edge_count(h1, h2);
     }
 
     timer_lookup.stop();
@@ -122,58 +122,4 @@ bool visit2(
         source->importance -= stimulus;
     }
     return false;
-}
-
-TEST(HebbianNetwork, update_neighbors) {
-
-    unsigned int num_tests = 10;
-
-    HebbianNetwork *network;
-    map<string, set<string>> fan_in;
-    map<string, set<string>> fan_out;
-
-    for (unsigned int num_nodes: {10, 100, 1000}) {
-        for (double fan_out_rate: {0.1, 0.5, 0.99}) {
-            unsigned int fan_max = (unsigned int) lround(fan_out_rate * num_nodes);
-            cout << num_nodes << " " << fan_out_rate << " " << fan_max << endl;
-            for (unsigned i = 0; i < num_tests; i++) {
-                fan_in.clear();
-                fan_out.clear();
-                network = new HebbianNetwork();
-                string *handles = build_handle_space(num_nodes);
-                for (unsigned int h = 0; h < num_nodes; h++) {
-                    string source = handles[h];
-                    unsigned int n = rand() % fan_max;
-                    for (unsigned int j = 0; j < n; j++) {
-                        string target;
-                        do {
-                            target = handles[rand() % num_nodes];
-                        } while ((target == source) || (fan_out[source].find(target) != fan_out[source].end()));
-                        fan_out[source].insert(target);
-                        fan_in[target].insert(source);
-                        HebbianNetwork::Node *n1 = network->add_node(source);
-                        HebbianNetwork::Node *n2 = network->add_node(target);
-                        network->add_edge(source, target, n1, n2);
-                    }
-                }
-                network->update_nodes(false, &visit1, NULL);
-                network->update_neighbors(false, false, &visit2, &fan_max);
-
-                for (unsigned int h = 0; h < num_nodes; h++) {
-                    ImportanceType v = network->get_node_importance(handles[h]);
-                    int fi = fan_in[handles[h]].size();
-                    int fo = fan_out[handles[h]].size();
-                    double st = 1.0 / (double) fan_max;
-                    double expected = ((fi + fo) == 0) ? 0.0 : 1.0 + ((fi - fo) * st);
-                    /*
-                    if (fabs(expected - v) > 0.000001) {
-                        cout << expected << " " << v << " " << expected - v << " " << fi << " " << fo << endl;
-                    }
-                    */
-                    EXPECT_TRUE(fabs(expected - v) < 0.000001);
-                }
-                delete network;
-            }
-        }
-    }
 }
