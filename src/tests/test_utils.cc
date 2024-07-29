@@ -1,6 +1,8 @@
 #include "expression_hasher.h"
 #include "Utils.h"
 #include "test_utils.h"
+#include <algorithm>
+#include <iostream>
 
 static char REVERSE_TLB[16] = {
     '0',
@@ -47,10 +49,17 @@ string prefixed_random_handle(string prefix) {
     return s;
 }
 
-string *build_handle_space(unsigned int size) {
+static bool str_comp(string &a, string &b) {
+    return a.compare(b) < 0;
+}
+
+string *build_handle_space(unsigned int size, bool sort) {
     string *answer = new string[size];
     for (unsigned int i = 0; i < size; i++) {
         answer[i] = random_handle();
+    }
+    if (sort) {
+        std::sort(answer, answer + size, str_comp);
     }
     return answer;
 }

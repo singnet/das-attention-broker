@@ -6,6 +6,6 @@ using namespace std;
 
 string random_handle();
 string prefixed_random_handle(string prefix);
-string *build_handle_space(unsigned int size);
+string *build_handle_space(unsigned int size, bool sort=false);
 
 #endif
