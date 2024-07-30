@@ -5,15 +5,34 @@
 
 namespace attention_broker_server {
 
+/**
+ * Data abstraction of a synchronized (thread-safe) queue for AttentionBrokerServer requests.
+ *
+ * Internally, this abstraction uses an array of requests to avoid the need to create cell
+ * objects on every insertion. Because of this, on new insertions it's possible to reach queue
+ * size limit during an insertion. When that happens, the array is doubled in size. Initial size
+ * is passed as a constructor's parameter.
+ */
 class RequestQueue {
 
 public:
 
-    RequestQueue();
-    RequestQueue(unsigned int size);
-    ~RequestQueue();
+    RequestQueue(); /// Basic constructor which uses a parameter from AttentionBrokerServer as initial size.
+    RequestQueue(unsigned int size); // Constructor which uses the passed initial size.
+    ~RequestQueue(); /// Destructor.
 
+    /**
+     * Enqueues a request.
+     *
+     * @param request Request to be queued.
+     */
     void enqueue(void *request);
+
+    /**
+     * Dequeues a request.
+     *
+     * @return The dequeued request.
+     */
     void *dequeue();
 
 protected:

@@ -9,7 +9,7 @@
 using namespace attention_broker_server;
 
 // --------------------------------------------------------------------------------
-// Public methods
+// Public constructors and destructors
 
 StimulusSpreader::~StimulusSpreader() {
 }
@@ -82,7 +82,6 @@ static bool sum_weights(HandleTrie::TrieNode *node, void *data) {
 static bool deliver_stimulus(HandleTrie::TrieNode *node, void *data) {
     HebbianNetwork::Edge *edge = (HebbianNetwork::Edge *) node->value;
     double w = (double) edge->count / edge->node1->count;
-    //ImportanceType stimulus = (w * ((DATA *) data)->to_spread) / (ImportanceType) ((DATA *) data)->sum_weights;
     ImportanceType stimulus = (w / ((DATA *) data)->sum_weights) * ((DATA *) data)->to_spread;
     edge->node2->importance += stimulus;
     return false;
@@ -99,6 +98,7 @@ static bool consolidate_stimulus(HandleTrie::TrieNode *node, void *data) {
 }
 
 // ------------------------------------------------
+// Public methods
 
 void TokenSpreader::distribute_wages(
     das::HandleCount *handle_count,

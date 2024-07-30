@@ -11,7 +11,6 @@ using namespace attention_broker_server;
 
 HebbianNetwork::HebbianNetwork() {
     nodes = new HandleTrie(HANDLE_HASH_SIZE - 1);
-    edges = new HandleTrie(2 * (HANDLE_HASH_SIZE - 1));
     largest_arity = 0;
     tokens_mutex.lock();
     tokens_to_distribute = 1.0;
@@ -20,7 +19,6 @@ HebbianNetwork::HebbianNetwork() {
 
 HebbianNetwork::~HebbianNetwork() {
     delete nodes;
-    delete edges;
 }
 
 string HebbianNetwork::Node::to_string() {

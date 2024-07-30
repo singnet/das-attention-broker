@@ -23,9 +23,6 @@ class StopWatch {
         chrono::steady_clock::duration accumulator;
 };
 
-/**
- *
- */
 class Utils {
 
 public:
