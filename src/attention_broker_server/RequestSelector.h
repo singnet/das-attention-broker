@@ -17,37 +17,69 @@ enum class RequestType {
 };
 
 /**
+ * Abstract class used in WorkerThreads to select the next request to be processed among
+ * the available request queues.
  *
+ * Concrete subclasses may implement different selection algorithms based in different criteria.
  */
 class RequestSelector {
 
 public:
 
-    virtual ~RequestSelector();
+    virtual ~RequestSelector(); /// Destructor.
 
+    /**
+     * Factory method.
+     *
+     * Factory method to instantiate concrete subclasses according to the passed parameter.
+     *
+     * @param instance_type Type of concrete subclass to be instantiated.
+     * @param thread_id ID of the thread asking for a new request.
+     * @param stimulus Queue of "stimulate" requests.
+     * @param correlation Queue of "correlate" requests.
+     *
+     * @return An object of the passed type.
+     */
     static RequestSelector *factory(
-        SelectorType selector_type, 
+        SelectorType instance_type, 
         unsigned int thread_id, 
         RequestQueue *stimulus, 
         RequestQueue *correlation);
 
+    /**
+     * Return the next request to be processed by the caller worker thread.
+     *
+     * @return the next request to be processed by the caller worker thread.
+     */
     virtual pair<RequestType, void *> next() = 0;
 
 protected:
 
-    RequestSelector(unsigned int thread_id, RequestQueue *stimulus, RequestQueue *correlation);
+    RequestSelector(unsigned int thread_id, RequestQueue *stimulus, RequestQueue *correlation); /// Basic constructor.
+
     unsigned int thread_id;
     RequestQueue *stimulus;
     RequestQueue *correlation;
 };
 
+/**
+ * Concrete implementation of RequestSelector which evenly distribute worker threads among each type of request.
+ *
+ * This selector keeps half of the working threads working only in "correlate" requests and the other
+ * half working only in "stimulate" requests.
+ */
 class EvenThreadCount : public RequestSelector {
 
 public:
 
-    ~EvenThreadCount();
+    ~EvenThreadCount(); /// Destructor.
+    EvenThreadCount(unsigned int thread_id, RequestQueue *stimulus, RequestQueue *correlation); /// Basic constructor.
 
-    EvenThreadCount(unsigned int thread_id, RequestQueue *stimulus, RequestQueue *correlation);
+    /**
+     * Return the next request to be processed by the caller worker thread.
+     *
+     * @return the next request to be processed by the caller worker thread.
+     */
     pair<RequestType, void *> next();
 
 private:

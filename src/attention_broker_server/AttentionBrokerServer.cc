@@ -3,14 +3,14 @@
 
 using namespace attention_broker_server;
 
-// --------------------------------------------------------------------------------
-// Public methods
-  
 const string AttentionBrokerServer::GLOBAL_CONTEXT = "global";
 const double AttentionBrokerServer::RENT_RATE = 0.1;
 const double AttentionBrokerServer::SPREADING_RATE_LOWERBOUND = 0.01;
 const double AttentionBrokerServer::SPREADING_RATE_UPPERBOUND = 0.10;
 
+// --------------------------------------------------------------------------------
+// Public methods
+  
 AttentionBrokerServer::AttentionBrokerServer() {
     stimulus_requests = new RequestQueue(REQUEST_QUEUE_INTIAL_SIZE);
     correlation_requests = new RequestQueue(REQUEST_QUEUE_INTIAL_SIZE);
@@ -20,9 +20,9 @@ AttentionBrokerServer::AttentionBrokerServer() {
 
 AttentionBrokerServer::~AttentionBrokerServer() {
     graceful_shutdown();
+    delete worker_threads;
     delete stimulus_requests;
     delete correlation_requests;
-    delete worker_threads;
     for (auto pair:hebbian_network) {
         delete pair.second;
     }

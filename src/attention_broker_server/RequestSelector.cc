@@ -31,19 +31,18 @@ EvenThreadCount::EvenThreadCount(
 EvenThreadCount::~EvenThreadCount() {
 }
 
-
 RequestSelector *RequestSelector::factory(
-    SelectorType selector_type, 
+    SelectorType instance_type, 
     unsigned int thread_id, 
     RequestQueue *stimulus, 
     RequestQueue *correlation) {
 
-    switch (selector_type) {
+    switch (instance_type) {
         case SelectorType::EVEN_THREAD_COUNT: {
             return new EvenThreadCount(thread_id, stimulus, correlation);
         }
         default: {
-            Utils::error("Invalid selector type: " + to_string((int) selector_type));
+            Utils::error("Invalid selector type: " + to_string((int) instance_type));
             return NULL; // to avoid warnings
         }
     }

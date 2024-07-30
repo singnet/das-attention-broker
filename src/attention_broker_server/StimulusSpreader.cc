@@ -9,7 +9,7 @@
 using namespace attention_broker_server;
 
 // --------------------------------------------------------------------------------
-// Public methods
+// Public constructors and destructors
 
 StimulusSpreader::~StimulusSpreader() {
 }
@@ -53,15 +53,15 @@ static bool collect_rent(HandleTrie::TrieNode *node, void *data) {
 }
 
 static bool consolidate_rent_and_wages(HandleTrie::TrieNode *node, void *data) {
+
+    HebbianNetwork::Node *value = (HebbianNetwork::Node *) node->value;
+
     TokenSpreader::ImportanceChanges *changes =\
         (TokenSpreader::ImportanceChanges *) ((DATA *) data)->importance_changes->lookup(node->suffix);
-    ((HebbianNetwork::Node *) node->value)->importance -= changes->rent;
-    ((HebbianNetwork::Node *) node->value)->importance += changes->wages;
-    return false;
-}
+    value->importance -= changes->rent;
+    value->importance += changes->wages;
 
-static bool compute_stimulus(HandleTrie::TrieNode *node, void *data) {
-    HebbianNetwork::Node *value = (HebbianNetwork::Node *) node->value;
+    // Compute amount to be spread
     ImportanceType arity_ratio = (double) value->arity / ((DATA *) data)->largest_arity;
     ImportanceType spreading_rate = ((DATA *) data)->spreading_rate_lowerbound + \
                                     (((DATA *) data)->spreading_rate_range_size * \
@@ -82,7 +82,6 @@ static bool sum_weights(HandleTrie::TrieNode *node, void *data) {
 static bool deliver_stimulus(HandleTrie::TrieNode *node, void *data) {
     HebbianNetwork::Edge *edge = (HebbianNetwork::Edge *) node->value;
     double w = (double) edge->count / edge->node1->count;
-    //ImportanceType stimulus = (w * ((DATA *) data)->to_spread) / (ImportanceType) ((DATA *) data)->sum_weights;
     ImportanceType stimulus = (w / ((DATA *) data)->sum_weights) * ((DATA *) data)->to_spread;
     edge->node2->importance += stimulus;
     return false;
@@ -99,6 +98,7 @@ static bool consolidate_stimulus(HandleTrie::TrieNode *node, void *data) {
 }
 
 // ------------------------------------------------
+// Public methods
 
 void TokenSpreader::distribute_wages(
     das::HandleCount *handle_count,
@@ -146,6 +146,5 @@ void TokenSpreader::spread_stimuli(das::HandleCount *request) {
     network->visit_nodes(true, &consolidate_rent_and_wages, (void *) &data);
 
     // Spread activation (1 cycle)
-    network->visit_nodes(true, &compute_stimulus, &data);
     network->visit_nodes(true, &consolidate_stimulus, &data);
 }
