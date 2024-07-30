@@ -8,13 +8,14 @@ networks.
 DAS query engine can use those importance values to control caching policies
 and to better process pattern matcher queries.
 
-## How to build
+## How to build and run the server
 
 From the main repository directory:
 
 ```bash
 $ ./scripts/docker_image_build.sh
 $ ./scripts/build.sh
+$ ./scripts/run.sh PORT
 ```
 
 ## How to run unit tests

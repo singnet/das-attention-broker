@@ -23,7 +23,7 @@ void ctrl_c_handler(int) {
 }
 
 void run_server(unsigned int port) {
-    std::string server_address = "0.0.0.0:50051";
+    std::string server_address = "0.0.0.0:" + to_string(port);
     grpc::EnableDefaultHealthCheckService(true);
     grpc::reflection::InitProtoReflectionServerBuilderPlugin();
     ServerBuilder builder;
@@ -35,7 +35,12 @@ void run_server(unsigned int port) {
 }
 
 int main(int argc, char* argv[]) {
-    //signal(SIGINT, &ctrl_c_handler);
-    run_server(50051);
+    if (argc != 2) {
+        cerr << "Usage: " << argv[0] << " PORT" << endl;
+        exit(1);
+    }
+    unsigned int port = stoi(argv[1]);
+    signal(SIGINT, &ctrl_c_handler);
+    run_server(port);
     return 0;
 }
