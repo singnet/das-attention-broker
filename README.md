@@ -22,6 +22,5 @@ $ ./scripts/build.sh
 From the main repository directory:
 
 ```bash
-$ ./scripts/docker_image_build.sh
 $ ./scripts/unit_tests.sh
 ```
