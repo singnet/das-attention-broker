@@ -23,5 +23,23 @@ $ ./scripts/run.sh PORT
 From the main repository directory:
 
 ```bash
+$ ./scripts/docker_image_build.sh
 $ ./scripts/unit_tests.sh
+```
+
+## Development environment
+
+```bash
+$ ./scripts/docker_image_build.sh
+$ ./scripts/container_tty.sh 
+```
+
+Inside container:
+
+```bash
+$ cd src
+$ # Build binaries
+$ ../scripts/bazel_build_command_line.sh
+$ # Run unit tests
+$ ../scripts/bazel_test.sh 
 ```
