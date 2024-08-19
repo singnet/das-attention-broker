@@ -8,7 +8,7 @@ docker run \
     --volume .:/opt/das-attention-broker \
     --workdir /opt/das-attention-broker \
     das-attention-broker-builder \
-    ./bin/attention_broker
+    ./bin/attention_broker $1
 
 sleep 1
 docker rm $CONTAINER_NAME
