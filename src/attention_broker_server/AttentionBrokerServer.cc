@@ -12,8 +12,8 @@ const double AttentionBrokerServer::SPREADING_RATE_UPPERBOUND = 0.10;
 // Public methods
   
 AttentionBrokerServer::AttentionBrokerServer() {
-    stimulus_requests = new RequestQueue(REQUEST_QUEUE_INTIAL_SIZE);
-    correlation_requests = new RequestQueue(REQUEST_QUEUE_INTIAL_SIZE);
+    stimulus_requests = new RequestQueue();
+    correlation_requests = new RequestQueue();
     worker_threads = new WorkerThreads(stimulus_requests, correlation_requests);
     hebbian_network[GLOBAL_CONTEXT] = new HebbianNetwork();
 }

@@ -10,6 +10,7 @@
 #include "RequestQueue.h"
 
 using namespace std;
+using namespace commons;
 
 namespace attention_broker_server {
 
@@ -44,9 +45,6 @@ public:
      * for all threads to finish before returning.
      */
     void graceful_stop();
-
-protected:
-
 
 private:
 

@@ -4,10 +4,12 @@
 #include <iostream>
 #include <iomanip>
 #include <sstream>
+#include <thread>
 
 #include "Utils.h"
 
-using namespace attention_broker_server;
+using namespace commons;
+using namespace std;
 
 // --------------------------------------------------------------------------------
 // Public methods
@@ -28,6 +30,10 @@ void Utils::warning(string msg) {
 bool Utils::flip_coin(double true_probability) {
     long f = 1000;
     return (rand() % f) < lround(true_probability * f);
+}
+
+void Utils::sleep(unsigned int milliseconds) {
+    this_thread::sleep_for(chrono::milliseconds(100));
 }
 
 StopWatch::StopWatch() {

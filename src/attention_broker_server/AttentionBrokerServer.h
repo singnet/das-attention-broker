@@ -55,12 +55,6 @@ class AttentionBrokerServer final: public AttentionBroker::Service {
          */
         ~AttentionBrokerServer();
 
-        /**
-         * Initial size of request queues.
-         *
-         * Requests queues grow automatically on-demand to fit new requests.
-         */
-        static const unsigned int REQUEST_QUEUE_INTIAL_SIZE = 1000;
         static const unsigned int WORKER_THREADS_COUNT = 10; /// Number of working threads.
 
         // Stimuli spreading parameters

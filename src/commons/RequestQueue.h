@@ -1,12 +1,12 @@
-#ifndef _ATTENTION_BROKER_SERVER_REQUESTQUEUE_H
-#define _ATTENTION_BROKER_SERVER_REQUESTQUEUE_H
+#ifndef _COMMONS_REQUESTQUEUE_H
+#define _COMMONS_REQUESTQUEUE_H
 
 #include <mutex>
 
-namespace attention_broker_server {
+namespace commons {
 
 /**
- * Data abstraction of a synchronized (thread-safe) queue for AttentionBrokerServer requests.
+ * Data abstraction of a synchronized (thread-safe) queue for assynchronous requests.
  *
  * Internally, this abstraction uses an array of requests to avoid the need to create cell
  * objects on every insertion. Because of this, on new insertions it's possible to reach queue
@@ -17,8 +17,7 @@ class RequestQueue {
 
 public:
 
-    RequestQueue(); /// Basic constructor which uses a parameter from AttentionBrokerServer as initial size.
-    RequestQueue(unsigned int size); // Constructor which uses the passed initial size.
+    RequestQueue(unsigned int initial_size = 1000); // Basic constructor
     ~RequestQueue(); /// Destructor.
 
     /**
@@ -55,6 +54,6 @@ private:
     void enlarge_request_queue();
 };
 
-} // namespace attention_broker_server
+} // namespace commons
 
-#endif // _ATTENTION_BROKER_SERVER_REQUESTQUEUE_H
+#endif // _COMMONS_REQUESTQUEUE_H

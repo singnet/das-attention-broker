@@ -4,6 +4,7 @@
 #include "Utils.h"
 
 using namespace attention_broker_server;
+using namespace commons;
 
 HebbianNetworkUpdater::HebbianNetworkUpdater() {
 }
