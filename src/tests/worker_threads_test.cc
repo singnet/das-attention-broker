@@ -26,8 +26,8 @@ class TestRequestQueue: public RequestQueue {
 
 TEST(WorkerThreads, basics) {
     
-    das::HandleCount *handle_count;
-    das::HandleList *handle_list;
+    dasproto::HandleCount *handle_count;
+    dasproto::HandleList *handle_list;
 
     unsigned int num_requests = 1000000;
     unsigned int wait_for_threads_ms = 500;
@@ -38,10 +38,10 @@ TEST(WorkerThreads, basics) {
         WorkerThreads *pool = new WorkerThreads(stimulus, correlation);
         for (unsigned int i = 0; i < num_requests; i++) {
             if (Utils::flip_coin(stimulus_prob)) {
-                handle_count = new das::HandleCount();
+                handle_count = new dasproto::HandleCount();
                 stimulus->enqueue(handle_count);
             } else {
-                handle_list = new das::HandleList();
+                handle_list = new dasproto::HandleList();
                 handle_list->set_hebbian_network((long) NULL);
                 correlation->enqueue(handle_list);
             }
@@ -58,7 +58,7 @@ TEST(WorkerThreads, basics) {
 
 TEST(WorkerThreads, hebbian_network_updater_basics) {
 
-    das::HandleList *handle_list;
+    dasproto::HandleList *handle_list;
     map<string, unsigned int> node_count;
     map<string, unsigned int> edge_count;
     HebbianNetwork network;
@@ -67,7 +67,7 @@ TEST(WorkerThreads, hebbian_network_updater_basics) {
     TestRequestQueue *correlation = new TestRequestQueue();
     WorkerThreads *pool = new WorkerThreads(stimulus, correlation);
 
-    handle_list = new das::HandleList();
+    handle_list = new dasproto::HandleList();
     string h1 = random_handle();
     string h2 = random_handle();
     string h3 = random_handle();
@@ -79,7 +79,7 @@ TEST(WorkerThreads, hebbian_network_updater_basics) {
     handle_list->set_hebbian_network((long) &network);
     correlation->enqueue(handle_list);
 
-    handle_list = new das::HandleList();
+    handle_list = new dasproto::HandleList();
     string h5 = random_handle();
     handle_list->add_handle_list(h1);
     handle_list->add_handle_list(h2);
@@ -87,20 +87,20 @@ TEST(WorkerThreads, hebbian_network_updater_basics) {
     handle_list->set_hebbian_network((long) &network);
     correlation->enqueue(handle_list);
 
-    handle_list = new das::HandleList();
+    handle_list = new dasproto::HandleList();
     handle_list->add_handle_list(h2);
     handle_list->add_handle_list(h5);
     handle_list->set_hebbian_network((long) &network);
     correlation->enqueue(handle_list);
 
     string h6 = random_handle();
-    handle_list = new das::HandleList();
+    handle_list = new dasproto::HandleList();
     handle_list->add_handle_list(h6);
     handle_list->add_handle_list(h6);
     handle_list->set_hebbian_network((long) &network);
     correlation->enqueue(handle_list);
 
-    handle_list = new das::HandleList();
+    handle_list = new dasproto::HandleList();
     handle_list->add_handle_list(h1);
     handle_list->add_handle_list(h1);
     handle_list->set_hebbian_network((long) &network);
@@ -153,7 +153,7 @@ TEST(WorkerThreads, hebbian_network_updater_stress) {
     unsigned int wait_for_worker_threads_ms = 3000;
 
     
-    das::HandleList *handle_list;
+    dasproto::HandleList *handle_list;
     string handles[HANDLE_SPACE_SIZE];
     map<string, unsigned int> node_count;
     map<string, unsigned int> edge_count;
@@ -166,7 +166,7 @@ TEST(WorkerThreads, hebbian_network_updater_stress) {
     TestRequestQueue *correlation = new TestRequestQueue();
     WorkerThreads *pool = new WorkerThreads(stimulus, correlation);
     for (unsigned int i = 0; i < num_requests; i++) {
-        handle_list = new das::HandleList();
+        handle_list = new dasproto::HandleList();
         unsigned int num_handles = (rand() % (max_handles_per_request - 1)) + 2;
         for (unsigned int j = 0; j < num_handles; j++) {
             string h = handles[rand() % HANDLE_SPACE_SIZE];

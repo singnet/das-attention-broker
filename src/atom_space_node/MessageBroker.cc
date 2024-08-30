@@ -54,25 +54,25 @@ SynchronousGRPC::SynchronousGRPC(MessageFactory *host_node, string &node_id) : M
 SynchronousGRPC::~SynchronousGRPC() {
 }
 
-Status SynchronousGRPC::ping(ServerContext* grpc_context, const das::Empty* request, das::Ack* reply) {
+grpc::Status SynchronousGRPC::ping(grpc::ServerContext* grpc_context, const dasproto::Empty* request, dasproto::Ack* reply) {
     reply->set_msg("PING");
-    return Status::OK;
+    return grpc::Status::OK;
 }
 
-Status SynchronousGRPC::execute_message(ServerContext* grpc_context, const das::MessageData* request, das::Empty* reply) {
+grpc::Status SynchronousGRPC::execute_message(grpc::ServerContext* grpc_context, const dasproto::MessageData* request, dasproto::Empty* reply) {
     this->incoming_messages.enqueue((void *) request);
-    return Status::OK;
+    return grpc::Status::OK;
 }
 
 void SynchronousGRPC::grpc_thread_method() {
     std::string server_address = "localhost:" + to_string(GRPC_MESSAGE_BROKER_PORT);
     grpc::EnableDefaultHealthCheckService(true);
     grpc::reflection::InitProtoReflectionServerBuilderPlugin();
-    ServerBuilder builder;
+    grpc::ServerBuilder builder;
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
     builder.RegisterService(this);
     std::cout << "SynchronousGRPC listening on " << server_address << std::endl;
-    std::unique_ptr<Server> server(builder.BuildAndStart());
+    std::unique_ptr<grpc::Server> server(builder.BuildAndStart());
     server->Wait();
 }
 
@@ -80,7 +80,7 @@ void SynchronousGRPC::inbox_thread_method() {
     do {
         void *request = this->incoming_messages.dequeue();
         if (request != NULL) {
-            das::MessageData *message_data = (das::MessageData *) request;
+            dasproto::MessageData *message_data = (dasproto::MessageData *) request;
             if (message_data->is_broadcast()) {
                 unordered_set<string> visited;
                 int num_visited = message_data->visited_recipients_size();
@@ -91,7 +91,7 @@ void SynchronousGRPC::inbox_thread_method() {
                     continue;
                 }
                 message_data->add_visited_recipients(this->node_id);
-                das::Empty reply;
+                dasproto::Empty reply;
                 grpc::ClientContext context;
                 this->peers_mutex.lock();
                 for (auto target: this->peers) {
@@ -137,15 +137,15 @@ void SynchronousGRPC::join_network() {
 void SynchronousGRPC::add_peer(const string &peer_id) {
     MessageBroker::add_peer(peer_id);
     auto channel = grpc::CreateChannel(peer_id, grpc::InsecureChannelCredentials());
-    this->grpc_stub[peer_id] = das::AtomSpaceNode::NewStub(channel);
+    this->grpc_stub[peer_id] = dasproto::AtomSpaceNode::NewStub(channel);
 }
 
 void SynchronousGRPC::broadcast(string &command, vector<string> &args) {
-    das::Empty reply;
+    dasproto::Empty reply;
     grpc::ClientContext context;
     this->peers_mutex.lock();
     for (auto peer_id: this->peers) {
-        das::MessageData message_data;
+        dasproto::MessageData message_data;
         message_data.set_command(command);
         for (auto arg: args) {
             message_data.add_args(arg);

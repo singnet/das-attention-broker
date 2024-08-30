@@ -35,7 +35,7 @@ void AttentionBrokerServer::graceful_shutdown() {
 
 // RPC API
 
-Status AttentionBrokerServer::ping(ServerContext* grpc_context, const das::Empty *request, das::Ack* reply) {
+Status AttentionBrokerServer::ping(ServerContext* grpc_context, const dasproto::Empty *request, dasproto::Ack* reply) {
     reply->set_msg("PING");
     if (rpc_api_enabled) {
         return Status::OK;
@@ -44,10 +44,10 @@ Status AttentionBrokerServer::ping(ServerContext* grpc_context, const das::Empty
     }
 }
 
-Status AttentionBrokerServer::stimulate(ServerContext* grpc_context, const das::HandleCount *request, das::Ack* reply) {
+Status AttentionBrokerServer::stimulate(ServerContext* grpc_context, const dasproto::HandleCount *request, dasproto::Ack* reply) {
     if (request->handle_count_size() > 0) {
         HebbianNetwork *network = select_hebbian_network(request->context());
-        ((das::HandleCount *) request)->set_hebbian_network((long) network);
+        ((dasproto::HandleCount *) request)->set_hebbian_network((long) network);
         stimulus_requests->enqueue((void *) request);
     }
     reply->set_msg("STIMULATE");
@@ -58,10 +58,10 @@ Status AttentionBrokerServer::stimulate(ServerContext* grpc_context, const das::
     }
 }
 
-Status AttentionBrokerServer::correlate(ServerContext* grpc_context, const das::HandleList *request, das::Ack* reply) {
+Status AttentionBrokerServer::correlate(ServerContext* grpc_context, const dasproto::HandleList *request, dasproto::Ack* reply) {
     if (request->handle_list_size() > 0) {
         HebbianNetwork *network = select_hebbian_network(request->context());
-        ((das::HandleList *) request)->set_hebbian_network((long) network);
+        ((dasproto::HandleList *) request)->set_hebbian_network((long) network);
         correlation_requests->enqueue((void *) request);
     }
     reply->set_msg("CORRELATE");

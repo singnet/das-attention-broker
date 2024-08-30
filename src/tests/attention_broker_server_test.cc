@@ -18,10 +18,10 @@ using namespace attention_broker_server;
 TEST(AttentionBrokerTest, basics) {
     
     AttentionBrokerServer service;
-    das::Empty empty;
-    das::HandleCount handle_count;
-    das::HandleList handle_list;
-    das::Ack ack;
+    dasproto::Empty empty;
+    dasproto::HandleCount handle_count;
+    dasproto::HandleList handle_list;
+    dasproto::Ack ack;
     ServerContext *context = NULL;
 
     service.ping(context, &empty, &ack);

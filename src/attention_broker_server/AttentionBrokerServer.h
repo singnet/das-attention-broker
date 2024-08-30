@@ -12,7 +12,7 @@ using grpc::Server;
 using grpc::ServerBuilder;
 using grpc::ServerContext;
 using grpc::Status;
-using das::AttentionBroker;
+using dasproto::AttentionBroker;
 
 namespace attention_broker_server {
 
@@ -74,7 +74,7 @@ class AttentionBrokerServer final: public AttentionBroker::Service {
          *
          * @return GRPC status OK if request were properly processed or CANCELLED otherwise.
          */
-        Status ping(ServerContext* grpc_context, const das::Empty* request, das::Ack* reply) override;
+        Status ping(ServerContext* grpc_context, const dasproto::Empty* request, dasproto::Ack* reply) override;
 
         /**
          * Spread stimuli according to the passed request.
@@ -90,7 +90,7 @@ class AttentionBrokerServer final: public AttentionBroker::Service {
          *
          * @return GRPC status OK if request were properly processed or CANCELLED otherwise.
          */
-        Status stimulate(ServerContext* grpc_context, const das::HandleCount* request, das::Ack* reply) override;
+        Status stimulate(ServerContext* grpc_context, const dasproto::HandleCount* request, dasproto::Ack* reply) override;
 
         /**
          * Correlates atoms passed in the request.
@@ -101,7 +101,7 @@ class AttentionBrokerServer final: public AttentionBroker::Service {
          *
          * @return GRPC status OK if request were properly processed or CANCELLED otherwise.
          */
-        Status correlate(ServerContext* grpc_context, const das::HandleList* request, das::Ack* reply) override;
+        Status correlate(ServerContext* grpc_context, const dasproto::HandleList* request, dasproto::Ack* reply) override;
 
         // Other public methods
 

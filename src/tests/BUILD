@@ -107,6 +107,7 @@ cc_test(
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
         "//attention_broker_server:attention_broker_server_lib",
+        "//commons:commons_lib",
         "@mbedcrypto//:lib",
     ],
     linkstatic = 1

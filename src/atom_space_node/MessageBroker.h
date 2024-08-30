@@ -61,8 +61,8 @@ public:
 
     // Public GRPC API
 
-    Status ping(ServerContext* grpc_context, const dasproto::Empty* request, dasproto::Ack* reply) override;
-    Status execute_message(ServerContext* grpc_context, const dasproto::MessageData* request, dasproto::Empty* reply) override;
+    grpc::Status ping(grpc::ServerContext* grpc_context, const dasproto::Empty* request, dasproto::Ack* reply) override;
+    grpc::Status execute_message(grpc::ServerContext* grpc_context, const dasproto::MessageData* request, dasproto::Empty* reply) override;
 
 private:
 

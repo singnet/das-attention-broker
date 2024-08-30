@@ -26,7 +26,7 @@ TEST(TokenSpreader, distribute_wages) {
 
     TokenSpreader *spreader;
     ImportanceType tokens_to_spread;
-    das::HandleCount *request;
+    dasproto::HandleCount *request;
     TokenSpreader::StimuliData data;
 
     for (unsigned int i = 0; i < num_tests; i++) {
@@ -34,7 +34,7 @@ TEST(TokenSpreader, distribute_wages) {
         spreader = (TokenSpreader *) StimulusSpreader::factory(StimulusSpreaderType::TOKEN);
 
         tokens_to_spread = 1.0;
-        request = new das::HandleCount();
+        request = new dasproto::HandleCount();
         (*request->mutable_handle_count())[handles[0]] = 2;
         (*request->mutable_handle_count())[handles[1]] = 1;
         (*request->mutable_handle_count())[handles[2]] = 2;
@@ -62,11 +62,11 @@ TEST(TokenSpreader, distribute_wages) {
 static HebbianNetwork *build_test_network(string *handles) {
 
     HebbianNetwork *network = new HebbianNetwork();
-    das::HandleList *request;
+    dasproto::HandleList *request;
     ExactCountHebbianUpdater *updater = \
         (ExactCountHebbianUpdater *) HebbianNetworkUpdater::factory(HebbianNetworkUpdaterType::EXACT_COUNT);
 
-    request = new das::HandleList();
+    request = new dasproto::HandleList();
     request->set_hebbian_network((unsigned long) network);
     request->add_handle_list(handles[0]);
     request->add_handle_list(handles[1]);
@@ -74,7 +74,7 @@ static HebbianNetwork *build_test_network(string *handles) {
     request->add_handle_list(handles[3]);
     updater->correlation(request);
 
-    request = new das::HandleList();
+    request = new dasproto::HandleList();
     request->set_hebbian_network((unsigned long) network);
     request->add_handle_list(handles[1]);
     request->add_handle_list(handles[2]);
@@ -126,11 +126,11 @@ TEST(TokenSpreader, spread_stimuli) {
     // ----------------------------------------------------------
     // Build and process simulus spreading request
 
-    das::HandleCount *request;
+    dasproto::HandleCount *request;
     TokenSpreader *spreader = \
         (TokenSpreader *) StimulusSpreader::factory(StimulusSpreaderType::TOKEN);
 
-    request = new das::HandleCount();
+    request = new dasproto::HandleCount();
     request->set_hebbian_network((unsigned long) network);
     (*request->mutable_handle_count())[handles[0]] = 1;
     (*request->mutable_handle_count())[handles[1]] = 1;
