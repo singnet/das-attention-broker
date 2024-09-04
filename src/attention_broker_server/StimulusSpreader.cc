@@ -101,7 +101,7 @@ static bool consolidate_stimulus(HandleTrie::TrieNode *node, void *data) {
 // Public methods
 
 void TokenSpreader::distribute_wages(
-    das::HandleCount *handle_count,
+    dasproto::HandleCount *handle_count,
     ImportanceType &total_to_spread,
     DATA *data) {
 
@@ -118,7 +118,7 @@ void TokenSpreader::distribute_wages(
     }
 }
 
-void TokenSpreader::spread_stimuli(das::HandleCount *request) {
+void TokenSpreader::spread_stimuli(dasproto::HandleCount *request) {
 
     HebbianNetwork *network = (HebbianNetwork *) request->hebbian_network();
     if (network == NULL) {
