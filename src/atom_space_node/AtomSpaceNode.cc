@@ -4,11 +4,8 @@
 using namespace atom_space_node;
 using namespace commons;
 
-// --------------------------------------------------------------------------------
-// Public methods
-
 AtomSpaceNode::AtomSpaceNode(
-    string &node_id,
+    const string &node_id,
     LeadershipBrokerType leadership_algorithm,
     MessageBrokerType messaging_backend) {
 
@@ -22,6 +19,9 @@ AtomSpaceNode::~AtomSpaceNode() {
     delete this->message_broker;
 }
 
+// -------------------------------------------------------------------------------------------------
+// Public API
+
 void AtomSpaceNode::join_network() {
     this->message_broker->join_network();
     this->leadership_broker->set_message_broker(this->message_broker);
@@ -32,7 +32,7 @@ void AtomSpaceNode::join_network() {
     }
     vector<string> args;
     args.push_back(this->node_id());
-    this->message_broker->broadcast(AtomSpaceNode::known_commands.NODE_JOINED_NETWORK, args);
+    this->message_broker->broadcast(this->known_commands.NODE_JOINED_NETWORK, args);
 }
 
 bool AtomSpaceNode::is_leader() {
@@ -55,8 +55,23 @@ string AtomSpaceNode::node_id() {
     return this->my_node_id;
 }
 
-Message *message_factory(string &command, vector<string> &args) {
-    if (command == AtomSpaceNode::known_commands.NODE_JOINED_NETWORK) {
+void AtomSpaceNode::broadcast(const string &command, const vector<string> &args) {
+    this->message_broker->broadcast(command, args);
+}
+
+void AtomSpaceNode::send(
+    const string &command, 
+    const vector<string> &args, 
+    const string &recipient) {
+
+    this->message_broker->send(command, args, recipient);
+}
+
+// -------------------------------------------------------------------------------------------------
+// Protected API
+
+Message *AtomSpaceNode::message_factory(string &command, vector<string> &args) {
+    if (command == this->known_commands.NODE_JOINED_NETWORK) {
         return new NodeJoinedNetwork(args[0]);
     } else {
         return NULL;

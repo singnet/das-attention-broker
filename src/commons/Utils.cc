@@ -33,7 +33,7 @@ bool Utils::flip_coin(double true_probability) {
 }
 
 void Utils::sleep(unsigned int milliseconds) {
-    this_thread::sleep_for(chrono::milliseconds(100));
+    this_thread::sleep_for(chrono::milliseconds(milliseconds));
 }
 
 StopWatch::StopWatch() {

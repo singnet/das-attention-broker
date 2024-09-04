@@ -3,28 +3,12 @@
 
 using namespace atom_space_node;
 
+// -------------------------------------------------------------------------------------------------
+// Constructors and destructors
+
 LeadershipBroker::LeadershipBroker() {
     this->network_leader_id = "";
 }
-
-string LeadershipBroker::leader_id() {
-    return this->network_leader_id;
-}
-
-void LeadershipBroker::set_leader_id(string &leader_id) {
-    this->network_leader_id = leader_id;
-}
-
-bool LeadershipBroker::has_leader() {
-    return (this->network_leader_id != "");
-}
-
-void LeadershipBroker::set_message_broker(MessageBroker *message_broker) {
-    this->message_broker = message_broker;
-}
-
-// --------------------------------------------------------------------------------
-// Public methods
 
 LeadershipBroker::~LeadershipBroker() {
 }
@@ -46,7 +30,29 @@ SingleMasterServer::SingleMasterServer() {
 
 SingleMasterServer::~SingleMasterServer() {
 }
+  
+// -------------------------------------------------------------------------------------------------
+// Public superclass API
 
-void SingleMasterServer::start_leader_election(string &my_vote) {
+string LeadershipBroker::leader_id() {
+    return this->network_leader_id;
+}
+
+void LeadershipBroker::set_leader_id(const string &leader_id) {
+    this->network_leader_id = leader_id;
+}
+
+bool LeadershipBroker::has_leader() {
+    return (this->network_leader_id != "");
+}
+
+void LeadershipBroker::set_message_broker(MessageBroker *message_broker) {
+    this->message_broker = message_broker;
+}
+  
+// -------------------------------------------------------------------------------------------------
+// Concrete implementation of abstract LeadershipBroker API
+
+void SingleMasterServer::start_leader_election(const string &my_vote) {
     this->set_leader_id(my_vote);
 }

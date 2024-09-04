@@ -16,18 +16,17 @@
 
 using namespace atom_space_node;
 
-unsigned int SynchronousGRPC::GRPC_MESSAGE_BROKER_PORT = 32501;
 unsigned int SynchronousGRPC::MESSAGE_THREAD_COUNT = 10;
 
-MessageBroker::MessageBroker(MessageFactory *host_node, string &node_id) {
-    this->host_node = host_node;
-    this->node_id = node_id;
-}
 
-// ------------------------------------------------------------------------------------------------
-// Public methods
+// -------------------------------------------------------------------------------------------------
+// Constructors and destructors
 
-MessageBroker *MessageBroker::factory(MessageBrokerType instance_type, MessageFactory *host_node, string &node_id) {
+MessageBroker *MessageBroker::factory(
+    MessageBrokerType instance_type, 
+    MessageFactory *host_node, 
+    const string &node_id) {
+
     switch (instance_type) {
         case MessageBrokerType::GRPC : {
             return new SynchronousGRPC(host_node, node_id);
@@ -39,33 +38,27 @@ MessageBroker *MessageBroker::factory(MessageBrokerType instance_type, MessageFa
     }
 }
 
+MessageBroker::MessageBroker(MessageFactory *host_node, const string &node_id) {
+    this->host_node = host_node;
+    this->node_id = node_id;
+}
+
 MessageBroker::~MessageBroker() {
 }
 
-void MessageBroker::add_peer(const string &peer_id) {
-    peers_mutex.lock();
-    peers.push_back(peer_id);
-    peers_mutex.unlock();
-}
-
-SynchronousGRPC::SynchronousGRPC(MessageFactory *host_node, string &node_id) : MessageBroker(host_node, node_id) {
+SynchronousGRPC::SynchronousGRPC(
+    MessageFactory *host_node, 
+    const string &node_id) : MessageBroker(host_node, node_id) {
 }
 
 SynchronousGRPC::~SynchronousGRPC() {
 }
 
-grpc::Status SynchronousGRPC::ping(grpc::ServerContext* grpc_context, const dasproto::Empty* request, dasproto::Ack* reply) {
-    reply->set_msg("PING");
-    return grpc::Status::OK;
-}
-
-grpc::Status SynchronousGRPC::execute_message(grpc::ServerContext* grpc_context, const dasproto::MessageData* request, dasproto::Empty* reply) {
-    this->incoming_messages.enqueue((void *) request);
-    return grpc::Status::OK;
-}
+// -------------------------------------------------------------------------------------------------
+// Methods used to start threads
 
 void SynchronousGRPC::grpc_thread_method() {
-    std::string server_address = "localhost:" + to_string(GRPC_MESSAGE_BROKER_PORT);
+    std::string server_address = this->node_id;
     grpc::EnableDefaultHealthCheckService(true);
     grpc::reflection::InitProtoReflectionServerBuilderPlugin();
     grpc::ServerBuilder builder;
@@ -108,6 +101,12 @@ void SynchronousGRPC::inbox_thread_method() {
                 args.push_back(message_data->args(i));
             }
             Message *message = this->host_node->message_factory(command, args);
+            if (message == NULL) {
+                Utils::error("Invalid NULL Message");
+            }
+            if (this->host_node == NULL) {
+                Utils::error("Invalid NULL host_node");
+            }
             message->act((AtomSpaceNode *) this->host_node);
 
         } else {
@@ -117,9 +116,19 @@ void SynchronousGRPC::inbox_thread_method() {
 }
 
 void SynchronousGRPC::outbox_thread_method() {
+    // TODO Implement this method
     do {
         Utils::sleep();
     } while (true);
+}
+
+// -------------------------------------------------------------------------------------------------
+// Overrides MessageBroker API
+
+void MessageBroker::add_peer(const string &peer_id) {
+    peers_mutex.lock();
+    peers.insert(peer_id);
+    peers_mutex.unlock();
 }
 
 void SynchronousGRPC::join_network() {
@@ -140,10 +149,15 @@ void SynchronousGRPC::add_peer(const string &peer_id) {
     this->grpc_stub[peer_id] = dasproto::AtomSpaceNode::NewStub(channel);
 }
 
-void SynchronousGRPC::broadcast(string &command, vector<string> &args) {
-    dasproto::Empty reply;
-    grpc::ClientContext context;
+void SynchronousGRPC::broadcast(const string &command, const vector<string> &args) {
+    unsigned int num_peers = this->peers.size();
+    if (num_peers == 0) {
+        return;
+    }
+    dasproto::Empty reply[num_peers];
+    grpc::ClientContext context[num_peers];
     this->peers_mutex.lock();
+    unsigned int cursor = 0;
     for (auto peer_id: this->peers) {
         dasproto::MessageData message_data;
         message_data.set_command(command);
@@ -152,7 +166,52 @@ void SynchronousGRPC::broadcast(string &command, vector<string> &args) {
         }
         message_data.set_sender(this->node_id);
         message_data.set_is_broadcast(true);
-        this->grpc_stub[peer_id]->execute_message(&context, message_data, &reply);
+        message_data.add_visited_recipients(this->node_id);
+        this->grpc_stub[peer_id]->execute_message(&(context[cursor]), message_data, &(reply[cursor]));
+        cursor++;
     }
     this->peers_mutex.unlock();
+}
+
+void SynchronousGRPC::send(
+    const string &command, 
+    const vector<string> &args, 
+    const string &recipient) {
+
+    dasproto::Empty reply;
+    grpc::ClientContext context;
+    this->peers_mutex.lock();
+    if (peers.find(recipient) == peers.end()) {
+        Utils::error("Unknown peer: " + recipient);
+    }
+    this->peers_mutex.unlock();
+    dasproto::MessageData message_data;
+    message_data.set_command(command);
+    for (auto arg: args) {
+        message_data.add_args(arg);
+    }
+    message_data.set_sender(this->node_id);
+    message_data.set_is_broadcast(false);
+    this->grpc_stub[recipient]->execute_message(&context, message_data, &reply);
+}
+
+// -------------------------------------------------------------------------------------------------
+// GRPC Server API
+
+grpc::Status SynchronousGRPC::ping(
+    grpc::ServerContext* grpc_context, 
+    const dasproto::Empty* request, 
+    dasproto::Ack* reply) {
+
+    reply->set_msg("PING");
+    return grpc::Status::OK;
+}
+
+grpc::Status SynchronousGRPC::execute_message(
+    grpc::ServerContext* grpc_context, 
+    const dasproto::MessageData* request, 
+    dasproto::Empty* reply) {
+
+    this->incoming_messages.enqueue((void *) new dasproto::MessageData(*request));
+    return grpc::Status::OK;
 }
