@@ -15,11 +15,11 @@ using namespace attention_broker_server;
 TEST(HebbianNetworkUpdater, correlation) {
     string *handles = build_handle_space(6);
     HebbianNetwork *network = new HebbianNetwork();
-    das::HandleList *request;
+    dasproto::HandleList *request;
     ExactCountHebbianUpdater *updater = \
         (ExactCountHebbianUpdater *) HebbianNetworkUpdater::factory(HebbianNetworkUpdaterType::EXACT_COUNT);
 
-    request = new das::HandleList();
+    request = new dasproto::HandleList();
     request->set_hebbian_network((unsigned long) network);
     request->add_handle_list(handles[0]);
     request->add_handle_list(handles[1]);
@@ -46,7 +46,7 @@ TEST(HebbianNetworkUpdater, correlation) {
     EXPECT_TRUE(network->get_asymmetric_edge_count(handles[2], handles[5]) == 0);
     EXPECT_TRUE(network->get_asymmetric_edge_count(handles[4], handles[5]) == 0);
 
-    request = new das::HandleList();
+    request = new dasproto::HandleList();
     request->set_hebbian_network((unsigned long) network);
     request->add_handle_list(handles[1]);
     request->add_handle_list(handles[2]);
