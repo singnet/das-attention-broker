@@ -5,6 +5,7 @@
 #include <stack>
 
 using namespace attention_broker_server;
+using namespace commons;
 
 HandleTrie::TrieValue::TrieValue() {
 }

@@ -56,7 +56,7 @@ public:
      * the magnitude of such boost. The actual way importance is boosted and then spread among HebbianNetwork
      * links are delegated to the concrete subclasses.
      */
-    virtual void spread_stimuli(das::HandleCount *request) = 0;
+    virtual void spread_stimuli(dasproto::HandleCount *request) = 0;
 
 protected:
 
@@ -130,11 +130,11 @@ public:
      * @param request A list of handles to be boosted and respective counts which are used to determine
      * the magnitude of such boost.
      */
-    void spread_stimuli(das::HandleCount *request);
+    void spread_stimuli(dasproto::HandleCount *request);
 
     // Used only in "visit" functions during trie traversals. Such functions aren't methods so this method
     // must be public.
-    void distribute_wages(das::HandleCount *handle_count, ImportanceType &total_to_spread, StimuliData *data);
+    void distribute_wages(dasproto::HandleCount *handle_count, ImportanceType &total_to_spread, StimuliData *data);
 
 };
 
