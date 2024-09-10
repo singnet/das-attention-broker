@@ -6,6 +6,7 @@
 
 namespace attention_broker_server {
 using namespace std;
+using namespace commons;
 
 enum class SelectorType {
     EVEN_THREAD_COUNT

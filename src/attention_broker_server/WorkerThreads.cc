@@ -62,11 +62,11 @@ void WorkerThreads::worker_thread(
         if (request.second != NULL) {
             switch (request.first) {
                 case RequestType::STIMULUS: {
-                    stimulus_spreader->spread_stimuli((das::HandleCount *) request.second);
+                    stimulus_spreader->spread_stimuli((dasproto::HandleCount *) request.second);
                     break;
                 }
                 case RequestType::CORRELATION: {
-                    updater->correlation((das::HandleList *) request.second);
+                    updater->correlation((dasproto::HandleList *) request.second);
                     break;
                 }
                 default: {
