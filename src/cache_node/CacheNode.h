@@ -78,7 +78,7 @@ public:
      *
      * @return The ID of this node.
      */
-    string cast_leadership_vote();
+    string cast_leadership_vote() override;
 
     /**
      * This method is called whenever a new node joins the network.
