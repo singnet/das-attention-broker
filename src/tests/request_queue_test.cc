@@ -29,8 +29,8 @@ class TestMessage {
 
 TEST(RequestQueueTest, basics) {
     
-    das::Empty empty;
-    das::Ack ack;
+    dasproto::Empty empty;
+    dasproto::Ack ack;
 
     TestRequestQueue q1((unsigned int) 5);
     EXPECT_TRUE(q1.test_current_size() == 5);
