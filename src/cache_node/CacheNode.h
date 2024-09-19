@@ -78,7 +78,7 @@ public:
      *
      * @return The ID of this node.
      */
-    string cast_leadership_vote() override;
+    string cast_leadership_vote();
 
     /**
      * This method is called whenever a new node joins the network.
@@ -116,7 +116,7 @@ public:
      *
      * @return The ID of the server node passed in the constructor.
      */
-    string cast_leadership_vote() override;
+    string cast_leadership_vote();
 
     /**
      * This method is called whenever a new node joins the network.
