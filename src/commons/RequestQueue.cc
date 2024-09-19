@@ -1,7 +1,6 @@
-#include "AttentionBrokerServer.h"
 #include "RequestQueue.h"
 
-using namespace attention_broker_server;
+using namespace commons;
 
 // --------------------------------------------------------------------------------
 // Public methods
@@ -12,9 +11,6 @@ RequestQueue::RequestQueue(unsigned int initial_size) {
     count = 0;
     start = 0;
     end = 0;
-}
-
-RequestQueue::RequestQueue() : RequestQueue(AttentionBrokerServer::REQUEST_QUEUE_INTIAL_SIZE) {
 }
 
 RequestQueue::~RequestQueue() {

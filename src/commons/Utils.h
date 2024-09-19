@@ -1,12 +1,12 @@
-#ifndef _ATTENTION_BROKER_SERVER_UTILS_H
-#define _ATTENTION_BROKER_SERVER_UTILS_H
+#ifndef _COMMONS_UTILS_H
+#define _COMMONS_UTILS_H
 
 #include <string>
 #include <chrono>
 
 using namespace std;
 
-namespace attention_broker_server {
+namespace commons {
 
 class StopWatch {
     public:
@@ -33,8 +33,10 @@ public:
     static void error(string msg);
     static void warning(string msg);
     static bool flip_coin(double true_probability = 0.5);
+    static void sleep(unsigned int milliseconds = 100);
+
 };
 
-} // namespace attention_broker_server
+} // namespace commons
 
-#endif // _ATTENTION_BROKER_SERVER_UTILS_H
+#endif // _COMMONS_UTILS_H
