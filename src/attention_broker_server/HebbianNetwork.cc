@@ -71,10 +71,17 @@ unsigned int HebbianNetwork::get_node_count(string handle) {
 }
 
 ImportanceType HebbianNetwork::get_node_importance(string handle) {
+    cout << "XXXXX get_node_importance() 1" << endl;
+    if (nodes == NULL) { // XXX
+        cout << "XXXXX nodes is NULL" << endl;
+    }
     Node *node = (Node *) nodes->lookup(handle);
+    cout << "XXXXX get_node_importance() 2" << endl;
     if (node == NULL) {
+        cout << "XXXXX get_node_importance() 3" << endl;
         return 0;
     } else {
+        cout << "XXXXX get_node_importance() 4" << endl;
         return node->importance;
     }
 }

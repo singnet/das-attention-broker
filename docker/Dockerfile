@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM --platform=linux/amd64 ubuntu:22.04
 
 ARG BASE_DIR="/opt"
 ARG TMP_DIR="/tmp"
@@ -33,7 +33,45 @@ RUN apt-get install -y pkg-config
 RUN apt-get install -y curl
 RUN apt-get install -y gcc
 RUN apt-get install -y protobuf-compiler
-RUN apt-get install -y libmbedcrypto7
+#RUN apt-get install -y libmbedcrypto7
+RUN apt-get install -y libmbedtls14
+RUN apt-get install -y libmbedtls-dev
+RUN apt-get install -y libevent-dev
+RUN apt-get install -y libssl-dev
+
+################################################################################
+# To be removed when AtomDB is properly integrated
+# Redis client
+RUN apt-get install -y cmake
+RUN apt-get install -y libevent-dev
+RUN apt-get install -y libssl-dev
+RUN apt-get install -y pkg-config
+RUN apt-get install -y cmake-data
+COPY assets/hiredis-cluster.tgz /tmp
+RUN cd /tmp &&\
+    tar xzf hiredis-cluster.tgz &&\
+    cd hiredis-cluster &&\
+    mkdir build &&\
+    cd build &&\
+    cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DENABLE_SSL=ON ..&&\
+    make &&\
+    make install &&\
+    echo "/usr/local/lib" > /etc/ld.so.conf.d/local.conf &&\
+    ldconfig
+# MongoDB client
+COPY assets/mongo-cxx-driver-r3.11.0.tar.gz /tmp &&\
+    tar xzvf mongo-cxx-driver-r3.11.0.tar.gz &&\
+    cd /tmp/mongo-cxx-driver-r3.11.0/build/ &&\
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DMONGOCXX_OVERRIDE_DEFAULT_INSTALL_PREFIX=OFF &&\
+    cmake --build . &&\
+    cmake --build . --target install &&\
+    mv install/include/* /usr/local/include &&\
+    ln -s /usr/local/include/bsoncxx/v_noabi/bsoncxx/* /usr/local/include/bsoncxx &&\
+    ln -s /usr/local/include/bsoncxx/v_noabi/bsoncxx/third_party/mnmlstc/core/ /usr/local/include/core &&\
+    ln -s /usr/local/include/mongocxx/v_noabi/mongocxx/* /usr/local/include/mongocxx/ &&\
+    mv install/lib/* /usr/local/lib &&\
+    ldconfig
+################################################################################
 
 COPY assets/3rd-party.tgz ${THIRDPARTY}
 RUN cd ${THIRDPARTY} &&\

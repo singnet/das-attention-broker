@@ -34,7 +34,7 @@ public:
     static void warning(string msg);
     static bool flip_coin(double true_probability = 0.5);
     static void sleep(unsigned int milliseconds = 100);
-
+    static string get_environment(string const &key);
 };
 
 } // namespace commons

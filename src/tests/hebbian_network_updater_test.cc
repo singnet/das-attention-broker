@@ -21,10 +21,10 @@ TEST(HebbianNetworkUpdater, correlation) {
 
     request = new dasproto::HandleList();
     request->set_hebbian_network((unsigned long) network);
-    request->add_handle_list(handles[0]);
-    request->add_handle_list(handles[1]);
-    request->add_handle_list(handles[2]);
-    request->add_handle_list(handles[3]);
+    request->add_list(handles[0]);
+    request->add_list(handles[1]);
+    request->add_list(handles[2]);
+    request->add_list(handles[3]);
     updater->correlation(request);
 
     EXPECT_TRUE(network->get_node_count(handles[0]) == 1);
@@ -48,10 +48,10 @@ TEST(HebbianNetworkUpdater, correlation) {
 
     request = new dasproto::HandleList();
     request->set_hebbian_network((unsigned long) network);
-    request->add_handle_list(handles[1]);
-    request->add_handle_list(handles[2]);
-    request->add_handle_list(handles[4]);
-    request->add_handle_list(handles[5]);
+    request->add_list(handles[1]);
+    request->add_list(handles[2]);
+    request->add_list(handles[4]);
+    request->add_list(handles[5]);
     updater->correlation(request);
 
     EXPECT_TRUE(network->get_node_count(handles[0]) == 1);
