@@ -31,15 +31,17 @@ TEST(LinkTemplate, basics) {
     Variable v2("v2");
     Variable v3("v3");
     Node similarity(symbol, "Similarity");
-    Node odd_similarity(symbol, "OddSimilarity");
+    Node odd_link(symbol, "OddLink");
+    Node human(symbol, "\"human\"");
 
     LinkTemplate<3> inner_template("Expression", {&similarity, &v1, &v2});
-    LinkTemplate<2> outter_template("Expression", {&odd_similarity, &inner_template});
+    LinkTemplate<2> outter_template("Expression", {&odd_link, &inner_template});
+    LinkTemplate<3> human_template("Expression", {&similarity, &v1, &human});
+    And<2> and_operator({&human_template, &outter_template});
 
-    outter_template.subsequent_id = server_node_id;
-    outter_template.setup_buffers();
-    //outter_template.fetch_links();
-    Utils::sleep(1000);
+    and_operator.subsequent_id = server_node_id;
+    and_operator.setup_buffers();
+    Utils::sleep(5000);
 
     DASQueryAnswer *query_answer;
     unsigned int count;

@@ -19,18 +19,25 @@ class Operator : public QueryElement {
 public:
 
     Operator(const array<QueryElement *, N> &clauses) {
+        cout << "XXXXX CONSTRUCTOR Operator::Operator() BEGIN: " << (unsigned long) this << endl;
         initialize((QueryElement **) clauses.data());
+        cout << "XXXXX CONSTRUCTOR Operator::Operator() END: " << (unsigned long) this << endl;
     }
 
     Operator(QueryElement **clauses) {
+        cout << "XXXXX CONSTRUCTOR Operator::Operator() BEGIN: " << (unsigned long) this << endl;
         initialize(clauses);
+        cout << "XXXXX CONSTRUCTOR Operator::Operator() END: " << (unsigned long) this << endl;
     }
 
     ~Operator() {
+        cout << "XXXXX DESTRUCTOR Operator::Operator() BEGIN: " << (unsigned long) this << endl;
         this->graceful_shutdown();
+        cout << "XXXXX DESTRUCTOR Operator::Operator() END: " << (unsigned long) this << endl;
     }
 
     virtual void graceful_shutdown() {
+        cout << "XXXXX Operator::graceful_shutdown(): " << (unsigned long) this << endl;
         if (is_shutting_down()) {
             return;
         }
@@ -55,6 +62,7 @@ public:
     }
 
     virtual void setup_buffers() {
+        cout << "XXXXX Operator::setup_buffers(): " << (unsigned long) this << endl;
         if (this->subsequent_id == "") {
             Utils::error("Invalid empty parent id");
         }

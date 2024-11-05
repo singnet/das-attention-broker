@@ -20,23 +20,33 @@ public:
 
     //And(const array<QueryElement *, N> &clauses) : Operator<N>(clauses) {
     And(QueryElement **clauses) : Operator<N>(clauses) {
+        cout << "XXXXX CONSTRUCTOR And::And() BEGIN: " << (unsigned long) this << endl;
         initialize(clauses);
+        cout << "XXXXX CONSTRUCTOR And::And() END: " << (unsigned long) this << endl;
     }
 
     And(const array<QueryElement *, N> &clauses) : Operator<N>(clauses) {
+        cout << "XXXXX CONSTRUCTOR And::And() BEGIN: " << (unsigned long) this << endl;
         initialize((QueryElement **) clauses.data());
+        cout << "XXXXX CONSTRUCTOR And::And() END: " << (unsigned long) this << endl;
     }
 
     ~And() {
+        cout << "XXXXX DESTRUCTOR And::And() BEGIN: " << (unsigned long) this << endl;
         graceful_shutdown();
+        cout << "XXXXX DESTRUCTOR And::And() END: " << (unsigned long) this << endl;
     }
 
     virtual void setup_buffers() {
+        cout << "XXXXX And::setup_buffers(): " << (unsigned long) this << endl;
+        cout << "XXXXX id: " << this->id << endl;
+        cout << "XXXXX subsequent id: " << this->subsequent_id << endl;
         Operator<N>::setup_buffers();
         this->operator_thread = new thread(&And::and_operator_method, this);
     }
 
     virtual void graceful_shutdown() {
+        cout << "XXXXX And::graceful_shutdown(): " << (unsigned long) this << endl;
         Operator<N>::graceful_shutdown();
         if (this->operator_thread != NULL) {
             this->operator_thread->join();

@@ -1,4 +1,6 @@
+#include <iostream> // XXXXXXXXXXXXXXXXXX
 #include "Utils.h"
+#include "expression_hasher.h"
 #include "AtomDBAPITypes.h"
 
 using namespace query_engine;
@@ -46,4 +48,13 @@ const char *MongodbDocument::get(const string &key) {
 const char *MongodbDocument::get(const string &array_key, unsigned int index) {
     // Note for reference: .to_string() instead of .data() would return a std::string
     return ((*this->document)[array_key]).get_array().value[index].get_string().value.data();
+}
+
+unsigned int MongodbDocument::get_size(const string &array_key) {
+    cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
+    cout << "XXXXXXXXXXXXXXXXXXX MongodbDocument::get_size()" << endl;
+    cout << "XXXXXXXXXXXXXXXXXXX MongodbDocument::get_size() length: " << ((*this->document)[array_key]).get_array().value.length() << endl;
+    cout << "XXXXXXXXXXXXXXXXXXX MongodbDocument::get_size() HASH: " << HANDLE_HASH_SIZE << endl;
+    cout << "XXXXXXXXXXXXXXXXXXX MongodbDocument::get_size() size: " << ((*this->document)[array_key]).get_array().value.length() / HANDLE_HASH_SIZE << endl;
+    return ((*this->document)[array_key]).get_array().value.length() / HANDLE_HASH_SIZE;
 }

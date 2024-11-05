@@ -56,6 +56,7 @@ public:
 
     virtual const char *get(const string &key) = 0;
     virtual const char *get(const string &array_key, unsigned int index) = 0;
+    virtual unsigned int get_size(const string &array_key) = 0;
 };
 
 class MongodbDocument : public AtomDocument {
@@ -67,6 +68,7 @@ public:
 
     const char *get(const string &key);
     virtual const char *get(const string &array_key, unsigned int index);
+    virtual unsigned int get_size(const string &array_key);
 
 private:
 

@@ -14,7 +14,7 @@ class Sink : public QueryElement {
 
 public:
 
-    Sink(QueryElement *precedent, const string &id);
+    Sink(QueryElement *precedent, const string &id, bool delete_precedent_on_destructor = false);
     virtual ~Sink();
 
     virtual void setup_buffers();
@@ -24,6 +24,10 @@ protected:
 
     shared_ptr<QueryNode> input_buffer;
     QueryElement *precedent;
+
+private:
+
+    bool delete_precedent_on_destructor;
 };
 
 } // namespace query_element

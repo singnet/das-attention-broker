@@ -16,7 +16,7 @@ class Iterator : public Sink {
 
 public:
 
-    Iterator(QueryElement *precedent);
+    Iterator(QueryElement *precedent, bool delete_precedent_on_destructor = false);
     ~Iterator();
 
     bool finished();
