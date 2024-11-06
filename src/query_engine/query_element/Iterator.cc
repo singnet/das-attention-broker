@@ -18,8 +18,8 @@ Iterator::~Iterator() {
 bool Iterator::finished() {
     // The order of the AND clauses below matters
     return (
-        this->input_buffer->is_query_answers_empty() && 
-        this->input_buffer->is_query_answers_finished());
+        this->input_buffer->is_query_answers_finished() &&
+        this->input_buffer->is_query_answers_empty());
 }
 
 DASQueryAnswer *Iterator::pop() {

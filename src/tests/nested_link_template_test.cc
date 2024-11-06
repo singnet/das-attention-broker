@@ -2,6 +2,7 @@
 #include "gtest/gtest.h"
 
 #include "QueryNode.h"
+#include "AtomDB.h"
 #include "LinkTemplate.h"
 #include "AtomDBSingleton.h"
 #include "test_utils.h"
@@ -32,6 +33,37 @@ TEST(LinkTemplate, basics) {
     Variable v3("v3");
     Node similarity(symbol, "Similarity");
     Node odd_link(symbol, "OddLink");
+
+    LinkTemplate<3> inner_template("Expression", {&similarity, &v1, &v2});
+    LinkTemplate<2> outter_template("Expression", {&odd_link, &inner_template});
+
+    outter_template.subsequent_id = server_node_id;
+    outter_template.setup_buffers();
+    Utils::sleep(1000);
+
+    DASQueryAnswer *query_answer;
+    unsigned int count = 0;
+    while ((query_answer = server_node.pop_query_answer()) != NULL) {
+        cout << "XXXX FINAL: " << query_answer->to_string() << endl;
+        EXPECT_TRUE(double_equals(query_answer->importance, 0.0));
+        count++;
+    }
+    EXPECT_EQ(count, 8);
+}
+
+TEST(LinkTemplate, nested_variables) {
+    
+    string server_node_id = "SERVER";
+    QueryNodeServer server_node(server_node_id);
+
+    string expression = "Expression";
+    string symbol = "Symbol";
+
+    Variable v1("v1");
+    Variable v2("v2");
+    Variable v3("v3");
+    Node similarity(symbol, "Similarity");
+    Node odd_link(symbol, "OddLink");
     Node human(symbol, "\"human\"");
 
     LinkTemplate<3> inner_template("Expression", {&similarity, &v1, &v2});
@@ -41,13 +73,15 @@ TEST(LinkTemplate, basics) {
 
     and_operator.subsequent_id = server_node_id;
     and_operator.setup_buffers();
-    Utils::sleep(5000);
+    Utils::sleep(1000);
 
     DASQueryAnswer *query_answer;
-    unsigned int count;
+    shared_ptr<atomdb_api_types::AtomDocument> document;
+    unsigned int count = 0;
     while ((query_answer = server_node.pop_query_answer()) != NULL) {
+        cout << "XXXX FINAL: " << query_answer->to_string() << endl;
         EXPECT_TRUE(double_equals(query_answer->importance, 0.0));
         count++;
     }
-    EXPECT_EQ(count, 6);
+    EXPECT_EQ(count, 1);
 }

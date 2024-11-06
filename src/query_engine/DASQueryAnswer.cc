@@ -86,6 +86,10 @@ const char *Assignment::get(const char *label) {
     return NULL;
 }
 
+unsigned int Assignment::variable_count() {
+    return this->size;
+}
+
 string Assignment::to_string() {
     string answer = "{";
     for (unsigned int i = 0; i < this->size; i++) {
@@ -124,25 +128,40 @@ DASQueryAnswer *DASQueryAnswer::copy(DASQueryAnswer *base) {
     return copy;
 }
 
-bool DASQueryAnswer::merge(DASQueryAnswer *other) {
+bool DASQueryAnswer::merge(DASQueryAnswer *other, bool merge_handles) {
     if (this->assignment.is_compatible(other->assignment)) {
         this->assignment.add_assignments(other->assignment);
-        this->importance = fmax(this->importance, other->importance);
         bool already_exist;
-        for (unsigned int j = 0; j < other->handles_size; j++) {
-            already_exist = false;
-            for (unsigned int i = 0; i < this->handles_size; i++) {
-                if (strncmp(this->handles[i], other->handles[j], HANDLE_HASH_SIZE) == 0) {
-                    already_exist = true;
-                    break;
+        if (merge_handles) {
+            this->importance = fmax(this->importance, other->importance);
+            for (unsigned int j = 0; j < other->handles_size; j++) {
+                already_exist = false;
+                for (unsigned int i = 0; i < this->handles_size; i++) {
+                    if (strncmp(this->handles[i], other->handles[j], HANDLE_HASH_SIZE) == 0) {
+                        already_exist = true;
+                        break;
+                    }
                 }
-            }
-            if (! already_exist) {
-                this->handles[this->handles_size++] = other->handles[j];
+                if (! already_exist) {
+                    this->handles[this->handles_size++] = other->handles[j];
+                }
             }
         }
         return true;
     } else {
         return false;
     }
+}
+
+string DASQueryAnswer::to_string() {
+    string answer = "QueryAnswer<" + std::to_string(this->handles_size) + ",";
+    answer += std::to_string(this->assignment.variable_count()) + "> [";
+    for (unsigned int i = 0; i < this->handles_size; i++) {
+        answer += string(this->handles[i]);
+        if (i != (this->handles_size - 1)) {
+            answer += ", ";
+        }
+    }
+    answer += "] " + this->assignment.to_string();
+    return answer;
 }

@@ -25,6 +25,7 @@ class Assignment {
         bool is_compatible(const Assignment &other);
         void copy_from(const Assignment &other);
         void add_assignments(const Assignment &other);
+        unsigned int variable_count();
 
     private:
 
@@ -51,8 +52,9 @@ public:
     ~DASQueryAnswer();
 
     void add_handle(const char *handle);
-    bool merge(DASQueryAnswer *other);
+    bool merge(DASQueryAnswer *other, bool merge_handles = true);
     static DASQueryAnswer *copy(DASQueryAnswer *base);
+    string to_string();
 
 private:
 

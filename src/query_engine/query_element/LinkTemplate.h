@@ -173,14 +173,15 @@ public:
     bool is_feasible(unsigned int index) {
         unsigned int inner_answers_size = inner_answers.size();
         unsigned int cursor = this->next_inner_answer[index];
-        while (inner_answers_size > cursor) {
+        cout << "XXXX " << this->id << " is_feasible: " << this->local_answers[index]->to_string() << endl;
+        while (cursor < inner_answers_size) {
             if (this->inner_answers[cursor] != NULL) {
                 bool passed_first_check = true;
                 unsigned int arity = this->atom_document[index]->get_size("targets");
                 unsigned int target_cursor = 0;
                 for (unsigned int i = 0; i < arity; i++) {
                     // Note to revisor: pointer comparation is correct here
-                    if (handle_keys[i + 1] == (char *) AtomDB::WILDCARD.c_str()) {
+                    if (this->handle_keys[i + 1] == (char *) AtomDB::WILDCARD.c_str()) {
                         if (target_cursor > this->inner_answers[cursor]->handles_size) {
                             Utils::error("Invalid query answer in inner link template match");
                         }
@@ -194,23 +195,25 @@ public:
                         }
                     }
                 }
-                if (passed_first_check && this->local_answers[index]->merge(this->inner_answers[cursor])) {
-                    this->inner_answers[cursor] == NULL;
+                if (passed_first_check && this->local_answers[index]->merge(this->inner_answers[cursor], false)) {
+                    cout << "XXXX TRUE: " << this->inner_answers[cursor]->to_string() << endl;
+                    this->inner_answers[cursor] = NULL;
                     return true;
                 }
             }
             this->next_inner_answer[index]++;
             cursor++;
         }
+        cout << "XXXX FALSE" << endl;
+        return false;
     }
 
     bool ingest_newly_arrived_answers() {
         bool flag = false;
-        DASQueryAnswer *answer;
-        cout << "XXXXXXXXXXXXXXXXXXXX ingest_newly_arrived_answers() " << endl;
-        while ((answer = this->inner_template_iterator->pop()) != NULL) {
-            this->inner_answers.push_back(answer);
-            cout << "XXXXXXXXXXXXXXXXXXXX ingest_newly_arrived_answers() " << answer->handles_size << " " << answer->handles[0] << " " << answer->assignment.to_string() << endl;
+        DASQueryAnswer *query_answer;
+        while ((query_answer = this->inner_template_iterator->pop()) != NULL) {
+            this->inner_answers.push_back(query_answer);
+            cout << "XXXXXXXXXXXXXXXXXXXX ingest_newly_arrived_answers() " << this->id << query_answer->to_string() << endl;
             flag = true;
         }
         return flag;
@@ -221,7 +224,7 @@ public:
             while (! (this->is_fetch_finished() && this->local_buffer.empty())) {
                 DASQueryAnswer *query_answer;
                 while ((query_answer = (DASQueryAnswer *) this->local_buffer.dequeue()) != NULL) {
-                    cout << "XXXXXXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXXXXXXXXX XXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
+                    cout << "XXXXXXXXXXXXXXXXXXXX local_buffer_processor_method() " << this->id << query_answer->to_string() << endl;
                     this->output_buffer->add_query_answer(query_answer);
                 }
                 Utils::sleep();
@@ -235,6 +238,10 @@ public:
                             if (is_feasible(i)) {
                                 this->output_buffer->add_query_answer(this->local_answers[i]);
                                 this->local_answers[i] = NULL;
+                            } else {
+                                if (this->inner_template_iterator->finished()) {
+                                    this->local_answers[i] = NULL;
+                                }
                             }
                         }
                     }

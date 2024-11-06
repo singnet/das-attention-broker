@@ -51,10 +51,10 @@ const char *MongodbDocument::get(const string &array_key, unsigned int index) {
 }
 
 unsigned int MongodbDocument::get_size(const string &array_key) {
-    cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
-    cout << "XXXXXXXXXXXXXXXXXXX MongodbDocument::get_size()" << endl;
-    cout << "XXXXXXXXXXXXXXXXXXX MongodbDocument::get_size() length: " << ((*this->document)[array_key]).get_array().value.length() << endl;
-    cout << "XXXXXXXXXXXXXXXXXXX MongodbDocument::get_size() HASH: " << HANDLE_HASH_SIZE << endl;
-    cout << "XXXXXXXXXXXXXXXXXXX MongodbDocument::get_size() size: " << ((*this->document)[array_key]).get_array().value.length() / HANDLE_HASH_SIZE << endl;
+    //cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
+    //cout << "XXXXXXXXXXXXXXXXXXX MongodbDocument::get_size()" << endl;
+    //cout << "XXXXXXXXXXXXXXXXXXX MongodbDocument::get_size() length: " << ((*this->document)[array_key]).get_array().value.length() << endl;
+    //cout << "XXXXXXXXXXXXXXXXXXX MongodbDocument::get_size() HASH: " << HANDLE_HASH_SIZE << endl;
+    //cout << "XXXXXXXXXXXXXXXXXXX MongodbDocument::get_size() size: " << ((*this->document)[array_key]).get_array().value.length() / HANDLE_HASH_SIZE << endl;
     return ((*this->document)[array_key]).get_array().value.length() / HANDLE_HASH_SIZE;
 }
