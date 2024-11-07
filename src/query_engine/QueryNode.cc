@@ -12,8 +12,12 @@ string QueryNode::QUERY_ANSWERS_FINISHED_COMMAND = "query_answers_finished";
 // --------------------------------------------------------------------------------
 // Public methods
 
-QueryNode::QueryNode(const string &node_id, bool is_server) :
-    AtomSpaceNode(node_id, LeadershipBrokerType::SINGLE_MASTER_SERVER, MessageBrokerType::RAM) {
+QueryNode::QueryNode(
+    const string &node_id, 
+    bool is_server,
+    MessageBrokerType messaging_backend) :
+    AtomSpaceNode(node_id, LeadershipBrokerType::SINGLE_MASTER_SERVER, messaging_backend) {
+
     this->is_server = is_server;
     this->query_answer_processor = NULL;
     this->query_answers_finished_flag = false;

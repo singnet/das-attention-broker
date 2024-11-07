@@ -20,7 +20,10 @@ class QueryNode : public AtomSpaceNode {
 
 public:
 
-    QueryNode(const string &node_id, bool is_server);
+    QueryNode(
+        const string &node_id, 
+        bool is_server, 
+        MessageBrokerType messaging_backend = MessageBrokerType::RAM);
     virtual ~QueryNode();
     virtual shared_ptr<Message> message_factory(string &command, vector<string> &args);
     virtual void graceful_shutdown();
