@@ -38,7 +38,7 @@ cc_test(
 
 cc_test(
     name = "attention_broker_server_test",
-    srcs = ["attention_broker_server_test.cc"],
+    srcs = ["attention_broker_server_test.cc", "test_utils.cc", "test_utils.h"],
     size = "small",
     copts = [
       "-Iexternal/gtest/googletest/include",
@@ -50,6 +50,7 @@ cc_test(
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
         "//attention_broker_server:attention_broker_server_lib",
+        "//utils:utils_lib",
         "@mbedcrypto//:lib",
     ],
     linkstatic = 1
@@ -107,7 +108,7 @@ cc_test(
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
         "//attention_broker_server:attention_broker_server_lib",
-        "//commons:commons_lib",
+        "//utils:utils_lib",
         "@mbedcrypto//:lib",
     ],
     linkstatic = 1
@@ -152,8 +153,8 @@ cc_test(
 )
 
 cc_test(
-    name = "leadership_broker_test",
-    srcs = ["leadership_broker_test.cc", "test_utils.cc", "test_utils.h"],
+    name = "link_template_test",
+    srcs = ["link_template_test.cc", "test_utils.cc", "test_utils.h"],
     size = "small",
     copts = [
       "-Iexternal/gtest/googletest/include",
@@ -161,15 +162,23 @@ cc_test(
     ],
     deps = [
         "@com_github_google_googletest//:gtest_main",
-        "//atom_space_node:atom_space_node_lib",
-        "//hasher:hasher_lib",
+        "//query_engine:query_engine_lib",
+    ],
+    linkopts = [
+        #"-L/opt/3rd-party/mbedcrypto",
+        "-lmbedcrypto",
+        "-L/usr/local/lib",
+        "-lhiredis_cluster",
+        "-lhiredis",
+        "-lmongocxx",
+        "-lbsoncxx",
     ],
     linkstatic = 1
 )
 
 cc_test(
-    name = "message_broker_test",
-    srcs = ["message_broker_test.cc", "test_utils.cc", "test_utils.h"],
+    name = "nested_link_template_test",
+    srcs = ["nested_link_template_test.cc", "test_utils.cc", "test_utils.h"],
     size = "small",
     copts = [
       "-Iexternal/gtest/googletest/include",
@@ -177,16 +186,22 @@ cc_test(
     ],
     deps = [
         "@com_github_google_googletest//:gtest_main",
-        "//cache_node:cache_node_lib",
-        "//atom_space_node:atom_space_node_lib",
-        "//hasher:hasher_lib",
+        "//query_engine:query_engine_lib",
+    ],
+    linkopts = [
+        "-lmbedcrypto",
+        "-L/usr/local/lib",
+        "-lhiredis_cluster",
+        "-lhiredis",
+        "-lmongocxx",
+        "-lbsoncxx",
     ],
     linkstatic = 1
 )
 
 cc_test(
-    name = "cache_node_test",
-    srcs = ["cache_node_test.cc", "test_utils.cc", "test_utils.h"],
+    name = "query_answer_test",
+    srcs = ["query_answer_test.cc", "test_utils.cc", "test_utils.h"],
     size = "small",
     copts = [
       "-Iexternal/gtest/googletest/include",
@@ -194,9 +209,95 @@ cc_test(
     ],
     deps = [
         "@com_github_google_googletest//:gtest_main",
-        "//cache_node:cache_node_lib",
-        "//atom_space_node:atom_space_node_lib",
-        "//hasher:hasher_lib",
+        "//query_engine:query_engine_lib",
+    ],
+    linkopts = [
+    ],
+    linkstatic = 1
+)
+
+cc_test(
+    name = "and_operator_test",
+    srcs = ["and_operator_test.cc", "test_utils.cc", "test_utils.h"],
+    size = "medium",
+    copts = [
+      "-Iexternal/gtest/googletest/include",
+      "-Iexternal/gtest/googletest",
+    ],
+    deps = [
+        "@com_github_google_googletest//:gtest_main",
+        "//query_engine:query_engine_lib",
+    ],
+    linkopts = [
+        #"-L/opt/3rd-party/mbedcrypto",
+        "-lmbedcrypto",
+        "-L/usr/local/lib",
+        "-lhiredis_cluster",
+        "-lhiredis",
+        "-lmongocxx",
+        "-lbsoncxx",
+    ],
+    linkstatic = 1
+)
+
+cc_test(
+    name = "iterator_test",
+    srcs = ["iterator_test.cc", "test_utils.cc", "test_utils.h"],
+    size = "small",
+    copts = [
+      "-Iexternal/gtest/googletest/include",
+      "-Iexternal/gtest/googletest",
+    ],
+    deps = [
+        "@com_github_google_googletest//:gtest_main",
+        "//query_engine:query_engine_lib",
+    ],
+    linkopts = [
+        #"-L/opt/3rd-party/mbedcrypto",
+        "-lmbedcrypto",
+        "-L/usr/local/lib",
+        "-lhiredis_cluster",
+        "-lhiredis",
+        "-lmongocxx",
+        "-lbsoncxx",
+    ],
+    linkstatic = 1
+)
+
+cc_test(
+    name = "remote_sink_iterator_test",
+    srcs = ["remote_sink_iterator_test.cc", "test_utils.cc", "test_utils.h"],
+    size = "small",
+    copts = [
+      "-Iexternal/gtest/googletest/include",
+      "-Iexternal/gtest/googletest",
+    ],
+    deps = [
+        "@com_github_google_googletest//:gtest_main",
+        "//query_engine:query_engine_lib",
+    ],
+    linkopts = [
+        "-lmbedcrypto",
+        "-L/usr/local/lib",
+        "-lhiredis_cluster",
+        "-lhiredis",
+        "-lmongocxx",
+        "-lbsoncxx",
+    ],
+    linkstatic = 1
+)
+
+cc_test(
+    name = "query_node_test",
+    srcs = ["query_node_test.cc"],
+    size = "small",
+    copts = [
+      "-Iexternal/gtest/googletest/include",
+      "-Iexternal/gtest/googletest",
+    ],
+    deps = [
+        "@com_github_google_googletest//:gtest_main",
+        "//query_engine:query_engine_lib",
     ],
     linkstatic = 1
 )
