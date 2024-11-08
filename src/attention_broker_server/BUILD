@@ -9,7 +9,7 @@ cc_library(
         "@com_github_singnet_das_proto//:attention_broker_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
-        "//commons:commons_lib",
+        "//utils:utils_lib",
         "//hasher:hasher_lib"
     ],
 )

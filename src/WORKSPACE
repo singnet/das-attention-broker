@@ -8,8 +8,14 @@ http_archive(
 
 http_archive(
     name = "com_github_singnet_das_proto",
-    strip_prefix = "das-proto-0.1.12",
-    urls = ["https://github.com/singnet/das-proto/archive/refs/tags/0.1.12.tar.gz"],
+    strip_prefix = "das-proto-0.1.13",
+    urls = ["https://github.com/singnet/das-proto/archive/refs/tags/0.1.13.tar.gz"],
+)
+
+http_archive(
+    name = "com_github_singnet_das_node",
+    strip_prefix = "das-node-ab-test-1",
+    urls = ["https://github.com/singnet/das-node/archive/refs/tags/ab-test-1.tar.gz"],
 )
 
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
