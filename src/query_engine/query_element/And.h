@@ -11,31 +11,51 @@ namespace query_element {
 
 
 /**
+ * QueryElement representing an AND logic operator.
  *
+ * And operates on N clauses. Each clause can be either a Source or another Operator.
  */
 template <unsigned int N>
 class And : public Operator<N> {
 
 public:
 
-    //And(const array<QueryElement *, N> &clauses) : Operator<N>(clauses) {
+    // --------------------------------------------------------------------------------------------
+    // Constructors and destructors
+
+    /**
+     * Constructor.
+     *
+     * @param clauses Array with N clauses (each clause is supposed to be a Source or an Operator).
+     */
     And(QueryElement **clauses) : Operator<N>(clauses) {
         cout << "XXXXX CONSTRUCTOR And::And() BEGIN: " << (unsigned long) this << endl;
         initialize(clauses);
         cout << "XXXXX CONSTRUCTOR And::And() END: " << (unsigned long) this << endl;
     }
 
+    /**
+     * Constructor.
+     *
+     * @param clauses Array with N clauses (each clause is supposed to be a Source or an Operator).
+     */
     And(const array<QueryElement *, N> &clauses) : Operator<N>(clauses) {
         cout << "XXXXX CONSTRUCTOR And::And() BEGIN: " << (unsigned long) this << endl;
         initialize((QueryElement **) clauses.data());
         cout << "XXXXX CONSTRUCTOR And::And() END: " << (unsigned long) this << endl;
     }
 
+    /**
+     * Destructor.
+     */
     ~And() {
         cout << "XXXXX DESTRUCTOR And::And() BEGIN: " << (unsigned long) this << endl;
         graceful_shutdown();
         cout << "XXXXX DESTRUCTOR And::And() END: " << (unsigned long) this << endl;
     }
+
+    // --------------------------------------------------------------------------------------------
+    // QueryElement API
 
     virtual void setup_buffers() {
         cout << "XXXXX And::setup_buffers(): " << (unsigned long) this << endl;
@@ -46,13 +66,17 @@ public:
     }
 
     virtual void graceful_shutdown() {
-        cout << "XXXXX And::graceful_shutdown(): " << (unsigned long) this << endl;
+        cout << "XXXXX And::graceful_shutdown() BEGIN: " << (unsigned long) this << endl;
         Operator<N>::graceful_shutdown();
         if (this->operator_thread != NULL) {
             this->operator_thread->join();
             this->operator_thread = NULL;
         }
+        cout << "XXXXX And::graceful_shutdown() END: " << (unsigned long) this << endl;
     }
+      
+    // --------------------------------------------------------------------------------------------
+    // Private stuff
 
 private:
 
@@ -66,12 +90,18 @@ private:
         CandidateRecord(const CandidateRecord &other) {
             this->fitness = other.fitness;
             memcpy((void *) this->index, (const void *) other.index, N * sizeof(unsigned int));
-            memcpy((void *) this->answer, (const void *) other.answer, N * sizeof(DASQueryAnswer *));
+            memcpy(
+                (void *) this->answer,
+                (const void *) other.answer,
+                N * sizeof(DASQueryAnswer *));
         }
         CandidateRecord& operator=(const CandidateRecord &other) {
             this->fitness = other.fitness;
             memcpy((void *) this->index, (const void *) other.index, N * sizeof(unsigned int));
-            memcpy((void *) this->answer, (const void *) other.answer, N * sizeof(DASQueryAnswer *));
+            memcpy(
+                (void *) this->answer,
+                (const void *) other.answer,
+                N * sizeof(DASQueryAnswer *));
             return *this;
         }
         bool operator<(const CandidateRecord &other) const {
@@ -209,7 +239,8 @@ private:
                         break;
                     }
                 }
-                candidate.answer[answer_queue_index] = this->query_answer[answer_queue_index][index_in_queue];
+                candidate.answer[answer_queue_index] = 
+                    this->query_answer[answer_queue_index][index_in_queue];
                 candidate.index[answer_queue_index] = index_in_queue;
                 candidate.fitness *= candidate.answer[answer_queue_index]->importance;
             }
@@ -226,12 +257,14 @@ private:
     void and_operator_method() {
 
         do {
-            if (Operator<N>::is_shutting_down() || this->output_buffer->is_query_answers_finished()) {
+            if (QueryElement::is_flow_finished() || 
+                this->output_buffer->is_query_answers_finished()) {
+
                 return;
             }
 
             do {
-                if (Operator<N>::is_shutting_down()) {
+                if (QueryElement::is_flow_finished()) {
                     return;
                 }
                 ingest_newly_arrived_answers();

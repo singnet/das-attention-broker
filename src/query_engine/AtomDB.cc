@@ -14,9 +14,6 @@ string AtomDB::MONGODB_DB_NAME;
 string AtomDB::MONGODB_COLLECTION_NAME;
 string AtomDB::MONGODB_FIELD_NAME[MONGODB_FIELD::size];
 
-// -------------------------------------------------------------------------------------------------
-// Public methods
-
 AtomDB::AtomDB() {
     redis_setup();
     mongodb_setup();

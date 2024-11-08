@@ -14,7 +14,6 @@
 #include "expression_hasher.h"
 #include "RequestQueue.h"
 
-//include "common.pb.h"
 #include "AttentionBrokerServer.h"
 #include "attention_broker.grpc.pb.h"
 #include <grpcpp/grpcpp.h>
@@ -27,15 +26,56 @@ using namespace attention_broker_server;
 namespace query_element {
 
 /**
+ * Concrete Source that search for a pattern in the AtomDB and feed the QueryElement up in the
+ * query tree * with the resulting links.
  *
+ * A pattern is someting like:
+ *
+ * Similarity
+ *    Human
+ *    $v1
+ *
+ * In the example, any links of type "Similarity" pointing to Human as the first target would be
+ * returned. These returned links are then fed into the subsequent QueryElement in the tree.
+ *
+ * LinkTemplate query the AtomDB for the links that match the pattern. In addition to this, it
+ * attaches values for any variables in the pattern and sorts all the AtomDB answers by importance
+ * (by querying the AttentionBroker) before following up the links (most important ones first).
+ *
+ * An arbritrary number of nested levels are allowed. For instance:
+ *
+ * Expression
+ *     Symbol A
+ *     Symbol B
+ *     $v1
+ *     Expression
+ *         Symbol C
+ *         $v2
+ *     Expression
+ *         $v1
+ *         $v2
+ *         Expression
+ *             Symbol X
+ *             Symbol Y
+ *             Symbol Z
+ *
+ * Returned links are guaranteed to satisfy all variable settings properly.
  */
 template <unsigned int ARITY>
 class LinkTemplate : public Source {
 
 public:
 
+    // --------------------------------------------------------------------------------------------
+    // Constructors and destructors
+
+    /**
+     * Constructor expects an array of QueryElements which can be Terminals or nested LinkTemplate.
+     *
+     * @param type Link type or WILDCARD to indicate that the link type doesn't matter.
+     * @param targets An array with targets which can each be a Terminal or a nested LinkTemplate.
+     */
     LinkTemplate(const string &type, const array<QueryElement *, ARITY> &targets) {
-        cout << "XXXXX CONSTRUCTOR LinkTemplate::LinkTemplate() BEGIN: " << (unsigned long) this << endl;
         this->arity = ARITY;
         this->type = type;
         this->target_template = targets;
@@ -49,10 +89,9 @@ public:
             (char *) AtomDB::WILDCARD.c_str() :
             named_type_hash((char *) type.c_str()));
         for (unsigned int i = 1; i <= ARITY; i++) {
-            // Note:
             // It's safe to get stored shared_ptr's raw pointer here because handle_keys[]
             // is used solely in this scope so it's guaranteed that handle will not be freed.
-            if (targets[i - 1]->is_terminal()) {
+            if (targets[i - 1]->is_terminal) {
                 this->handle_keys[i] = ((Terminal *) targets[i - 1])->handle.get();
             } else {
                 this->handle_keys[i] = (char *) AtomDB::WILDCARD.c_str();
@@ -63,14 +102,16 @@ public:
         if (! wildcard_flag) {
             free(this->handle_keys[0]);
         }
-        // This is correct. id is not necessarily a handle but an identificator. It just happens that
-        // we want the string for this identificator to be the same as the string representing the handle.
+        // This is correct. id is not necessarily a handle but an identificator. It just happens
+        // that we want the string for this identificator to be the same as the string representing
+        // the handle.
         this->id = this->handle.get();
-        cout << "XXXXX CONSTRUCTOR LinkTemplate::LinkTemplate() END: " << (unsigned long) this << endl;
     }
 
+    /**
+     * Destructor.
+     */
     virtual ~LinkTemplate() {
-        cout << "XXXXX DESTRUCTOR LinkTemplate::LinkTemplate() BEGIN: " << (unsigned long) this << endl;
         graceful_shutdown();
         local_answers_mutex.lock();
         if (local_answers_size > 0) {
@@ -79,12 +120,16 @@ public:
             delete [] this->next_inner_answer;
         }
         local_answers_mutex.unlock();
-        cout << "XXXXX DESTRUCTOR LinkTemplate::LinkTemplate() END: " << (unsigned long) this << endl;
     }
 
+    // --------------------------------------------------------------------------------------------
+    // QueryElement API
+
+    /**
+     * Gracefully shuts down this QueryElement's processor thread.
+     */
     virtual void graceful_shutdown() {
-        cout << "XXXXX LinkTemplate::graceful_shutdown(): " << (unsigned long) this << endl;
-        set_fetch_finished();
+        set_flow_finished();
         if (this->local_buffer_processor != NULL) {
             this->local_buffer_processor->join();
             this->local_buffer_processor = NULL;
@@ -92,187 +137,11 @@ public:
         Source::graceful_shutdown();
     }
 
-    void increment_local_answers_size() {
-        local_answers_mutex.lock();
-        this->local_answers_size++;
-        local_answers_mutex.unlock();
-    }
-
-    unsigned int get_local_answers_size() {
-        unsigned int answer;
-        local_answers_mutex.lock();
-        answer = this->local_answers_size;
-        local_answers_mutex.unlock();
-        return answer;
-    }
-
-    void fetch_links() {
-        cout << "XXXXXXXXX fetch_links() BEGIN" << endl;
-        shared_ptr<AtomDB> db = AtomDBSingleton::get_instance();
-        this->fetch_result = db->query_for_pattern(this->handle);
-        unsigned int answer_count = this->fetch_result->size();
-        cout << "XXXXXXXXX fetch_links() 1" << endl;
-        cout << "XXXXXXXXX fetch_links() answer_count: " << answer_count << endl;
-        if (answer_count > 0) {
-            cout << "XXXXXXXXX fetch_links() 2" << endl;
-            dasproto::HandleList handle_list;
-            for (unsigned int i = 0; i < answer_count; i++) {
-                handle_list.add_list(this->fetch_result->get_handle(i));
-            }
-            dasproto::ImportanceList importance_list;
-            grpc::ClientContext context;
-            auto stub = dasproto::AttentionBroker::NewStub(grpc::CreateChannel(
-                this->attention_broker_address, 
-                grpc::InsecureChannelCredentials()));
-            stub->get_importance(&context, handle_list, &importance_list);
-            // TODO Remove [] of atom_document
-            // shared_ptr<atomdb_api_types::AtomDocument> atom_document[answer_count];
-            this->atom_document = new shared_ptr<atomdb_api_types::AtomDocument>[answer_count];
-            this->local_answers = new DASQueryAnswer *[answer_count];
-            this->next_inner_answer = new unsigned int[answer_count];
-            cout << "XXXXXXXXX fetch_links() 3" << endl;
-            for (unsigned int i = 0; i < answer_count; i++) {
-                this->atom_document[i] = db->get_atom_document(this->fetch_result->get_handle(i));
-                DASQueryAnswer *query_answer = new DASQueryAnswer(
-                    this->fetch_result->get_handle(i),
-                    importance_list.list(i));
-                const char *s = this->atom_document[i]->get("targets", 0);
-                for (unsigned int j = 0; j < this->arity; j++) {
-                    if (this->target_template[j]->is_terminal()) {
-                        Terminal *terminal = (Terminal *) this->target_template[j];
-                        if (terminal->is_variable) {
-                            if (! query_answer->assignment.assign(
-                                    terminal->name.c_str(),
-                                    this->atom_document[i]->get("targets", j))) {
-                                Utils::error("Error assigning variable: " + terminal->name + " a value: " + string(this->atom_document[i]->get("targets", j)));
-                            }
-                        }
-                    }
-                }
-                cout << "XXXXXXXXX fetch_links() 4" << endl;
-                if (this->inner_template.size() == 0) {
-                    this->local_buffer.enqueue((void *) query_answer);
-                } else {
-                    this->local_answers[i] = query_answer;
-                    this->next_inner_answer[i] = 0;
-                    this->increment_local_answers_size();
-                }
-                cout << "XXXXXXXXX fetch_links() 5" << endl;
-                if (is_fetch_finished()) {
-                    break;
-                }
-            }
-            cout << "XXXXXXXXX fetch_links() finishing query answers" << endl;
-            if (this->inner_template.size() == 0) {
-                set_fetch_finished();
-            }
-        }
-        cout << "XXXXXXXXX fetch_links() END" << endl;
-    }
-
-    bool is_feasible(unsigned int index) {
-        unsigned int inner_answers_size = inner_answers.size();
-        unsigned int cursor = this->next_inner_answer[index];
-        cout << "XXXX " << this->id << " is_feasible: " << this->local_answers[index]->to_string() << endl;
-        while (cursor < inner_answers_size) {
-            if (this->inner_answers[cursor] != NULL) {
-                bool passed_first_check = true;
-                unsigned int arity = this->atom_document[index]->get_size("targets");
-                unsigned int target_cursor = 0;
-                for (unsigned int i = 0; i < arity; i++) {
-                    // Note to revisor: pointer comparation is correct here
-                    if (this->handle_keys[i + 1] == (char *) AtomDB::WILDCARD.c_str()) {
-                        if (target_cursor > this->inner_answers[cursor]->handles_size) {
-                            Utils::error("Invalid query answer in inner link template match");
-                        }
-                        if (strncmp(
-                            this->atom_document[index]->get("targets", i), 
-                            this->inner_answers[cursor]->handles[target_cursor++],
-                            HANDLE_HASH_SIZE)) {
-
-                            passed_first_check = false;
-                            break;
-                        }
-                    }
-                }
-                if (passed_first_check && this->local_answers[index]->merge(this->inner_answers[cursor], false)) {
-                    cout << "XXXX TRUE: " << this->inner_answers[cursor]->to_string() << endl;
-                    this->inner_answers[cursor] = NULL;
-                    return true;
-                }
-            }
-            this->next_inner_answer[index]++;
-            cursor++;
-        }
-        cout << "XXXX FALSE" << endl;
-        return false;
-    }
-
-    bool ingest_newly_arrived_answers() {
-        bool flag = false;
-        DASQueryAnswer *query_answer;
-        while ((query_answer = this->inner_template_iterator->pop()) != NULL) {
-            this->inner_answers.push_back(query_answer);
-            cout << "XXXXXXXXXXXXXXXXXXXX ingest_newly_arrived_answers() " << this->id << query_answer->to_string() << endl;
-            flag = true;
-        }
-        return flag;
-    }
-
-    void local_buffer_processor_method() {
-        if (this->inner_template.size() == 0) {
-            while (! (this->is_fetch_finished() && this->local_buffer.empty())) {
-                DASQueryAnswer *query_answer;
-                while ((query_answer = (DASQueryAnswer *) this->local_buffer.dequeue()) != NULL) {
-                    cout << "XXXXXXXXXXXXXXXXXXXX local_buffer_processor_method() " << this->id << query_answer->to_string() << endl;
-                    this->output_buffer->add_query_answer(query_answer);
-                }
-                Utils::sleep();
-            }
-        } else {
-            while (! this->is_fetch_finished()) {
-                if (ingest_newly_arrived_answers()) {
-                    unsigned int size = get_local_answers_size();
-                    for (unsigned int i = 0; i < size; i++) {
-                        if (this->local_answers[i] != NULL) {
-                            if (is_feasible(i)) {
-                                this->output_buffer->add_query_answer(this->local_answers[i]);
-                                this->local_answers[i] = NULL;
-                            } else {
-                                if (this->inner_template_iterator->finished()) {
-                                    this->local_answers[i] = NULL;
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    Utils::sleep();
-                }
-                bool finished_flag = true;
-                for (unsigned int i = 0; i < size; i++) {
-                    if (this->local_answers[i] != NULL) {
-                        finished_flag = false;
-                        break;
-                    }
-                }
-                if (finished_flag) {
-                    set_fetch_finished();
-                }
-            }
-        }
-        this->output_buffer->query_answers_finished();
-    }
-
     virtual void setup_buffers() {
-        cout << "XXXXX LinkTemplate::setup_buffers() BEGIN: " << (unsigned long) this << endl;
-        cout << "XXXXX id: " << this->id << endl;
-        cout << "XXXXX subsequent id: " << this->subsequent_id << endl;
-
         Source::setup_buffers();
         if (this->inner_template.size() > 0) {
             switch(this->inner_template.size()) {
                 case 1: {
-                    cout << "XXXXX case 1: " << endl;
                     this->inner_template_iterator = shared_ptr<Iterator>(new Iterator(
                         inner_template[0]
                     ));
@@ -316,9 +185,176 @@ public:
                 }
             }
         }
-        this->local_buffer_processor = new thread(&LinkTemplate::local_buffer_processor_method, this);
+        this->local_buffer_processor = new thread(
+            &LinkTemplate::local_buffer_processor_method, 
+            this);
         fetch_links();
-        cout << "XXXXX LinkTemplate::setup_buffers() END: " << (unsigned long) this << endl;
+    }
+
+private:
+
+    // --------------------------------------------------------------------------------------------
+    // Private methods
+
+    void increment_local_answers_size() {
+        local_answers_mutex.lock();
+        this->local_answers_size++;
+        local_answers_mutex.unlock();
+    }
+
+    unsigned int get_local_answers_size() {
+        unsigned int answer;
+        local_answers_mutex.lock();
+        answer = this->local_answers_size;
+        local_answers_mutex.unlock();
+        return answer;
+    }
+
+    void fetch_links() {
+        shared_ptr<AtomDB> db = AtomDBSingleton::get_instance();
+        this->fetch_result = db->query_for_pattern(this->handle);
+        unsigned int answer_count = this->fetch_result->size();
+        if (answer_count > 0) {
+            dasproto::HandleList handle_list;
+            for (unsigned int i = 0; i < answer_count; i++) {
+                handle_list.add_list(this->fetch_result->get_handle(i));
+            }
+            dasproto::ImportanceList importance_list;
+            grpc::ClientContext context;
+            auto stub = dasproto::AttentionBroker::NewStub(grpc::CreateChannel(
+                this->attention_broker_address, 
+                grpc::InsecureChannelCredentials()));
+            stub->get_importance(&context, handle_list, &importance_list);
+            this->atom_document = new shared_ptr<atomdb_api_types::AtomDocument>[answer_count];
+            this->local_answers = new DASQueryAnswer *[answer_count];
+            this->next_inner_answer = new unsigned int[answer_count];
+            for (unsigned int i = 0; i < answer_count; i++) {
+                this->atom_document[i] = db->get_atom_document(this->fetch_result->get_handle(i));
+                DASQueryAnswer *query_answer = new DASQueryAnswer(
+                    this->fetch_result->get_handle(i),
+                    importance_list.list(i));
+                const char *s = this->atom_document[i]->get("targets", 0);
+                for (unsigned int j = 0; j < this->arity; j++) {
+                    if (this->target_template[j]->is_terminal) {
+                        Terminal *terminal = (Terminal *) this->target_template[j];
+                        if (terminal->is_variable) {
+                            if (! query_answer->assignment.assign(
+                                    terminal->name.c_str(),
+                                    this->atom_document[i]->get("targets", j))) {
+                                Utils::error(
+                                    "Error assigning variable: " +
+                                    terminal->name +
+                                    " a value: " +
+                                    string(this->atom_document[i]->get("targets", j)));
+                            }
+                        }
+                    }
+                }
+                if (this->inner_template.size() == 0) {
+                    this->local_buffer.enqueue((void *) query_answer);
+                } else {
+                    this->local_answers[i] = query_answer;
+                    this->next_inner_answer[i] = 0;
+                    this->increment_local_answers_size();
+                }
+                if (is_flow_finished()) {
+                    break;
+                }
+            }
+            if (this->inner_template.size() == 0) {
+                set_flow_finished();
+            }
+        }
+    }
+
+    bool is_feasible(unsigned int index) {
+        unsigned int inner_answers_size = inner_answers.size();
+        unsigned int cursor = this->next_inner_answer[index];
+        while (cursor < inner_answers_size) {
+            if (this->inner_answers[cursor] != NULL) {
+                bool passed_first_check = true;
+                unsigned int arity = this->atom_document[index]->get_size("targets");
+                unsigned int target_cursor = 0;
+                for (unsigned int i = 0; i < arity; i++) {
+                    // Note to revisor: pointer comparation is correct here
+                    if (this->handle_keys[i + 1] == (char *) AtomDB::WILDCARD.c_str()) {
+                        if (target_cursor > this->inner_answers[cursor]->handles_size) {
+                            Utils::error("Invalid query answer in inner link template match");
+                        }
+                        if (strncmp(
+                            this->atom_document[index]->get("targets", i), 
+                            this->inner_answers[cursor]->handles[target_cursor++],
+                            HANDLE_HASH_SIZE)) {
+
+                            passed_first_check = false;
+                            break;
+                        }
+                    }
+                }
+                if (passed_first_check && 
+                    this->local_answers[index]->merge(this->inner_answers[cursor], false)) {
+
+                    this->inner_answers[cursor] = NULL;
+                    return true;
+                }
+            }
+            this->next_inner_answer[index]++;
+            cursor++;
+        }
+        return false;
+    }
+
+    bool ingest_newly_arrived_answers() {
+        bool flag = false;
+        DASQueryAnswer *query_answer;
+        while ((query_answer = this->inner_template_iterator->pop()) != NULL) {
+            this->inner_answers.push_back(query_answer);
+            flag = true;
+        }
+        return flag;
+    }
+
+    void local_buffer_processor_method() {
+        if (this->inner_template.size() == 0) {
+            while (! (this->is_flow_finished() && this->local_buffer.empty())) {
+                DASQueryAnswer *query_answer;
+                while ((query_answer = (DASQueryAnswer *) this->local_buffer.dequeue()) != NULL) {
+                    this->output_buffer->add_query_answer(query_answer);
+                }
+                Utils::sleep();
+            }
+        } else {
+            while (! this->is_flow_finished()) {
+                if (ingest_newly_arrived_answers()) {
+                    unsigned int size = get_local_answers_size();
+                    for (unsigned int i = 0; i < size; i++) {
+                        if (this->local_answers[i] != NULL) {
+                            if (is_feasible(i)) {
+                                this->output_buffer->add_query_answer(this->local_answers[i]);
+                                this->local_answers[i] = NULL;
+                            } else {
+                                if (this->inner_template_iterator->finished()) {
+                                    this->local_answers[i] = NULL;
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Utils::sleep();
+                }
+                bool finished_flag = true;
+                for (unsigned int i = 0; i < size; i++) {
+                    if (this->local_answers[i] != NULL) {
+                        finished_flag = false;
+                        break;
+                    }
+                }
+                if (finished_flag) {
+                    set_flow_finished();
+                }
+            }
+        }
+        this->output_buffer->query_answers_finished();
     }
 
 private:
@@ -343,20 +379,6 @@ private:
     vector<DASQueryAnswer *> inner_answers;
     unsigned int local_answers_size;
     mutex local_answers_mutex;
-
-    void set_fetch_finished() {
-        fetch_finished_mutex.lock();
-        this->fetch_finished = true;
-        fetch_finished_mutex.unlock();
-    }
-
-    bool is_fetch_finished() {
-        bool answer;
-        fetch_finished_mutex.lock();
-        answer = this->fetch_finished;
-        fetch_finished_mutex.unlock();
-        return answer;
-    }
 };
 
 } // namespace query_element

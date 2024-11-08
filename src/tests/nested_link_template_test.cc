@@ -12,7 +12,6 @@ using namespace query_element;
 
 TEST(LinkTemplate, basics) {
     
-    // XXXXXX TODO: fix network info
     setenv("DAS_REDIS_HOSTNAME", "ninjato", 1);
     setenv("DAS_REDIS_PORT", "29000", 1);
     setenv("DAS_USE_REDIS_CLUSTER", "false", 1);
@@ -39,12 +38,11 @@ TEST(LinkTemplate, basics) {
 
     outter_template.subsequent_id = server_node_id;
     outter_template.setup_buffers();
-    Utils::sleep(1000);
+    Utils::sleep(2000);
 
     DASQueryAnswer *query_answer;
     unsigned int count = 0;
     while ((query_answer = server_node.pop_query_answer()) != NULL) {
-        cout << "XXXX FINAL: " << query_answer->to_string() << endl;
         EXPECT_TRUE(double_equals(query_answer->importance, 0.0));
         count++;
     }
@@ -79,7 +77,6 @@ TEST(LinkTemplate, nested_variables) {
     shared_ptr<atomdb_api_types::AtomDocument> document;
     unsigned int count = 0;
     while ((query_answer = server_node.pop_query_answer()) != NULL) {
-        cout << "XXXX FINAL: " << query_answer->to_string() << endl;
         EXPECT_TRUE(double_equals(query_answer->importance, 0.0));
         count++;
     }

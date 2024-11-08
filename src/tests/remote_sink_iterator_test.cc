@@ -2,6 +2,7 @@
 #include "gtest/gtest.h"
 
 #include "RemoteSink.h"
+#include "Source.h"
 #include "RemoteIterator.h"
 #include "AtomDBSingleton.h"
 #include "test_utils.h"
@@ -29,16 +30,12 @@ TEST(RemoteSinkIterator, basics) {
     string producer_id = "localhost:30700";
     string consumer_id = "localhost:30701";
 
-    cout << "XXX Initialization" << endl;
-
     string input_element_id = "test_source";
     TestSource input(input_element_id);
     RemoteIterator consumer(consumer_id);
     RemoteSink producer(&input, producer_id, consumer_id);
     producer.setup_buffers();
     Utils::sleep(1000);
-
-    cout << "XXX Test BEGIN" << endl;
 
     EXPECT_FALSE(consumer.finished());
 
@@ -47,39 +44,31 @@ TEST(RemoteSinkIterator, basics) {
     DASQueryAnswer qa1("h1", 0.1);
     DASQueryAnswer qa2("h2", 0.2);
 
-    cout << "XXX Test 1" << endl;
     input.add(&qa0);
     input.add(&qa1);
 
-    cout << "XXX Test 2" << endl;
     EXPECT_FALSE(consumer.finished());
     EXPECT_FALSE((qa = consumer.pop()) == NULL);
     EXPECT_TRUE(strcmp(qa->handles[0], "h0") == 0);
     EXPECT_TRUE(double_equals(qa->importance, 0.0));
 
-    cout << "XXX Test 3" << endl;
     EXPECT_FALSE(consumer.finished());
     EXPECT_FALSE((qa = consumer.pop()) == NULL);
     EXPECT_TRUE(strcmp(qa->handles[0], "h1") == 0);
     EXPECT_TRUE(double_equals(qa->importance, 0.1));
 
-    cout << "XXX Test 4" << endl;
     EXPECT_TRUE((qa = consumer.pop()) == NULL);
     EXPECT_FALSE(consumer.finished());
 
-    cout << "XXX Test 5" << endl;
     input.add(&qa2);
     input.finished();
     EXPECT_FALSE(consumer.finished());
 
-    cout << "XXX Test 6" << endl;
     EXPECT_FALSE(consumer.finished());
     EXPECT_FALSE((qa = consumer.pop()) == NULL);
     EXPECT_TRUE(strcmp(qa->handles[0], "h2") == 0);
     EXPECT_TRUE(double_equals(qa->importance, 0.2));
     EXPECT_TRUE(consumer.finished());
-
-    cout << "XXX Test END" << endl;
 }
 
 /*

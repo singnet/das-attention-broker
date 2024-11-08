@@ -2,8 +2,8 @@
 
 using namespace query_element;
 
-// -------------------------------------------------------------------------------------------------
-// Public methods
+// ------------------------------------------------------------------------------------------------
+// Constructors and destructors
 
 RemoteIterator::RemoteIterator(const string &local_id) {
     this->local_id = local_id;
@@ -14,9 +14,10 @@ RemoteIterator::~RemoteIterator() {
     graceful_shutdown();
 }
 
+// -------------------------------------------------------------------------------------------------
+// Public methods
+
 void RemoteIterator::setup_buffers() {
-    cout << "XXXXX RemoteIterator::setup_buffers(): " << (unsigned long) this << endl;
-    cout << "XXXXX local_id: " << local_id << endl;
     this->remote_input_buffer = shared_ptr<QueryNode>(new QueryNodeServer(this->local_id));
 }
 

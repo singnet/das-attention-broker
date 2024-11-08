@@ -3,7 +3,7 @@
 using namespace query_element;
 
 // -------------------------------------------------------------------------------------------------
-// Public methods
+// Constructors and destructors
 
 RemoteSink::RemoteSink(
     QueryElement *precedent, 
@@ -21,12 +21,12 @@ RemoteSink::~RemoteSink() {
     graceful_shutdown();
 }
 
+// -------------------------------------------------------------------------------------------------
+// Public methods
+
 void RemoteSink::setup_buffers() {
-    cout << "XXXXX RemoteSink::setup_buffers(): " << (unsigned long) this << endl;
-    cout << "XXXXX local_id: " << local_id << endl;
-    cout << "XXXXX remote_id: " << remote_id << endl;
-    //Sink::setup_buffers();
-    this->remote_output_buffer = shared_ptr<QueryNode>(new QueryNodeClient(this->local_id, this->remote_id));
+    this->remote_output_buffer = 
+        shared_ptr<QueryNode>(new QueryNodeClient(this->local_id, this->remote_id));
     this->queue_processor = new thread(&RemoteSink::queue_processor_method, this);
 }
 
@@ -39,9 +39,15 @@ void RemoteSink::graceful_shutdown() {
     this->remote_output_buffer->graceful_shutdown();
 }
 
+// -------------------------------------------------------------------------------------------------
+// Private methods
+
 void RemoteSink::queue_processor_method() {
     do {
-        if (is_flow_finished() || (this->input_buffer->is_query_answers_finished() && this->input_buffer->is_query_answers_empty())) {
+        if (is_flow_finished() || 
+           (this->input_buffer->is_query_answers_finished() && 
+            this->input_buffer->is_query_answers_empty())) {
+
             break;
         }
         bool idle_flag = true;

@@ -11,7 +11,6 @@ using namespace query_element;
 
 TEST(LinkTemplate, basics) {
     
-    // XXXXXX TODO: fix network info
     setenv("DAS_REDIS_HOSTNAME", "ninjato", 1);
     setenv("DAS_REDIS_PORT", "29000", 1);
     setenv("DAS_USE_REDIS_CLUSTER", "false", 1);

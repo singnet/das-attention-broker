@@ -8,21 +8,52 @@ using namespace std;
 namespace query_element {
 
 /**
+ * Superclass for elements that represents leafs in the query tree of QueryElement.
  *
+ * Source adds the required DistributedAlgorithmNode (actually a specialized version of it
+ * named QueryNode) and expose a public API to interact with it transparently. Basically, 
+ * a client version of QueryNode (i.e. a ClientQueryNode) is setup to communicate with
+ * a remote ServerQueryNode which is located in the QueryElement just above in the query tree.
  */
 class Source : public QueryElement {
 
 public:
 
+    /**
+     * Sources tipically need to communicate with the AttentionBroker in order to sort links
+     * by importance. AttentionBroker is supposed to be running in the same machine as all
+     * Source elements so only a port number is required. Here we provide a default value
+     * in the case none is passed in constructor.
+     */
     static string DEFAULT_ATTENTION_BROKER_PORT;
 
+    /**
+     * Constructor which also sets a value for AttentionBroker address
+     */
     Source(const string &attention_broker_address);
+
+    /**
+     * Basic empty constructor.
+     */
     Source();
+
+    /**
+     * Destructor.
+     */
     virtual ~Source();
 
+    // --------------------------------------------------------------------------------------------
+    // QueryElement API
+
+    /**
+     * Gracefully shuts down the QueryNode.
+     */
     virtual void graceful_shutdown();
+
+    /**
+     * Setup a ClientQueryNode to commnunicate with the upper QueryElement.
+     */
     virtual void setup_buffers();
-    virtual void query_answers_finished();
 
 protected:
 

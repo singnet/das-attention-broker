@@ -53,18 +53,18 @@ public:
     string id;
     string subsequent_id;
 
+    /**
+     * Basic constructor which solely initialize variables.
+     */
     QueryElement();
+
+    /**
+     * Destructor.
+     */
     virtual ~QueryElement();
 
     // --------------------------------------------------------------------------------------------
     // API to be extended by concrete subclasses
-
-    /**
-     * Return true iff this QueryElement is a Terminal (i.e. Node, Link or Variable).
-     *
-     * @return true iff this QueryElement is a Terminal (i.e. Node, Link or Variable).
-     */
-    virtual bool is_terminal();
 
     /**
      * Setup QueryNodes used by concrete implementations of QueryElements. This method is called
@@ -76,6 +76,11 @@ public:
      * Synchronously request this QueryElement to shutdown any threads it may have spawned.
      */
     virtual void graceful_shutdown() = 0;
+
+    /**
+     * Indicates whether this QueryElement is a Terminal (i.e. Node, Link or Variable).
+     */
+    bool is_terminal;
 
 protected:
 

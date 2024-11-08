@@ -2,6 +2,8 @@
 #include <cstring>
 #include "gtest/gtest.h"
 
+#include "Source.h"
+#include "Sink.h"
 #include "DASQueryAnswer.h"
 #include "And.h"
 #include "test_utils.h"
@@ -38,11 +40,16 @@ class TestSource : public Source {
                 Utils::sleep(SLEEP_DURATION);
             }
         }
+
+        void query_answers_finished() {
+            return this->output_buffer->query_answers_finished();
+        }
 };
 
 class TestSink : public Sink {
     public:
-        TestSink(QueryElement *precedent) : Sink(precedent, "TestSink(" + precedent->id + ")") { 
+        TestSink(QueryElement *precedent) : 
+            Sink(precedent, "TestSink(" + precedent->id + ")") { 
         } 
         ~TestSink() {
         }
@@ -232,6 +239,7 @@ TEST(AndOperator, operation_logic) {
         count++;
     }
 
+    Utils::sleep(5000);
     cout << "TEAR DOWN" << endl;
 
     delete sink;

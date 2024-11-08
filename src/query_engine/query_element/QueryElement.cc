@@ -3,17 +3,14 @@
 using namespace query_element;
 
 // ------------------------------------------------------------------------------------------------
-// Public methods
+// Constructors and destructors
 
 QueryElement::QueryElement() {
     this->flow_finished = false;
+    this->is_terminal = false;
 }
 
 QueryElement::~QueryElement() {
-}
-
-bool QueryElement::is_terminal() {
-    return false;
 }
 
 // ------------------------------------------------------------------------------------------------
