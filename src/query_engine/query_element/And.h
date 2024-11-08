@@ -29,9 +29,7 @@ public:
      * @param clauses Array with N clauses (each clause is supposed to be a Source or an Operator).
      */
     And(QueryElement **clauses) : Operator<N>(clauses) {
-        cout << "XXXXX CONSTRUCTOR And::And() BEGIN: " << (unsigned long) this << endl;
         initialize(clauses);
-        cout << "XXXXX CONSTRUCTOR And::And() END: " << (unsigned long) this << endl;
     }
 
     /**
@@ -40,39 +38,30 @@ public:
      * @param clauses Array with N clauses (each clause is supposed to be a Source or an Operator).
      */
     And(const array<QueryElement *, N> &clauses) : Operator<N>(clauses) {
-        cout << "XXXXX CONSTRUCTOR And::And() BEGIN: " << (unsigned long) this << endl;
         initialize((QueryElement **) clauses.data());
-        cout << "XXXXX CONSTRUCTOR And::And() END: " << (unsigned long) this << endl;
     }
 
     /**
      * Destructor.
      */
     ~And() {
-        cout << "XXXXX DESTRUCTOR And::And() BEGIN: " << (unsigned long) this << endl;
         graceful_shutdown();
-        cout << "XXXXX DESTRUCTOR And::And() END: " << (unsigned long) this << endl;
     }
 
     // --------------------------------------------------------------------------------------------
     // QueryElement API
 
     virtual void setup_buffers() {
-        cout << "XXXXX And::setup_buffers(): " << (unsigned long) this << endl;
-        cout << "XXXXX id: " << this->id << endl;
-        cout << "XXXXX subsequent id: " << this->subsequent_id << endl;
         Operator<N>::setup_buffers();
         this->operator_thread = new thread(&And::and_operator_method, this);
     }
 
     virtual void graceful_shutdown() {
-        cout << "XXXXX And::graceful_shutdown() BEGIN: " << (unsigned long) this << endl;
         Operator<N>::graceful_shutdown();
         if (this->operator_thread != NULL) {
             this->operator_thread->join();
             this->operator_thread = NULL;
         }
-        cout << "XXXXX And::graceful_shutdown() END: " << (unsigned long) this << endl;
     }
       
     // --------------------------------------------------------------------------------------------
@@ -82,7 +71,7 @@ private:
 
     class CandidateRecord {
         public:
-        DASQueryAnswer *answer[N];
+        QueryAnswer *answer[N];
         unsigned int index[N];
         double fitness;
         CandidateRecord() {
@@ -93,7 +82,7 @@ private:
             memcpy(
                 (void *) this->answer,
                 (const void *) other.answer,
-                N * sizeof(DASQueryAnswer *));
+                N * sizeof(QueryAnswer *));
         }
         CandidateRecord& operator=(const CandidateRecord &other) {
             this->fitness = other.fitness;
@@ -101,7 +90,7 @@ private:
             memcpy(
                 (void *) this->answer,
                 (const void *) other.answer,
-                N * sizeof(DASQueryAnswer *));
+                N * sizeof(QueryAnswer *));
             return *this;
         }
         bool operator<(const CandidateRecord &other) const {
@@ -132,7 +121,7 @@ private:
         }
      };
 
-    vector<DASQueryAnswer *> query_answer[N];
+    vector<QueryAnswer *> query_answer[N];
     unsigned int next_input_to_process[N];
     priority_queue<CandidateRecord> border;
     unordered_set<CandidateRecord, hash_function> visited;
@@ -171,7 +160,7 @@ private:
         if (this->no_more_answers_to_arrive) {
             return;
         }
-        DASQueryAnswer *answer;
+        QueryAnswer *answer;
         unsigned int all_arrived_count = 0;
         bool no_new_answer = true;
         for (unsigned int i = 0; i < N; i++) {
@@ -196,7 +185,7 @@ private:
     }
 
     void operate_candidate(const CandidateRecord &candidate) {
-        DASQueryAnswer *new_query_answer = DASQueryAnswer::copy(candidate.answer[0]);
+        QueryAnswer *new_query_answer = QueryAnswer::copy(candidate.answer[0]);
         for (unsigned int i = 1; i < N; i++) {
             if (! new_query_answer->merge(candidate.answer[i])) {
                 delete new_query_answer;

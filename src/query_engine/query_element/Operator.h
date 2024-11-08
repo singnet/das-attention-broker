@@ -3,7 +3,7 @@
 
 #include <mutex>
 #include "QueryElement.h"
-#include "DASQueryAnswer.h"
+#include "QueryAnswer.h"
 
 using namespace std;
 

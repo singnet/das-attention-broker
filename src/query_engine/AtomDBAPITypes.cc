@@ -51,6 +51,9 @@ const char *MongodbDocument::get(const string &array_key, unsigned int index) {
 }
 
 unsigned int MongodbDocument::get_size(const string &array_key) {
+    // NOTE TO REVIEWER 
+    // TODO: this implementation is wrong and need to be fixed before integration in das-atom-db
+    // I couldn't figure out a way to discover the number of elements in a BSON array.
     //cout << "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX" << endl;
     //cout << "XXXXXXXXXXXXXXXXXXX MongodbDocument::get_size()" << endl;
     //cout << "XXXXXXXXXXXXXXXXXXX MongodbDocument::get_size() length: " << ((*this->document)[array_key]).get_array().value.length() << endl;

@@ -76,7 +76,7 @@ shared_ptr<Message> QueryNode::message_factory(string &command, vector<string> &
     return std::shared_ptr<Message>{};
 }
 
-void QueryNode::add_query_answer(DASQueryAnswer *query_answer) {
+void QueryNode::add_query_answer(QueryAnswer *query_answer) {
     if (is_query_answers_finished()) {
         Utils::error("Invalid addition of new query answer.");
     } else {
@@ -84,8 +84,8 @@ void QueryNode::add_query_answer(DASQueryAnswer *query_answer) {
     }
 }
 
-DASQueryAnswer *QueryNode::pop_query_answer() {
-    return (DASQueryAnswer *) this->query_answer_queue.dequeue();
+QueryAnswer *QueryNode::pop_query_answer() {
+    return (QueryAnswer *) this->query_answer_queue.dequeue();
 }
 
 bool QueryNode::is_query_answers_empty() {
@@ -122,14 +122,14 @@ void QueryNodeServer::query_answer_processor_method() {
 }
 
 void QueryNodeClient::query_answer_processor_method() {
-    DASQueryAnswer *query_answer;
+    QueryAnswer *query_answer;
     vector<string> args;
     bool answers_finished_flag = false;
     while (! is_shutting_down()) {
-        query_answer = (DASQueryAnswer *) this->query_answer_queue.dequeue();
+        query_answer = (QueryAnswer *) this->query_answer_queue.dequeue();
         while (query_answer != NULL) {
             args.push_back(to_string((unsigned long) query_answer));
-            query_answer = (DASQueryAnswer *) this->query_answer_queue.dequeue();
+            query_answer = (QueryAnswer *) this->query_answer_queue.dequeue();
         }
         if (args.empty()) {
             // The order of the AND clauses below matters
@@ -172,7 +172,7 @@ string QueryNodeClient::cast_leadership_vote() {
 
 QueryAnswerFlow::QueryAnswerFlow(string command, vector<string> args) {
     for (auto pointer_string: args) {
-        DASQueryAnswer *query_answer = (DASQueryAnswer *) stoul(pointer_string);
+        QueryAnswer *query_answer = (QueryAnswer *) stoul(pointer_string);
         this->query_answers.push_back(query_answer);
     }
 }

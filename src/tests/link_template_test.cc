@@ -44,7 +44,7 @@ TEST(LinkTemplate, basics) {
     bool monkey_flag = false;
     bool chimp_flag = false;
     bool ent_flag = false;
-    DASQueryAnswer *query_answer;
+    QueryAnswer *query_answer;
     while ((query_answer = server_node.pop_query_answer()) != NULL) {
         string var = string(query_answer->assignment.get("v1"));
         EXPECT_TRUE(double_equals(query_answer->importance, 0.0));

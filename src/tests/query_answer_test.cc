@@ -2,12 +2,12 @@
 #include <cstring>
 #include "gtest/gtest.h"
 
-#include "DASQueryAnswer.h"
+#include "QueryAnswer.h"
 #include "test_utils.h"
 
 using namespace query_engine;
 
-TEST(DASQueryAnswer, assignments_basics) {
+TEST(QueryAnswer, assignments_basics) {
 
     Assignment mapping0;
 
@@ -75,10 +75,10 @@ TEST(DASQueryAnswer, assignments_basics) {
     EXPECT_TRUE(mapping4.to_string() != "");
 }
 
-TEST(DASQueryAnswer, query_answer_basics) {
+TEST(QueryAnswer, query_answer_basics) {
 
     // Tests add_handle()
-    DASQueryAnswer query_answer1("h1", 0);
+    QueryAnswer query_answer1("h1", 0);
     query_answer1.assignment.assign("v1", "1");
     EXPECT_EQ(query_answer1.handles_size, 1);
     EXPECT_TRUE(strcmp(query_answer1.handles[0], "h1") == 0);
@@ -88,7 +88,7 @@ TEST(DASQueryAnswer, query_answer_basics) {
     EXPECT_TRUE(strcmp(query_answer1.handles[1], "hx") == 0);
 
     // Tests merge()
-    DASQueryAnswer query_answer2("h2", 0);
+    QueryAnswer query_answer2("h2", 0);
     query_answer2.assignment.assign("v2", "2");
     query_answer2.add_handle("hx");
     query_answer2.merge(&query_answer1);
@@ -101,7 +101,7 @@ TEST(DASQueryAnswer, query_answer_basics) {
     EXPECT_TRUE(query_answer2.assignment.assign("v3", "x"));
 
     // Tests copy()
-    DASQueryAnswer *query_answer3 = DASQueryAnswer::copy(&query_answer2);
+    QueryAnswer *query_answer3 = QueryAnswer::copy(&query_answer2);
     EXPECT_EQ(query_answer3->handles_size, 3);
     EXPECT_TRUE(strcmp(query_answer3->handles[0], "h2") == 0);
     EXPECT_TRUE(strcmp(query_answer3->handles[1], "hx") == 0);

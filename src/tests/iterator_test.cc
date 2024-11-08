@@ -30,10 +30,10 @@ TEST(Iterator, basics) {
 
     EXPECT_FALSE(query_answer_iterator.finished());
 
-    DASQueryAnswer *qa;
-    DASQueryAnswer qa0("h0", 0.0);
-    DASQueryAnswer qa1("h1", 0.1);
-    DASQueryAnswer qa2("h2", 0.2);
+    QueryAnswer *qa;
+    QueryAnswer qa0("h0", 0.0);
+    QueryAnswer qa1("h1", 0.1);
+    QueryAnswer qa2("h2", 0.2);
 
     client_node.add_query_answer(&qa0);
     client_node.add_query_answer(&qa1);
@@ -97,7 +97,7 @@ TEST(Iterator, link_template_integration) {
     bool monkey_flag = false;
     bool chimp_flag = false;
     bool ent_flag = false;
-    DASQueryAnswer *query_answer;
+    QueryAnswer *query_answer;
     while (! query_answer_iterator.finished()) {
         query_answer = query_answer_iterator.pop();
         if (query_answer != NULL) {

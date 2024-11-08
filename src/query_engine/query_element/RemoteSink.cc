@@ -51,7 +51,7 @@ void RemoteSink::queue_processor_method() {
             break;
         }
         bool idle_flag = true;
-        DASQueryAnswer *query_answer;
+        QueryAnswer *query_answer;
         while ((query_answer = this->input_buffer->pop_query_answer()) != NULL) {
             this->remote_output_buffer->add_query_answer(query_answer);
             idle_flag = false;

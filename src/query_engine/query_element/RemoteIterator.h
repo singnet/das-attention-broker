@@ -64,7 +64,7 @@ public:
      *
      * @return the next query answer or NULL if none are currently available.
      */
-    DASQueryAnswer *pop();
+    QueryAnswer *pop();
 
 private:
 

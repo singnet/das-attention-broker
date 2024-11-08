@@ -32,6 +32,6 @@ bool RemoteIterator::finished() {
         this->remote_input_buffer->is_query_answers_empty());
 }
 
-DASQueryAnswer *RemoteIterator::pop() {
-    return (DASQueryAnswer *) this->remote_input_buffer->pop_query_answer();
+QueryAnswer *RemoteIterator::pop() {
+    return (QueryAnswer *) this->remote_input_buffer->pop_query_answer();
 }

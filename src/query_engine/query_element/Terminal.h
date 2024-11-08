@@ -194,7 +194,7 @@ public:
     }
 
     /**
-     * Returns a string representation of this Node (mainly for debugging; not optimized to
+     * Returns a string representation of this Variable (mainly for debugging; not optimized to
      * production environment).
      */
     string to_string() {

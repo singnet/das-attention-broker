@@ -21,6 +21,6 @@ bool Iterator::finished() {
         this->input_buffer->is_query_answers_empty());
 }
 
-DASQueryAnswer *Iterator::pop() {
-    return (DASQueryAnswer *) this->input_buffer->pop_query_answer();
+QueryAnswer *Iterator::pop() {
+    return (QueryAnswer *) this->input_buffer->pop_query_answer();
 }

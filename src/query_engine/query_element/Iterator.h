@@ -2,7 +2,7 @@
 #define _QUERY_ELEMENT_ITERATOR_H
 
 #include "Sink.h"
-#include "DASQueryAnswer.h"
+#include "QueryAnswer.h"
 
 using namespace std;
 using namespace query_engine;
@@ -50,7 +50,7 @@ public:
      *
      * @return the next query answer or NULL if none are currently available.
      */
-    DASQueryAnswer *pop();
+    QueryAnswer *pop();
 };
 
 } // namespace query_element

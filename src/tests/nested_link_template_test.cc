@@ -40,7 +40,7 @@ TEST(LinkTemplate, basics) {
     outter_template.setup_buffers();
     Utils::sleep(2000);
 
-    DASQueryAnswer *query_answer;
+    QueryAnswer *query_answer;
     unsigned int count = 0;
     while ((query_answer = server_node.pop_query_answer()) != NULL) {
         EXPECT_TRUE(double_equals(query_answer->importance, 0.0));
@@ -73,7 +73,7 @@ TEST(LinkTemplate, nested_variables) {
     and_operator.setup_buffers();
     Utils::sleep(1000);
 
-    DASQueryAnswer *query_answer;
+    QueryAnswer *query_answer;
     shared_ptr<atomdb_api_types::AtomDocument> document;
     unsigned int count = 0;
     while ((query_answer = server_node.pop_query_answer()) != NULL) {

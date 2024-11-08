@@ -4,7 +4,7 @@
 
 #include "Source.h"
 #include "Sink.h"
-#include "DASQueryAnswer.h"
+#include "QueryAnswer.h"
 #include "And.h"
 #include "test_utils.h"
 
@@ -31,7 +31,7 @@ class TestSource : public Source {
             const array<const char *, 1> &values,
             bool sleep_flag = true) {
 
-            DASQueryAnswer *query_answer = new DASQueryAnswer(handle, importance);
+            QueryAnswer *query_answer = new QueryAnswer(handle, importance);
             for (unsigned int i = 0; i < labels.size(); i++) {
                 query_answer->assignment.assign(labels[i], values[i]);
             }
@@ -55,12 +55,12 @@ class TestSink : public Sink {
         }
         bool empty() { return this->input_buffer->is_query_answers_empty(); }
         bool finished() { return this->input_buffer->is_query_answers_finished(); }
-        DASQueryAnswer *pop() { return this->input_buffer->pop_query_answer(); }
+        QueryAnswer *pop() { return this->input_buffer->pop_query_answer(); }
 };
 
 void check_query_answer(
     string tag,
-    DASQueryAnswer *query_answer,
+    QueryAnswer *query_answer,
     double importance,
     unsigned int handles_size,
     const array<const char *, 2> &handles) {
@@ -79,7 +79,7 @@ TEST(AndOperator, basics) {
     TestSource source2(2);
     And<2> and_operator({&source1, &source2});
     TestSink sink(&and_operator);
-    DASQueryAnswer *query_answer;
+    QueryAnswer *query_answer;
 
     EXPECT_TRUE(sink.empty()); EXPECT_FALSE(sink.finished());
 
@@ -177,7 +177,7 @@ TEST(AndOperator, operation_logic) {
     array<array<double, 100>, 3> importance;
     priority_queue<ImportanceFitnessPair> fitness_heap;
     ImportanceFitnessPair pair;
-    DASQueryAnswer *query_answer;
+    QueryAnswer *query_answer;
     TestSource *source[3];
     for (unsigned int clause = 0; clause < clause_count; clause++) {
         source[clause] = new TestSource(clause);

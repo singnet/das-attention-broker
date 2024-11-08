@@ -10,7 +10,7 @@
 #include "Terminal.h"
 #include "AtomDBSingleton.h"
 #include "AtomDBAPITypes.h"
-#include "DASQueryAnswer.h"
+#include "QueryAnswer.h"
 #include "expression_hasher.h"
 #include "RequestQueue.h"
 
@@ -226,11 +226,11 @@ private:
                 grpc::InsecureChannelCredentials()));
             stub->get_importance(&context, handle_list, &importance_list);
             this->atom_document = new shared_ptr<atomdb_api_types::AtomDocument>[answer_count];
-            this->local_answers = new DASQueryAnswer *[answer_count];
+            this->local_answers = new QueryAnswer *[answer_count];
             this->next_inner_answer = new unsigned int[answer_count];
             for (unsigned int i = 0; i < answer_count; i++) {
                 this->atom_document[i] = db->get_atom_document(this->fetch_result->get_handle(i));
-                DASQueryAnswer *query_answer = new DASQueryAnswer(
+                QueryAnswer *query_answer = new QueryAnswer(
                     this->fetch_result->get_handle(i),
                     importance_list.list(i));
                 const char *s = this->atom_document[i]->get("targets", 0);
@@ -306,7 +306,7 @@ private:
 
     bool ingest_newly_arrived_answers() {
         bool flag = false;
-        DASQueryAnswer *query_answer;
+        QueryAnswer *query_answer;
         while ((query_answer = this->inner_template_iterator->pop()) != NULL) {
             this->inner_answers.push_back(query_answer);
             flag = true;
@@ -317,8 +317,8 @@ private:
     void local_buffer_processor_method() {
         if (this->inner_template.size() == 0) {
             while (! (this->is_flow_finished() && this->local_buffer.empty())) {
-                DASQueryAnswer *query_answer;
-                while ((query_answer = (DASQueryAnswer *) this->local_buffer.dequeue()) != NULL) {
+                QueryAnswer *query_answer;
+                while ((query_answer = (QueryAnswer *) this->local_buffer.dequeue()) != NULL) {
                     this->output_buffer->add_query_answer(query_answer);
                 }
                 Utils::sleep();
@@ -374,9 +374,9 @@ private:
     shared_ptr<QueryNodeServer> target_buffer[ARITY];
     shared_ptr<Iterator> inner_template_iterator;
     shared_ptr<atomdb_api_types::AtomDocument> *atom_document;
-    DASQueryAnswer **local_answers;
+    QueryAnswer **local_answers;
     unsigned int *next_inner_answer;
-    vector<DASQueryAnswer *> inner_answers;
+    vector<QueryAnswer *> inner_answers;
     unsigned int local_answers_size;
     mutex local_answers_mutex;
 };

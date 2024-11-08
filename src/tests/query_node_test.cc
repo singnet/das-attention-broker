@@ -2,7 +2,7 @@
 
 #include "Utils.h"
 #include "QueryNode.h"
-#include "DASQueryAnswer.h"
+#include "QueryAnswer.h"
 
 using namespace commons;
 using namespace query_node;
@@ -24,15 +24,15 @@ TEST(QueryNode, basics) {
     EXPECT_TRUE(client2.is_query_answers_empty());
     EXPECT_FALSE(client2.is_query_answers_finished());
 
-    ASSERT_TRUE(server.pop_query_answer() == (DASQueryAnswer *) 0);
+    ASSERT_TRUE(server.pop_query_answer() == (QueryAnswer *) 0);
 
-    client1.add_query_answer((DASQueryAnswer *) 1);
-    client1.add_query_answer((DASQueryAnswer *) 2);
+    client1.add_query_answer((QueryAnswer *) 1);
+    client1.add_query_answer((QueryAnswer *) 2);
     Utils::sleep(1000);
-    client2.add_query_answer((DASQueryAnswer *) 3);
-    client2.add_query_answer((DASQueryAnswer *) 4);
+    client2.add_query_answer((QueryAnswer *) 3);
+    client2.add_query_answer((QueryAnswer *) 4);
     Utils::sleep(1000);
-    client1.add_query_answer((DASQueryAnswer *) 5);
+    client1.add_query_answer((QueryAnswer *) 5);
     Utils::sleep(1000);
 
     EXPECT_FALSE(server.is_query_answers_empty());
@@ -53,12 +53,12 @@ TEST(QueryNode, basics) {
     EXPECT_TRUE(client2.is_query_answers_empty());
     EXPECT_TRUE(client2.is_query_answers_finished());
 
-    ASSERT_TRUE(server.pop_query_answer() == (DASQueryAnswer *) 1);
-    ASSERT_TRUE(server.pop_query_answer() == (DASQueryAnswer *) 2);
-    ASSERT_TRUE(server.pop_query_answer() == (DASQueryAnswer *) 3);
-    ASSERT_TRUE(server.pop_query_answer() == (DASQueryAnswer *) 4);
-    ASSERT_TRUE(server.pop_query_answer() == (DASQueryAnswer *) 5);
-    ASSERT_TRUE(server.pop_query_answer() == (DASQueryAnswer *) 0);
+    ASSERT_TRUE(server.pop_query_answer() == (QueryAnswer *) 1);
+    ASSERT_TRUE(server.pop_query_answer() == (QueryAnswer *) 2);
+    ASSERT_TRUE(server.pop_query_answer() == (QueryAnswer *) 3);
+    ASSERT_TRUE(server.pop_query_answer() == (QueryAnswer *) 4);
+    ASSERT_TRUE(server.pop_query_answer() == (QueryAnswer *) 5);
+    ASSERT_TRUE(server.pop_query_answer() == (QueryAnswer *) 0);
 
     EXPECT_TRUE(server.is_query_answers_empty());
     EXPECT_TRUE(server.is_query_answers_finished());

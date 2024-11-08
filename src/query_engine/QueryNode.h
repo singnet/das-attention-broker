@@ -5,7 +5,7 @@
 #include <thread>
 #include "AtomSpaceNode.h"
 #include "RequestQueue.h"
-#include "DASQueryAnswer.h"
+#include "QueryAnswer.h"
 
 using namespace std;
 using namespace atom_space_node;
@@ -30,8 +30,8 @@ public:
     bool is_shutting_down();
     void query_answers_finished();
     bool is_query_answers_finished();
-    void add_query_answer(DASQueryAnswer *query_answer);
-    DASQueryAnswer *pop_query_answer();
+    void add_query_answer(QueryAnswer *query_answer);
+    QueryAnswer *pop_query_answer();
     bool is_query_answers_empty();
     virtual void query_answer_processor_method() = 0;
 
@@ -89,7 +89,7 @@ public:
 
 private:
 
-    vector<DASQueryAnswer *> query_answers;
+    vector<QueryAnswer *> query_answers;
 };
 
 class QueryAnswersFinished : public Message {
