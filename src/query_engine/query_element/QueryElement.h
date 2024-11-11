@@ -85,7 +85,7 @@ public:
 protected:
 
     /**
-     * Return true iff this QueryElement have finished its work in the flow of links up througth
+     * Return true iff this QueryElement have finished its work in the flow of links up through
      * the query tree.
      *
      * When this method return true, it means that all the QueryElements below than in the chain
