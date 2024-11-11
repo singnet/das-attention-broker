@@ -26,10 +26,10 @@ using namespace attention_broker_server;
 namespace query_element {
 
 /**
- * Concrete Source that search for a pattern in the AtomDB and feed the QueryElement up in the
- * query tree * with the resulting links.
+ * Concrete Source that searches for a pattern in the AtomDB and feeds the QueryElement up in the
+ * query tree with the resulting links.
  *
- * A pattern is someting like:
+ * A pattern is something like:
  *
  * Similarity
  *    Human
