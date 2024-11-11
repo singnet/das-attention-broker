@@ -8,10 +8,10 @@ using namespace std;
 namespace query_element {
 
 /**
- * Superclass for elements that represents leafs in the query tree of QueryElement.
+ * Superclass for elements that represent leaves in the query tree of QueryElement.
  *
  * Source adds the required DistributedAlgorithmNode (actually a specialized version of it
- * named QueryNode) and expose a public API to interact with it transparently. Basically, 
+ * named QueryNode) and exposes a public API to interact with it transparently. Basically, 
  * a client version of QueryNode (i.e. a ClientQueryNode) is setup to communicate with
  * a remote ServerQueryNode which is located in the QueryElement just above in the query tree.
  */
