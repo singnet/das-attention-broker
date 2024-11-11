@@ -40,7 +40,7 @@ namespace query_element {
  * Each QueryElement is an element in a distributed algorithm, with one or more threads processing
  * its inputs and generating outputs according to the logic of each element. A communication
  * framework is used to flow the links up through the tree using our DistributedAlgorithmNode
- * which is basically a framework to implement the basic functionalities required by a
+ * which is essentially a framework to implement the basic functionalities required by a
  * distributed algorithms. Since this framework allow communication either intra-process and
  * extra-process (in the same machine or in different ones), we can have QueryElements of the
  * same tree (i.e. of the same query) being processed in different machines or all of them in the
