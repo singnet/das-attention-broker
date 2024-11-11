@@ -38,7 +38,7 @@ TEST(LinkTemplate, basics) {
 
     outter_template.subsequent_id = server_node_id;
     outter_template.setup_buffers();
-    Utils::sleep(2000);
+    Utils::sleep(5000);
 
     QueryAnswer *query_answer;
     unsigned int count = 0;
@@ -71,7 +71,7 @@ TEST(LinkTemplate, nested_variables) {
 
     and_operator.subsequent_id = server_node_id;
     and_operator.setup_buffers();
-    Utils::sleep(1000);
+    Utils::sleep(5000);
 
     QueryAnswer *query_answer;
     shared_ptr<atomdb_api_types::AtomDocument> document;
