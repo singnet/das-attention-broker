@@ -30,7 +30,7 @@ namespace query_element {
  * A query can be understood as a tree whose nodes are QueryElements. Internal nodes are
  * logical operators and leaves are either Links or LinkTemplates (nested or not).
  *
- * The query engine we implement here uses the Nodes/Links values that satisfy the leafs in this
+ * The query engine we implement here uses the Nodes/Links values that satisfy the leaves in this
  * tree and flow them up through the internal nodes (logical operators) until they reach the root
  * of the tree. In this path, some links are droped because they don't satisfy the properties
  * required by the operators or they don't satisfy a proper unification in the set of variables.
