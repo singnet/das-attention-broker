@@ -44,7 +44,7 @@ public:
     /**
      * Return the next query answer or NULL if none are currently available.
      *
-     * NB a NULL return DESN'T mean that the query answers are over. It means that there
+     * NB a NULL return DOESN'T mean that the query answers are over. It means that there
      * are no query answers available now. Because of the asynchronous nature of QueryElement
      * processing, more query answers can arrive later.
      *
