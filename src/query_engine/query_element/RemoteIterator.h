@@ -9,10 +9,10 @@ namespace query_element {
 
 /**
  * A special case of QueryElement because RemoteIterator is not actually an element of the
- * query tree itself but rather an utility class used to remotely connect to the sink of a query
+ * query tree itself but rather a utility class used to remotely connect to the sink of a query
  * tree (RemoteSink).
  *
- * Bacisally, the goal of this class is to allow a caller to request a query execution remotely
+ * Basically, the goal of this class is to allow a caller to request a query execution remotely
  * and iterate through the results using the RemoteIterator.
  *
  * NB Like Iterator in this same package, this is not a std::iterator as the behavior we'd expect
