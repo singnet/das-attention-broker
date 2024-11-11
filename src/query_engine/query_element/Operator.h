@@ -56,9 +56,10 @@ public:
     // QueryElement API
 
     /**
-     * Setup a single QueryNodeClient element to connect with an upstream QueryElement and
-     * N QueryNodeServer elements to connect with N downstream QueryElements (each of them
-     * being a clause in the opration).
+     * Sets up buffers for communication between this operator and its upstream and downstream
+     * QueryElements. Initializes a single QueryNodeClient for the upstream connection and
+     * N QueryNodeServer elements for the downstream connections, each corresponding to a clause
+     * in the operation.
      */
     virtual void setup_buffers() {
         if (this->subsequent_id == "") {
