@@ -28,7 +28,7 @@ namespace query_element {
  * There's no limit in the number of nesting levels of LinkTemplates or boolean expressions.
  *
  * A query can be understood as a tree whose nodes are QueryElements. Internal nodes are
- * logical operators and leafs are either Links or LinkTemplates (nested or not).
+ * logical operators and leaves are either Links or LinkTemplates (nested or not).
  *
  * The query engine we implement here uses the Nodes/Links values that satisfy the leafs in this
  * tree and flow them up through the internal nodes (logical operators) until they reach the root
