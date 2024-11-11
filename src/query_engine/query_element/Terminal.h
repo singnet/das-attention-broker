@@ -134,7 +134,7 @@ public:
         char *handle_keys[ARITY + 1];
         handle_keys[0] = (char *) named_type_hash(type.c_str());
         for (unsigned int i = 1; i < (ARITY + 1); i++) {
-            handle_keys[i] = targets[i].c_str;
+            handle_keys[i] = targets[i-1].c_str;
         }
         this->handle = shared_ptr<char>(composite_hash(handle_keys, ARITY + 1));
         free(handle_keys[0]);
