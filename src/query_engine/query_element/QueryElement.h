@@ -32,7 +32,7 @@ namespace query_element {
  *
  * The query engine we implement here uses the Nodes/Links values that satisfy the leaves in this
  * tree and flows them up through the internal nodes (logical operators) until they reach the root
- * of the tree. In this path, some links are droped because they don't satisfy the properties
+ * of the tree. In this path, some links are dropped because they don't satisfy the properties
  * required by the operators or they don't satisfy a proper unification in the set of variables.
  *
  * Links that reaches the root of the tree are considered actual query answers.
