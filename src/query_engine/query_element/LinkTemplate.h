@@ -42,7 +42,7 @@ namespace query_element {
  * attaches values for any variables in the pattern and sorts all the AtomDB answers by importance
  * (by querying the AttentionBroker) before following up the links (most important ones first).
  *
- * An arbritrary number of nested levels are allowed. For instance:
+ * An arbitrary number of nested levels are allowed. For instance:
  *
  * Expression
  *     Symbol A
