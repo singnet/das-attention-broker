@@ -35,7 +35,7 @@ namespace query_element {
  * of the tree. In this path, some links are dropped because they don't satisfy the properties
  * required by the operators or they don't satisfy a proper unification in the set of variables.
  *
- * Links that reaches the root of the tree are considered actual query answers.
+ * Links that reach the root of the tree are considered actual query answers.
  *
  * Each QueryElement is an element in a distributed algorithm, with one or more threads processing
  * its inputs and generating outputs according to the logic of each element. A communication
