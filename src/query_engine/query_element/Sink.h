@@ -14,7 +14,7 @@ namespace query_element {
  * nowhere further.
  *
  * Sink adds the required DistributedAlgorithmNode (actually a specialized version of it
- * named QueryNode) and expose a public API to interact with it transparently. Basically, 
+ * named QueryNode) and exposes a public API to interact with it transparently. Basically, 
  * a server version of QueryNode (i.e. a ServerQueryNode) is setup to communicate with
  * a remote ClientQueryNode which is located in the QueryElement just below in the query tree.
  */
