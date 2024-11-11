@@ -10,7 +10,7 @@ using namespace std;
 namespace query_element {
 
 /**
- * Superclass for elements which represents logic operators on LinkTemplate results (e.g. AND,
+ * Superclass for elements which represent logic operators on LinkTemplate results (e.g. AND,
  * OR and NOT).
  *
  * Operator adds the required QueryNode elements to connect either with:
