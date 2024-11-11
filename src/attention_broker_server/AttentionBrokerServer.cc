@@ -3,19 +3,20 @@
 
 using namespace attention_broker_server;
 
-const string AttentionBrokerServer::GLOBAL_CONTEXT = "global";
-const double AttentionBrokerServer::RENT_RATE = 0.1;
-const double AttentionBrokerServer::SPREADING_RATE_LOWERBOUND = 0.01;
-const double AttentionBrokerServer::SPREADING_RATE_UPPERBOUND = 0.10;
+const double AttentionBrokerServer::RENT_RATE;
+const double AttentionBrokerServer::SPREADING_RATE_LOWERBOUND;
+const double AttentionBrokerServer::SPREADING_RATE_UPPERBOUND;
 
 // --------------------------------------------------------------------------------
 // Public methods
   
 AttentionBrokerServer::AttentionBrokerServer() {
+    this->global_context = "global";
     stimulus_requests = new RequestQueue();
     correlation_requests = new RequestQueue();
     worker_threads = new WorkerThreads(stimulus_requests, correlation_requests);
-    hebbian_network[GLOBAL_CONTEXT] = new HebbianNetwork();
+    HebbianNetwork *network = new HebbianNetwork();
+    hebbian_network[this->global_context] = network;
 }
 
 AttentionBrokerServer::~AttentionBrokerServer() {
@@ -45,7 +46,7 @@ Status AttentionBrokerServer::ping(ServerContext* grpc_context, const dasproto::
 }
 
 Status AttentionBrokerServer::stimulate(ServerContext* grpc_context, const dasproto::HandleCount *request, dasproto::Ack* reply) {
-    if (request->handle_count_size() > 0) {
+    if (request->map_size() > 0) {
         HebbianNetwork *network = select_hebbian_network(request->context());
         ((dasproto::HandleCount *) request)->set_hebbian_network((long) network);
         stimulus_requests->enqueue((void *) request);
@@ -59,13 +60,29 @@ Status AttentionBrokerServer::stimulate(ServerContext* grpc_context, const daspr
 }
 
 Status AttentionBrokerServer::correlate(ServerContext* grpc_context, const dasproto::HandleList *request, dasproto::Ack* reply) {
-    if (request->handle_list_size() > 0) {
+    if (request->list_size() > 0) {
         HebbianNetwork *network = select_hebbian_network(request->context());
         ((dasproto::HandleList *) request)->set_hebbian_network((long) network);
         correlation_requests->enqueue((void *) request);
     }
     reply->set_msg("CORRELATE");
     if (rpc_api_enabled) {
+        return Status::OK;
+    } else {
+        return Status::CANCELLED;
+    }
+}
+
+Status AttentionBrokerServer::get_importance(ServerContext *grpc_context, const dasproto::HandleList *request, dasproto::ImportanceList *reply) {
+    if (rpc_api_enabled) {
+        int num_handles = request->list_size();
+        if (num_handles > 0) {
+            HebbianNetwork *network = select_hebbian_network(request->context());
+            for (int i = 0; i < num_handles; i++) {
+                float importance = network->get_node_importance(request->list(i));
+                reply->add_list(importance);
+            }
+        }
         return Status::OK;
     } else {
         return Status::CANCELLED;
@@ -82,7 +99,7 @@ HebbianNetwork *AttentionBrokerServer::select_hebbian_network(const string &cont
         network = hebbian_network[context];
     }
     if (context == "") {
-        network = hebbian_network[GLOBAL_CONTEXT];
+        network = hebbian_network[this->global_context];
     } else {
         if (hebbian_network.find(context) == hebbian_network.end()) {
             network = new HebbianNetwork();

@@ -105,12 +105,12 @@ void TokenSpreader::distribute_wages(
     ImportanceType &total_to_spread,
     DATA *data) {
 
-    auto iterator = handle_count->handle_count().find("SUM");
-    if (iterator == handle_count->handle_count().end()) {
+    auto iterator = handle_count->map().find("SUM");
+    if (iterator == handle_count->map().end()) {
         Utils::error("Missing 'SUM' key in HandleCount request");
     }
     unsigned int total_wages = iterator->second;
-    for (auto pair: handle_count->handle_count()) {
+    for (auto pair: handle_count->map()) {
         if (pair.first != "SUM") {
             double normalized_amount = (((double) pair.second) * total_to_spread) / total_wages;
             data->importance_changes->insert(pair.first, new TokenSpreader::ImportanceChanges(0.0, normalized_amount));

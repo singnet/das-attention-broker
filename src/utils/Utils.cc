@@ -36,6 +36,12 @@ void Utils::sleep(unsigned int milliseconds) {
     this_thread::sleep_for(chrono::milliseconds(milliseconds));
 }
 
+string Utils::get_environment(string const &key) {
+    char *value = getenv(key.c_str());
+    string answer = (value == NULL ? "" : value);
+    return answer;
+}
+
 StopWatch::StopWatch() {
     reset();
 }

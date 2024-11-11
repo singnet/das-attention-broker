@@ -57,11 +57,12 @@ class AttentionBrokerServer final: public AttentionBroker::Service {
 
         static const unsigned int WORKER_THREADS_COUNT = 10; /// Number of working threads.
 
+
         // Stimuli spreading parameters
-        static const double RENT_RATE; /// double in [0..1] range.
-        static const double SPREADING_RATE_LOWERBOUND; /// double in [0..1] range.
-        static const double SPREADING_RATE_UPPERBOUND; /// double in [0..1] range.
-        static const string GLOBAL_CONTEXT; /// Name of global context.
+        string global_context;
+        constexpr const static double RENT_RATE = 0.1; /// double in [0..1] range.
+        constexpr const static double SPREADING_RATE_LOWERBOUND = 0.01; /// double in [0..1] range.
+        constexpr const static double SPREADING_RATE_UPPERBOUND = 0.10; /// double in [0..1] range.
 
         // RPC API
           
@@ -74,7 +75,7 @@ class AttentionBrokerServer final: public AttentionBroker::Service {
          *
          * @return GRPC status OK if request were properly processed or CANCELLED otherwise.
          */
-        Status ping(ServerContext* grpc_context, const dasproto::Empty* request, dasproto::Ack* reply) override;
+        Status ping(ServerContext *grpc_context, const dasproto::Empty *request, dasproto::Ack *reply) override;
 
         /**
          * Spread stimuli according to the passed request.
@@ -90,7 +91,7 @@ class AttentionBrokerServer final: public AttentionBroker::Service {
          *
          * @return GRPC status OK if request were properly processed or CANCELLED otherwise.
          */
-        Status stimulate(ServerContext* grpc_context, const dasproto::HandleCount* request, dasproto::Ack* reply) override;
+        Status stimulate(ServerContext *grpc_context, const dasproto::HandleCount *request, dasproto::Ack *reply) override;
 
         /**
          * Correlates atoms passed in the request.
@@ -102,6 +103,18 @@ class AttentionBrokerServer final: public AttentionBroker::Service {
          * @return GRPC status OK if request were properly processed or CANCELLED otherwise.
          */
         Status correlate(ServerContext* grpc_context, const dasproto::HandleList* request, dasproto::Ack* reply) override;
+
+        /**
+         * Return importance of atoms passed in the request.
+         *
+         *
+         * @param grpc_context GRPC context object.
+         * @param request The request contains a list of handles of the atoms whose importrance are to be returned.
+         * @param reply A list with importance of atoms IN THE SAME ORDER they appear in the request.
+         *
+         * @return GRPC status OK if request were properly processed or CANCELLED otherwise.
+         */
+        Status get_importance(ServerContext *grpc_context, const dasproto::HandleList *request, dasproto::ImportanceList *reply) override;
 
         // Other public methods
 
