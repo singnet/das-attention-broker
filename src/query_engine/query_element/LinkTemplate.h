@@ -102,8 +102,8 @@ public:
         if (! wildcard_flag) {
             free(this->handle_keys[0]);
         }
-        // This is correct. id is not necessarily a handle but an identificator. It just happens
-        // that we want the string for this identificator to be the same as the string representing
+        // This is correct. id is not necessarily a handle but an identifier. It just happens
+        // that we want the string for this identifier to be the same as the string representing
         // the handle.
         this->id = this->handle.get();
     }
