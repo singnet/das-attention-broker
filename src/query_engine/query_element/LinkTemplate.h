@@ -276,7 +276,7 @@ private:
                 unsigned int arity = this->atom_document[index]->get_size("targets");
                 unsigned int target_cursor = 0;
                 for (unsigned int i = 0; i < arity; i++) {
-                    // Note to revisor: pointer comparation is correct here
+                    // Note to reviewer: pointer comparison is correct here
                     if (this->handle_keys[i + 1] == (char *) AtomDB::WILDCARD.c_str()) {
                         if (target_cursor > this->inner_answers[cursor]->handles_size) {
                             Utils::error("Invalid query answer in inner link template match");
