@@ -14,7 +14,7 @@ namespace query_engine {
 
 /**
  * This class is the representation of a set of variable assignments. It's a set because each
- * variable can be assigned to exctly one value and the order of assignments is irrelevant.
+ * variable can be assigned to exactly one value and the order of assignments is irrelevant.
  *
  *     "label1" -> "value1"
  *     "label2" -> "value2"
