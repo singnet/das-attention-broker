@@ -162,7 +162,7 @@ public:
     unsigned int handles_size;
 
     /**
-     * Estimated importance of this QueryAnswer based on the importance of tits constituents.
+     * Estimated importance of this QueryAnswer based on the importance of its constituents.
      */
     double importance;
 
