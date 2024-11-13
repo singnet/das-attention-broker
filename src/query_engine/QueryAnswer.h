@@ -4,6 +4,8 @@
 #include <string>
 #include "expression_hasher.h"
 
+// If any of these constants are set to numbers greater than 999, we need
+// to fix QueryAnswer.tokenize() properly
 #define MAX_VARIABLE_NAME_SIZE ((unsigned int) 100)
 #define MAX_NUMBER_OF_VARIABLES_IN_QUERY ((unsigned int) 100)
 #define MAX_NUMBER_OF_OPERATION_CLAUSES ((unsigned int) 100)
@@ -219,6 +221,10 @@ public:
      * production environment).
      */
     string to_string();
+
+private:
+
+    string token_representation;
 };
 
 } // namespace query_engine
