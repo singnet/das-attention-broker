@@ -23,6 +23,10 @@ static char REVERSE_TLB[16] = {
     'f',
 };
 
+double random_importance() {
+    return ((double) rand()) / RAND_MAX;
+}
+
 string random_handle() {
     char buffer[HANDLE_HASH_SIZE];
     unsigned int key_size = HANDLE_HASH_SIZE - 1;
@@ -62,4 +66,8 @@ string *build_handle_space(unsigned int size, bool sort) {
         std::sort(answer, answer + size, str_comp);
     }
     return answer;
+}
+
+bool double_equals(double v1, double v2) {
+    return fabs(v2 - v1) < 0.001;
 }

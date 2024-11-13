@@ -72,37 +72,37 @@ TEST(WorkerThreads, hebbian_network_updater_basics) {
     string h2 = random_handle();
     string h3 = random_handle();
     string h4 = random_handle();
-    handle_list->add_handle_list(h1);
-    handle_list->add_handle_list(h2);
-    handle_list->add_handle_list(h3);
-    handle_list->add_handle_list(h4);
+    handle_list->add_list(h1);
+    handle_list->add_list(h2);
+    handle_list->add_list(h3);
+    handle_list->add_list(h4);
     handle_list->set_hebbian_network((long) &network);
     correlation->enqueue(handle_list);
 
     handle_list = new dasproto::HandleList();
     string h5 = random_handle();
-    handle_list->add_handle_list(h1);
-    handle_list->add_handle_list(h2);
-    handle_list->add_handle_list(h5);
+    handle_list->add_list(h1);
+    handle_list->add_list(h2);
+    handle_list->add_list(h5);
     handle_list->set_hebbian_network((long) &network);
     correlation->enqueue(handle_list);
 
     handle_list = new dasproto::HandleList();
-    handle_list->add_handle_list(h2);
-    handle_list->add_handle_list(h5);
+    handle_list->add_list(h2);
+    handle_list->add_list(h5);
     handle_list->set_hebbian_network((long) &network);
     correlation->enqueue(handle_list);
 
     string h6 = random_handle();
     handle_list = new dasproto::HandleList();
-    handle_list->add_handle_list(h6);
-    handle_list->add_handle_list(h6);
+    handle_list->add_list(h6);
+    handle_list->add_list(h6);
     handle_list->set_hebbian_network((long) &network);
     correlation->enqueue(handle_list);
 
     handle_list = new dasproto::HandleList();
-    handle_list->add_handle_list(h1);
-    handle_list->add_handle_list(h1);
+    handle_list->add_list(h1);
+    handle_list->add_list(h1);
     handle_list->set_hebbian_network((long) &network);
     correlation->enqueue(handle_list);
 
@@ -170,14 +170,14 @@ TEST(WorkerThreads, hebbian_network_updater_stress) {
         unsigned int num_handles = (rand() % (max_handles_per_request - 1)) + 2;
         for (unsigned int j = 0; j < num_handles; j++) {
             string h = handles[rand() % HANDLE_SPACE_SIZE];
-            handle_list->add_handle_list(h);
+            handle_list->add_list(h);
             if (node_count.find(h) == node_count.end()) {
                 node_count[h] = 0;
             }
             node_count[h] = node_count[h] + 1;
         }
-        for (const string &h1: handle_list->handle_list()) {
-            for (const string &h2: handle_list->handle_list()) {
+        for (const string &h1: handle_list->list()) {
+            for (const string &h2: handle_list->list()) {
                 string composite;
                 if (h1.compare(h2) < 0) {
                     composite = h1 + h2;

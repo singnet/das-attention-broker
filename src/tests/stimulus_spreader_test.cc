@@ -35,12 +35,12 @@ TEST(TokenSpreader, distribute_wages) {
 
         tokens_to_spread = 1.0;
         request = new dasproto::HandleCount();
-        (*request->mutable_handle_count())[handles[0]] = 2;
-        (*request->mutable_handle_count())[handles[1]] = 1;
-        (*request->mutable_handle_count())[handles[2]] = 2;
-        (*request->mutable_handle_count())[handles[3]] = 1;
-        (*request->mutable_handle_count())[handles[4]] = 2;
-        (*request->mutable_handle_count())["SUM"] = 8;
+        (*request->mutable_map())[handles[0]] = 2;
+        (*request->mutable_map())[handles[1]] = 1;
+        (*request->mutable_map())[handles[2]] = 2;
+        (*request->mutable_map())[handles[3]] = 1;
+        (*request->mutable_map())[handles[4]] = 2;
+        (*request->mutable_map())["SUM"] = 8;
         data.importance_changes = new HandleTrie(HANDLE_HASH_SIZE - 1);
         spreader->distribute_wages(request, tokens_to_spread, &data);
 
@@ -68,18 +68,18 @@ static HebbianNetwork *build_test_network(string *handles) {
 
     request = new dasproto::HandleList();
     request->set_hebbian_network((unsigned long) network);
-    request->add_handle_list(handles[0]);
-    request->add_handle_list(handles[1]);
-    request->add_handle_list(handles[2]);
-    request->add_handle_list(handles[3]);
+    request->add_list(handles[0]);
+    request->add_list(handles[1]);
+    request->add_list(handles[2]);
+    request->add_list(handles[3]);
     updater->correlation(request);
 
     request = new dasproto::HandleList();
     request->set_hebbian_network((unsigned long) network);
-    request->add_handle_list(handles[1]);
-    request->add_handle_list(handles[2]);
-    request->add_handle_list(handles[4]);
-    request->add_handle_list(handles[5]);
+    request->add_list(handles[1]);
+    request->add_list(handles[2]);
+    request->add_list(handles[4]);
+    request->add_list(handles[5]);
     updater->correlation(request);
 
     return network;
@@ -132,14 +132,14 @@ TEST(TokenSpreader, spread_stimuli) {
 
     request = new dasproto::HandleCount();
     request->set_hebbian_network((unsigned long) network);
-    (*request->mutable_handle_count())[handles[0]] = 1;
-    (*request->mutable_handle_count())[handles[1]] = 1;
-    (*request->mutable_handle_count())[handles[2]] = 1;
-    (*request->mutable_handle_count())[handles[3]] = 1;
-    (*request->mutable_handle_count())[handles[4]] = 1;
-    (*request->mutable_handle_count())[handles[5]] = 1;
-    (*request->mutable_handle_count())["SUM"] = 6;
-    unsigned int SUM = (*request->mutable_handle_count())["SUM"];
+    (*request->mutable_map())[handles[0]] = 1;
+    (*request->mutable_map())[handles[1]] = 1;
+    (*request->mutable_map())[handles[2]] = 1;
+    (*request->mutable_map())[handles[3]] = 1;
+    (*request->mutable_map())[handles[4]] = 1;
+    (*request->mutable_map())[handles[5]] = 1;
+    (*request->mutable_map())["SUM"] = 6;
+    unsigned int SUM = (*request->mutable_map())["SUM"];
     spreader->spread_stimuli(request);
 
     // ----------------------------------------------------------
@@ -165,7 +165,7 @@ TEST(TokenSpreader, spread_stimuli) {
 
     double wages[6];
     for (unsigned int i = 0; i < 6; i++) {
-        wages[i] = ((double) ((*request->mutable_handle_count())[handles[i]])) / SUM * total_wages;
+        wages[i] = ((double) ((*request->mutable_map())[handles[i]])) / SUM * total_wages;
     }
 
     double updated[6];
