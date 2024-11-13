@@ -62,9 +62,9 @@ class Assignment {
          *
          * For two Assignments to be considered compatible, all the labels they share must be
          * assigned to the same value. Labels defined in only one of the Assignments aren't
-         * taken into account (so assiugnments with no common labels will always be compatible).
+         * taken into account (so assignments with no common labels will always be compatible).
          *
-         * Emty Assignments are compatible with any other Assignment.
+         * Empty Assignments are compatible with any other Assignment.
          */
         bool is_compatible(const Assignment &other);
 
