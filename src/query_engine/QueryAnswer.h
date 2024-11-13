@@ -127,7 +127,7 @@ class Assignment {
  * is calculated using the importance of the elements which have been operated to
  * make the answer.
  *
- * The set of handles represent Links that, together, represents a candidate answer
+ * The set of handles represents Links that, together, represent a candidate answer
  * to the query, under the constraints of the attached assignment of variables. For instance,
  * suppose we have a query like:
  *
