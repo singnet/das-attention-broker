@@ -25,6 +25,8 @@ namespace query_engine {
  */
 class Assignment {
 
+    friend class QueryAnswer;
+
     public:
 
         /**
@@ -215,6 +217,34 @@ public:
      *  A new QueryAnswer object is allocated but the assignment and the handles are shallow-copied.
      */
     static QueryAnswer *copy(QueryAnswer *base);
+
+    /**
+     * Tokenizes the QueryAnswer in a single std::string object (tokens separated by spaces).
+     *
+     * The tokenized string looks like this:
+     *
+     * N H1 H2 ... HN M L1 V1 L2 V2 ... LM VM
+     *
+     * N is the number of handles in the QueryAnswer and M is the number of assignments. Hi are the
+     * handles and Li Vi are the assignments Li -> Vi
+     *
+     * @return A std::string with tokens separated by spaces which can be used to rebuild this QueryAnswer.
+     */
+    const string& tokenize();
+
+    /**
+     * Rebuild a QueryAnswer baesd in a list of tokens given in a std::string with tokens separated by spaces.
+     *
+     * The tokenized string looks like this:
+     *
+     * N H1 H2 ... HN M L1 V1 L2 V2 ... LM VM
+     *
+     * N is the number of handles in the QueryAnswer and M is the number of assignments. Hi are the
+     * handles and Li Vi are the assignments Li -> Vi
+     *
+     * @param tokens A std::string with the list of tokens separated by spaces.
+     */
+    void untokenize(const string &tokens);
 
     /**
      * Returns a string representation of this Variable (mainly for debugging; not optimized to

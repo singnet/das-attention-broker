@@ -18,7 +18,12 @@ RemoteIterator::~RemoteIterator() {
 // Public methods
 
 void RemoteIterator::setup_buffers() {
-    this->remote_input_buffer = shared_ptr<QueryNode>(new QueryNodeServer(this->local_id));
+    cout << "XXXXXXXX RemoteIterator::setup_buffers() BEGIN " << std::to_string((unsigned long) this) << endl;
+
+    this->remote_input_buffer = shared_ptr<QueryNode>(new QueryNodeServer(
+        this->local_id,
+        MessageBrokerType::GRPC));
+    cout << "XXXXXXXX RemoteIterator::setup_buffers() END " << std::to_string((unsigned long) this) << endl;
 }
 
 void RemoteIterator::graceful_shutdown() {

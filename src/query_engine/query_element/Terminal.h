@@ -126,15 +126,19 @@ public:
      * @params targets Array with targets of the Link. Targets are supposed to be
      *         handles (i.e. strings). No nesting of Nodes or other Links are allowed.
      */
-    Link(const string &type, const array<string, ARITY> &targets) : Terminal() {
+    Link(const string &type, const array<QueryElement *, ARITY> &targets) : Terminal() {
         this->name = "";
         this->type = type;
         this->targets = targets;
         this->arity = ARITY;
         char *handle_keys[ARITY + 1];
-        handle_keys[0] = (char *) named_type_hash(type.c_str());
+        handle_keys[0] = (char *) named_type_hash((char *) type.c_str());
         for (unsigned int i = 1; i < (ARITY + 1); i++) {
-            handle_keys[i] = targets[i-1].c_str;
+            if (targets[i - 1]->is_terminal && ! ((Terminal *) targets[i - 1])->is_variable) {
+                handle_keys[i] = ((Terminal *) targets[i - 1])->handle.get();
+            } else {
+                Utils::error("Invalid Link definition");
+            }
         }
         this->handle = shared_ptr<char>(composite_hash(handle_keys, ARITY + 1));
         free(handle_keys[0]);
@@ -147,7 +151,7 @@ public:
     string to_string() {
         string answer = "(" + this->type + ", [";
         for (unsigned int i = 0; i < this->arity; i++) {
-            answer += this->targets[i];
+            answer += ((Terminal *) this->targets[i])->to_string();
             if (i != (this->arity - 1)) {
                 answer += ", ";
             }
@@ -169,7 +173,7 @@ public:
     /**
      * Targets of the Link.
      */
-    array<string, ARITY> targets;
+    array<QueryElement *, ARITY> targets;
 };
 
 // -------------------------------------------------------------------------------------------------

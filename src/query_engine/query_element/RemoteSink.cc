@@ -12,9 +12,14 @@ RemoteSink::RemoteSink(
     bool delete_precedent_on_destructor) : 
     Sink(precedent, "RemoteSink(" + precedent->id + ")", delete_precedent_on_destructor) {
 
+
+    cout << "XXXXXXXX COSNTRUCTOR RemoteSink BEGIN " << std::to_string((unsigned long) this) << endl;
+    cout << "XXXXXXXX COSNTRUCTOR RemoteSink local_id: " << local_id << " remote_id: " << remote_id << endl;
     this->local_id = local_id;
     this->remote_id = remote_id;
     this->queue_processor = NULL;
+    RemoteSink::setup_buffers();
+    cout << "XXXXXXXX COSNTRUCTOR RemoteSink END " << std::to_string((unsigned long) this) << endl;
 }
 
 RemoteSink::~RemoteSink() {
@@ -25,9 +30,14 @@ RemoteSink::~RemoteSink() {
 // Public methods
 
 void RemoteSink::setup_buffers() {
-    this->remote_output_buffer = 
-        shared_ptr<QueryNode>(new QueryNodeClient(this->local_id, this->remote_id));
+    cout << "XXXXXXXX RemoteSink::setup_buffers() BEGIN " << std::to_string((unsigned long) this) << endl;
+
+    this->remote_output_buffer = shared_ptr<QueryNode>(new QueryNodeClient(
+        this->local_id, 
+        this->remote_id, 
+        MessageBrokerType::GRPC));
     this->queue_processor = new thread(&RemoteSink::queue_processor_method, this);
+    cout << "XXXXXXXX RemoteSink::setup_buffers() END " << std::to_string((unsigned long) this) << endl;
 }
 
 void RemoteSink::graceful_shutdown() {
@@ -60,6 +70,7 @@ void RemoteSink::queue_processor_method() {
             Utils::sleep();
         }
     } while (true);
+    cout << "XXXXXXXXXXX XXXXXXXXXXXXX XXXXXXXXXXXXXXX XXXXXXXXXXXXXX RemoteSink FINISHED" << endl;
     this->remote_output_buffer->query_answers_finished();
     set_flow_finished();
 }

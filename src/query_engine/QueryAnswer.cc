@@ -169,12 +169,13 @@ string QueryAnswer::to_string() {
 }
 
 const string &QueryAnswer::tokenize() {
-    MAX_VARIABLE_NAME_SIZE
-    HANDLE_HASH_SIZE
     // char_count is computed to be slightly larger than actually required by assuming
     // e.g. 3 digits to represent sizes
+    char importance_buffer[13];
+    sprintf(importance_buffer, "%.10f", this->importance);
     unsigned int char_count = 
-        4 // (up to 3 digits) to represent this->handles_size + space
+        13 // importance with 10 decimals + space
+        + 4 // (up to 3 digits) to represent this->handles_size + space
         + this->handles_size * (HANDLE_HASH_SIZE + 1) // handles + spaces
         + 4 // (up to 3 digits) to represent this->assignment.size + space
         + this->assignment.size * (MAX_VARIABLE_NAME_SIZE + HANDLE_HASH_SIZE + 2); // label<space>handle<space>
@@ -182,13 +183,15 @@ const string &QueryAnswer::tokenize() {
     this->token_representation.clear();
     this->token_representation.reserve(char_count);
     string space = " ";
-    this->token_representation += to_string(this->handles_size);
+    this->token_representation += importance_buffer;
+    this->token_representation += space;
+    this->token_representation += std::to_string(this->handles_size);
     this->token_representation += space;
     for (unsigned int i = 0; i < this->handles_size; i++) {
         this->token_representation += handles[i];
         this->token_representation += space;
     }
-    this->token_representation += to_string(this->assignment.size);
+    this->token_representation += std::to_string(this->assignment.size);
     this->token_representation += space;
     for (unsigned int i = 0; i < this->assignment.size; i++) {
         this->token_representation += this->assignment.labels[i];
@@ -200,82 +203,62 @@ const string &QueryAnswer::tokenize() {
     return this->token_representation;
 }
 
-void QueryAnswer::untokenize(const string &token_string) {
+static inline void read_token(
+    const char *token_string, 
+    unsigned int &cursor, 
+    char *token, 
+    unsigned int token_size) {
 
-    const char *s = token_string.c_str();
+    unsigned int cursor_token = 0;
+    while (token_string[cursor] != ' ') {
+        if ((cursor_token == token_size) || (token_string[cursor] == '\0')) {
+            Utils::error("Invalid token string");
+        }
+        token[cursor_token++] = token_string[cursor++];
+    }
+    token[cursor_token] = '\0';
+    cursor++;
+}
+
+void QueryAnswer::untokenize(const string &tokens) {
+
+    const char *token_string = tokens.c_str();
     char number[4];
-    char handle[HANDLE_HASH_SIZE + 1];
-    char label[MAX_VARIABLE_NAME_SIZE + 1];
+    char importance[13];
+    char handle[HANDLE_HASH_SIZE];
+    char label[MAX_VARIABLE_NAME_SIZE];
 
     unsigned int cursor = 0;
-    unsigned int cursor_token = 0;
 
-    while (s[cursor] != ' ') {
-        number[cursor_token++] == s[cursor++];
-        if (s[cursor] == '\0') {
-            Utils::error("Invalid tokens string - couldn't read number of clauses");
-        }
-    }
-    number[cursor_token] = '\0';
-    cursor++;
-    this->handles_size = (unsigned int) std:stoi(number);
+    read_token(token_string, cursor, importance, 13);
+    this->importance = std::stod(importance);
+
+    read_token(token_string, cursor, number, 4);
+    this->handles_size = (unsigned int) std::stoi(number);
     if (this->handles_size > MAX_NUMBER_OF_OPERATION_CLAUSES) {
-        Utils::error("Invalid handles_size: " + to_string(this->handles_size) + " untokenizing QueryAnswer");
+        Utils::error("Invalid handles_size: " + std::to_string(this->handles_size) + " untokenizing QueryAnswer");
     }
 
     for (unsigned int i = 0; i < this->handles_size; i++) {
-        cursor_token = 0;
-        while (s[cursor] != ' ') {
-            handle[cursor_token++] == s[cursor++];
-            if (s[cursor] == '\0') {
-                Utils::error("Invalid tokens string - invalid handle");
-            }
-        }
-        handle[cursor_token] = '\0';
-        cursor++;
+        read_token(token_string, cursor, handle, HANDLE_HASH_SIZE);
         this->handles[i] = strdup(handle);
     }
 
-    cursor_token = 0;
-    while (s[cursor] != ' ') {
-        number[cursor_token++] == s[cursor++];
-        if (s[cursor] == '\0') {
-            Utils::error("Invalid tokens string - couldn't read number of assignments");
-        }
-    }
-    number[cursor_token] = '\0';
-    cursor++;
-    this->assignment.size = (unsigned int) std:stoi(number);
+    read_token(token_string, cursor, number, 4);
+    this->assignment.size = (unsigned int) std::stoi(number);
+
     if (this->assignment.size > MAX_NUMBER_OF_VARIABLES_IN_QUERY) {
-        Utils::error("Invalid number of assignments: " + to_string(this->assignment.size) + " untokenizing QueryAnswer");
+        Utils::error("Invalid number of assignments: " + std::to_string(this->assignment.size) + " untokenizing QueryAnswer");
     }
 
     for (unsigned int i = 0; i < this->assignment.size; i++) {
-        cursor_token = 0;
-        while (s[cursor] != ' ') {
-            label[cursor_token++] == s[cursor++];
-            if (s[cursor] == '\0') {
-                Utils::error("Invalid tokens string - coudn't read label in assignment");
-            }
-        }
-        label[cursor_token] = '\0';
-        cursor++;
+        read_token(token_string, cursor, label, MAX_VARIABLE_NAME_SIZE);
+        read_token(token_string, cursor, handle, HANDLE_HASH_SIZE);
         this->assignment.labels[i] = strdup(label);
-
-        cursor_token = 0;
-        while (s[cursor] != ' ') {
-            handle[cursor_token++] == s[cursor++];
-            if (s[cursor] == '\0') {
-                Utils::error("Invalid tokens string - coudn't read value in assignment");
-            }
-        }
-        handle[cursor_token] = '\0';
-        cursor++;
-        this->assignment.handles[i] = strdup(handle);
+        this->assignment.values[i] = strdup(handle);
     }
 
-    if ((s[cursor] != ' ') || (s[cursor + 1] != '\0')) {
-        Utils::error("Invalid tokens string - invalid text after QueryAnswer definition");
+    if (token_string[cursor] != '\0') {
+        Utils::error("Invalid token string - invalid text after QueryAnswer definition");
     }
 }
-

@@ -92,7 +92,11 @@ bool QueryNode::is_query_answers_empty() {
     return this->query_answer_queue.empty();
 }
 
-QueryNodeServer::QueryNodeServer(const string &node_id) : QueryNode(node_id, true) {
+QueryNodeServer::QueryNodeServer(
+    const string &node_id, 
+    MessageBrokerType messaging_backend) : 
+    QueryNode(node_id, true, messaging_backend) {
+
     this->join_network();
     this->query_answer_processor = new thread(
         &QueryNodeServer::query_answer_processor_method,
@@ -134,6 +138,7 @@ void QueryNodeClient::query_answer_processor_method() {
         if (args.empty()) {
             // The order of the AND clauses below matters
             if (! answers_finished_flag && is_query_answers_finished() && this->query_answer_queue.empty()) {
+                cout << "XXXXXX QueryNodeClient::query_answer_processor_method() sending FINISHED to: " << this->server_id << endl;
                 this->send(QueryNode::QUERY_ANSWERS_FINISHED_COMMAND, args, this->server_id);
                 answers_finished_flag = true;
             }
@@ -145,7 +150,12 @@ void QueryNodeClient::query_answer_processor_method() {
     }
 }
 
-QueryNodeClient::QueryNodeClient(const string &node_id, const string &server_id) : QueryNode(node_id, true) {
+QueryNodeClient::QueryNodeClient(
+    const string &node_id, 
+    const string &server_id,
+    MessageBrokerType messaging_backend) : 
+    QueryNode(node_id, true, messaging_backend) {
+
     this->query_answer_processor = new thread(
         &QueryNodeClient::query_answer_processor_method,
         this);
@@ -170,7 +180,7 @@ string QueryNodeClient::cast_leadership_vote() {
     return this->server_id;
 }
 
-QueryAnswerFlow::QueryAnswerFlow(string command, vector<string> args) {
+QueryAnswerFlow::QueryAnswerFlow(string command, vector<string> &args) {
     for (auto pointer_string: args) {
         QueryAnswer *query_answer = (QueryAnswer *) stoul(pointer_string);
         this->query_answers.push_back(query_answer);
@@ -184,10 +194,11 @@ void QueryAnswerFlow::act(shared_ptr<MessageFactory> node) {
     }
 }
 
-QueryAnswersFinished::QueryAnswersFinished(string command, vector<string> args) {
+QueryAnswersFinished::QueryAnswersFinished(string command, vector<string> &args) {
 }
 
 void QueryAnswersFinished::act(shared_ptr<MessageFactory> node) {
     auto query_node = dynamic_pointer_cast<QueryNodeServer>(node);
+    cout << "XXXXXXXXXXXXXXX QueryAnswersFinished::act() acting on: " << query_node->node_id() << endl;
     query_node->query_answers_finished();
 }

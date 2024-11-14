@@ -11,7 +11,7 @@
 using namespace query_engine;
 using namespace query_element;
 
-#define SLEEP_DURATION ((unsigned int) 500)
+#define SLEEP_DURATION ((unsigned int) 1000)
 
 class TestSource : public Source {
 
@@ -142,6 +142,7 @@ TEST(AndOperator, basics) {
     EXPECT_FALSE((query_answer = sink.pop()) == NULL);
     EXPECT_TRUE(sink.empty());
     check_query_answer("9", query_answer, 0.3, 2, {"h1_2", "h2_2"});
+    Utils::sleep(SLEEP_DURATION);
 
     EXPECT_TRUE(sink.empty()); EXPECT_TRUE(sink.finished());
 }

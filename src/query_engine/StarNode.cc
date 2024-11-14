@@ -2,7 +2,7 @@
 #include "LeadershipBroker.h"
 #include "MessageBroker.h"
 
-using namespace star_node;
+using namespace atom_space_node;
 using namespace std;
 
 // -------------------------------------------------------------------------------------------------
@@ -13,8 +13,10 @@ StarNode::StarNode(
     MessageBrokerType messaging_backend) :
     AtomSpaceNode(node_id, LeadershipBrokerType::SINGLE_MASTER_SERVER, messaging_backend) {
 
-    this->join_network();
+    cout << "XXXXXXXX COSNTRUCTOR StarNode server BEGIN " << std::to_string((unsigned long) this) << endl;
     this->is_server = true;
+    this->join_network();
+    cout << "XXXXXXXX COSNTRUCTOR StarNode server END " << std::to_string((unsigned long) this) << endl;
 }
 
 StarNode::StarNode(
@@ -23,10 +25,12 @@ StarNode::StarNode(
     MessageBrokerType messaging_backend) : 
     AtomSpaceNode(node_id, LeadershipBrokerType::SINGLE_MASTER_SERVER, messaging_backend) {
 
+    cout << "XXXXXXXX COSNTRUCTOR StarNode client BEGIN " << std::to_string((unsigned long) this) << endl;
     this->server_id = server_id;
     this->is_server = false;
     this->add_peer(server_id);
     this->join_network();
+    cout << "XXXXXXXX COSNTRUCTOR StarNode client END " << std::to_string((unsigned long) this) << endl;
 }
 
 StarNode::~StarNode() {
@@ -41,7 +45,7 @@ void StarNode::node_joined_network(const string &node_id) {
     }
 }
 
-string StarNodeServer::cast_leadership_vote() {
+string StarNode::cast_leadership_vote() {
     if (this->is_server) {
         return this->node_id();
     } else {
