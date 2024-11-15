@@ -1,4 +1,3 @@
-#include <iostream> // XXXXXXXXXXXXXXXXXX
 #include "Utils.h"
 #include "expression_hasher.h"
 #include "AtomDBAPITypes.h"

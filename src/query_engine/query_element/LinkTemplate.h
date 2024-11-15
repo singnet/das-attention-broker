@@ -105,7 +105,7 @@ public:
         // This is correct. id is not necessarily a handle but an identifier. It just happens
         // that we want the string for this identifier to be the same as the string representing
         // the handle.
-        this->id = this->handle.get();
+        this->id = this->handle.get() + std::to_string(LinkTemplate::next_instance_count());
     }
 
     /**
@@ -355,6 +355,11 @@ private:
             }
         }
         this->output_buffer->query_answers_finished();
+    }
+
+    static unsigned int next_instance_count() {
+        static unsigned int instance_count = 0;
+        return instance_count++;
     }
 
 private:

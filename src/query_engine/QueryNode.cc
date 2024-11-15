@@ -138,7 +138,6 @@ void QueryNodeClient::query_answer_processor_method() {
         if (args.empty()) {
             // The order of the AND clauses below matters
             if (! answers_finished_flag && is_query_answers_finished() && this->query_answer_queue.empty()) {
-                cout << "XXXXXX QueryNodeClient::query_answer_processor_method() sending FINISHED to: " << this->server_id << endl;
                 this->send(QueryNode::QUERY_ANSWERS_FINISHED_COMMAND, args, this->server_id);
                 answers_finished_flag = true;
             }
@@ -199,6 +198,5 @@ QueryAnswersFinished::QueryAnswersFinished(string command, vector<string> &args)
 
 void QueryAnswersFinished::act(shared_ptr<MessageFactory> node) {
     auto query_node = dynamic_pointer_cast<QueryNodeServer>(node);
-    cout << "XXXXXXXXXXXXXXX QueryAnswersFinished::act() acting on: " << query_node->node_id() << endl;
     query_node->query_answers_finished();
 }

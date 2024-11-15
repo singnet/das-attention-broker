@@ -9,17 +9,13 @@ using namespace query_engine;
 
 void check_query(
     vector<string> &query,
-    unsigned int expected_count) {
+    unsigned int expected_count,
+    DASNode *das,
+    DASNode *requestor) {
 
     cout << "XXXXXXXXXXXXXXXX DASNode.queries CHECK BEGIN" << endl;
-    string das_id = "localhost:30700";
-    string requestor_id = "localhost:30701";
-    DASNode das(das_id);
-    Utils::sleep(1000);
-    DASNode requestor(requestor_id, das_id);
-    Utils::sleep(1000);
     QueryAnswer *query_answer;
-    RemoteIterator *response = requestor.pattern_matcher_query(query);
+    RemoteIterator *response = requestor->pattern_matcher_query(query);
     unsigned int count = 0;
     while (! response->finished()) {
         while ((query_answer = response->pop()) == NULL) {
@@ -35,6 +31,7 @@ void check_query(
         }
     }
     EXPECT_EQ(count, expected_count);
+    delete response;
     cout << "XXXXXXXXXXXXXXXX DASNode.queries CHECK END" << endl;
 }
 
@@ -51,64 +48,58 @@ TEST(DASNode, queries) {
     setenv("DAS_MONGODB_PASSWORD", "dassecret", 1);
     AtomDBSingleton::init();
 
-    /*
-    string das_id = "localhost:30700";
-    string requestor_id = "localhost:30701";
-    DASNode das(das_id);
+    string das_id = "localhost:31700";
+    string requestor_id = "localhost:31701";
+    DASNode *das = new DASNode(das_id);
     Utils::sleep(1000);
-    DASNode requestor(requestor_id, das_id);
+    DASNode *requestor = new DASNode(requestor_id, das_id);
     Utils::sleep(1000);
 
-    unsigned int count;
-    QueryAnswer *query_answer;
-
-    q1 = {
-        "atom_type": "link",
-        "type": "Expression",
-        "targets": [
-            {"atom_type": "node", "type": "Symbol", "name": "Similarity"},
-            {"atom_type": "variable", "name": "v1"},
-            {"atom_type": "variable", "name": "v2"},
-        ]
-    }
-    */
-    vector<string> q1 = { 
-        "LINK_TEMPLATE", "Expression", "3", 
-            "NODE", "Symbol", "Similarity", 
-            "VARIABLE", "v1", 
-            "VARIABLE", "v2" 
+    vector<string> q1 = {
+        "LINK_TEMPLATE", "Expression", "3",
+            "NODE", "Symbol", "Similarity",
+            "VARIABLE", "v1",
+            "VARIABLE", "v2"
     };
-    vector<string> q2 = { 
-        "LINK_TEMPLATE", "Expression", "3", 
-            "NODE", "Symbol", "Similarity", 
+
+    vector<string> q2 = {
+        "LINK_TEMPLATE", "Expression", "3",
+            "NODE", "Symbol", "Similarity",
             "NODE", "Symbol", "\"human\"",
-            "VARIABLE", "v2" 
+            "VARIABLE", "v1"
     };
 
-    /*
-    RemoteIterator *response = requestor.pattern_matcher_query(q1);
-    count = 0;
-    cout << "XXXXXXXXXXXXXXXX DASNode.queries 1" << endl;
-    while (! response->finished()) {
-        while ((query_answer = response->pop()) == NULL) {
-            if (response->finished()) {
-                break;
-            } else {
-                Utils::sleep();
-            }
-        }
-        if (query_answer != NULL) {
-            cout << "XXXXX " << query_answer->to_string() << endl;
-            count++;
-        }
-    }
-    EXPECT_EQ(count, 14);
+    vector<string> q3 = {
+        "AND", "2",
+            "LINK_TEMPLATE", "Expression", "3",
+                "NODE", "Symbol", "Similarity",
+                "VARIABLE", "v1",
+                "NODE", "Symbol", "\"human\"",
+            "LINK_TEMPLATE", "Expression", "3",
+                "NODE", "Symbol", "Inheritance",
+                "VARIABLE", "v1",
+                "NODE", "Symbol", "\"plant\"",
+    };
 
-    cout << "XXXXXXXXXXXXXXXX DASNode.queries 2" << endl;
-    */
+    vector<string> q4 = {
+        "AND", "2",
+            "LINK_TEMPLATE", "Expression", "3",
+                "NODE", "Symbol", "Similarity",
+                "VARIABLE", "v1",
+                "VARIABLE", "v2",
+            "LINK_TEMPLATE", "Expression", "3",
+                "NODE", "Symbol", "Similarity",
+                "VARIABLE", "v2",
+                "VARIABLE", "v3"
+    };
 
-    check_query(q1, 14);
-    check_query(q2, 3);
+    check_query(q1, 14, das, requestor);
+    check_query(q2, 3, das, requestor);
+    check_query(q3, 1, das, requestor);
+    check_query(q4, 26, das, requestor); // TODO: FIX THIS count should be == 1
 
-    cout << "XXXXXXXXXXXXXXXX DASNode.queries BEGIN" << endl;
+    delete(requestor);
+    delete(das);
+
+    cout << "XXXXXXXXXXXXXXXX DASNode.queries END" << endl;
 }

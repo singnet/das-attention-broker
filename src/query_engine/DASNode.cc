@@ -12,22 +12,16 @@ string DASNode::PATTERN_MATCHING_QUERY = "pattern_matching_query";
 // Constructors and destructors
 
 DASNode::DASNode(const string &node_id) : StarNode(node_id) {
-    cout << "XXXXXXXX COSNTRUCTOR DASNode server BEGIN " << std::to_string((unsigned long) this) << endl;
     initialize();
-    cout << "XXXXXXXX COSNTRUCTOR DASNode server END " << std::to_string((unsigned long) this) << endl;
     // SERVER
 }
 
 DASNode::DASNode(const string &node_id, const string &server_id) : StarNode(node_id, server_id) {
-    cout << "XXXXXXXX COSNTRUCTOR DASNode client BEGIN " << std::to_string((unsigned long) this) << endl;
     initialize();
-    cout << "XXXXXXXX COSNTRUCTOR DASNode client END " << std::to_string((unsigned long) this) << endl;
     // CLIENT
 }
 
 DASNode::~DASNode() {
-    cout << "XXXXXXXX DESTRUCTOR DASNode BEGIN " << std::to_string((unsigned long) this) << endl;
-    cout << "XXXXXXXX DESTRUCTOR DASNode END " << std::to_string((unsigned long) this) << endl;
 }
 
 void DASNode::initialize() {
@@ -53,7 +47,6 @@ RemoteIterator *DASNode::pattern_matcher_query(const vector<string> &tokens) {
     string query_id = next_query_id();
     vector<string> args = {query_id};
     args.insert(args.end(), tokens.begin(), tokens.end());
-    cout << "XXXXXXXX pattern_matcher_query() sendind message to " << this->server_id << endl;
     send(PATTERN_MATCHING_QUERY, args, this->server_id);
     return new RemoteIterator(query_id);
 }
@@ -190,6 +183,105 @@ QueryElement *PatternMatchingQuery::build_link_template(
     return NULL; // Just to avoid warnings. This is not actually reachable.
 }
 
+
+QueryElement *PatternMatchingQuery::build_and(
+    vector<string> &tokens, 
+    unsigned int cursor,
+    stack<QueryElement *> &element_stack) {
+
+    unsigned int num_clauses = std::stoi(tokens[cursor + 1]);
+    if (element_stack.size() < num_clauses) {
+        Utils::error("PatternMatchingQuery message: parse error in tokens - too few arguments for AND");
+    }
+    switch (num_clauses) {
+        // TODO: consider replacing each "case" below by a pre-processor macro call
+        case 1: {
+            array<QueryElement *, 1> clauses;
+            for (unsigned int i = 0; i < 1; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new And<1>(clauses);
+        }
+        case 2: {
+            array<QueryElement *, 2> clauses;
+            for (unsigned int i = 0; i < 2; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new And<2>(clauses);
+        }
+        case 3: {
+            array<QueryElement *, 3> clauses;
+            for (unsigned int i = 0; i < 3; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new And<3>(clauses);
+        }
+        case 4: {
+            array<QueryElement *, 4> clauses;
+            for (unsigned int i = 0; i < 4; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new And<4>(clauses);
+        }
+        case 5: {
+            array<QueryElement *, 5> clauses;
+            for (unsigned int i = 0; i < 5; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new And<5>(clauses);
+        }
+        case 6: {
+            array<QueryElement *, 6> clauses;
+            for (unsigned int i = 0; i < 6; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new And<6>(clauses);
+        }
+        case 7: {
+            array<QueryElement *, 7> clauses;
+            for (unsigned int i = 0; i < 7; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new And<7>(clauses);
+        }
+        case 8: {
+            array<QueryElement *, 8> clauses;
+            for (unsigned int i = 0; i < 8; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new And<8>(clauses);
+        }
+        case 9: {
+            array<QueryElement *, 9> clauses;
+            for (unsigned int i = 0; i < 9; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new And<9>(clauses);
+        }
+        case 10: {
+            array<QueryElement *, 10> clauses;
+            for (unsigned int i = 0; i < 10; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new And<10>(clauses);
+        }
+        default: {
+            Utils::error("PatternMatchingQuery message: max supported num_clauses for AND: 10");
+        }
+    }
+    return NULL; // Just to avoid warnings. This is not actually reachable.
+}
+
 QueryElement *PatternMatchingQuery::build_link(
     vector<string> &tokens, 
     unsigned int cursor,
@@ -290,8 +382,6 @@ QueryElement *PatternMatchingQuery::build_link(
 
 PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &tokens) {
 
-    cout << "XXXXXXXX COSNTRUCTOR PatternMatchingQuery BEGIN " << std::to_string((unsigned long) this) << endl;
-
     stack<unsigned int> execution_stack;
     stack<QueryElement *> element_stack;
     this->requestor_id = tokens[0];
@@ -300,7 +390,7 @@ PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &token
 
     while (cursor < tokens_count) {
         execution_stack.push(cursor);
-        if (tokens[cursor] == "VARIABLE") {
+        if ((tokens[cursor] == "VARIABLE") || (tokens[cursor] == "AND")) {
             cursor += 2;
         } else {
             cursor += 3;
@@ -320,6 +410,8 @@ PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &token
             element_stack.push(build_link(tokens, cursor, element_stack));
         } else if (tokens[cursor] == "LINK_TEMPLATE") {
             element_stack.push(build_link_template(tokens, cursor, element_stack));
+        } else if (tokens[cursor] == "AND") {
+            element_stack.push(build_and(tokens, cursor, element_stack));
         } else {
             Utils::error("Invalid token " + tokens[cursor] + " in PatternMatchingQuery message");
         }
@@ -331,18 +423,14 @@ PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &token
     }
     this->root_query_element = element_stack.top();
     element_stack.pop();
-    cout << "XXXXXXXX COSNTRUCTOR PatternMatchingQuery END " << std::to_string((unsigned long) this) << endl;
 }
 
 void PatternMatchingQuery::act(shared_ptr<MessageFactory> node) {
     auto das_node = dynamic_pointer_cast<DASNode>(node);
 
-    cout << "XXXXXXXX PatternMatchingQuery::act() BEGIN " << std::to_string((unsigned long) this) << endl;
-    cout << "XXXXXXXX PatternMatchingQuery::act() building sink this->requestor_id: " << this->requestor_id << endl;
     // TODO XXX Remove memory leak
     RemoteSink *remote_sink = new RemoteSink(
         this->root_query_element,
         das_node->next_query_id(),
         this->requestor_id);
-    cout << "XXXXXXXX PatternMatchingQuery::act() END " << std::to_string((unsigned long) this) << endl;
 }
