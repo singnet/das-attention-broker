@@ -225,6 +225,11 @@ private:
                 this->attention_broker_address, 
                 grpc::InsecureChannelCredentials()));
             stub->get_importance(&context, handle_list, &importance_list);
+            if (importance_list.list_size() != answer_count) {
+                Utils::error("Invalid AttentionBroker answer. Size: " + 
+                    std::to_string(importance_list.list_size()) +
+                    " Expected size: " + std::to_string(answer_count));
+            }
             this->atom_document = new shared_ptr<atomdb_api_types::AtomDocument>[answer_count];
             this->local_answers = new QueryAnswer *[answer_count];
             this->next_inner_answer = new unsigned int[answer_count];
