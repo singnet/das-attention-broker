@@ -288,6 +288,29 @@ cc_test(
 )
 
 cc_test(
+    name = "das_node_test",
+    srcs = ["das_node_test.cc", "test_utils.cc", "test_utils.h"],
+    size = "small",
+    copts = [
+      "-Iexternal/gtest/googletest/include",
+      "-Iexternal/gtest/googletest",
+    ],
+    deps = [
+        "@com_github_google_googletest//:gtest_main",
+        "//query_engine:query_engine_lib",
+    ],
+    linkopts = [
+        "-lmbedcrypto",
+        "-L/usr/local/lib",
+        "-lhiredis_cluster",
+        "-lhiredis",
+        "-lmongocxx",
+        "-lbsoncxx",
+    ],
+    linkstatic = 1
+)
+
+cc_test(
     name = "query_node_test",
     srcs = ["query_node_test.cc"],
     size = "small",

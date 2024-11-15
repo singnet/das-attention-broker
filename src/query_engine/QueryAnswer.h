@@ -4,6 +4,8 @@
 #include <string>
 #include "expression_hasher.h"
 
+// If any of these constants are set to numbers greater than 999, we need
+// to fix QueryAnswer.tokenize() properly
 #define MAX_VARIABLE_NAME_SIZE ((unsigned int) 100)
 #define MAX_NUMBER_OF_VARIABLES_IN_QUERY ((unsigned int) 100)
 #define MAX_NUMBER_OF_OPERATION_CLAUSES ((unsigned int) 100)
@@ -22,6 +24,8 @@ namespace query_engine {
  *     "labelN" -> "valueN"
  */
 class Assignment {
+
+    friend class QueryAnswer;
 
     public:
 
@@ -215,10 +219,42 @@ public:
     static QueryAnswer *copy(QueryAnswer *base);
 
     /**
+     * Tokenizes the QueryAnswer in a single std::string object (tokens separated by spaces).
+     *
+     * The tokenized string looks like this:
+     *
+     * N H1 H2 ... HN M L1 V1 L2 V2 ... LM VM
+     *
+     * N is the number of handles in the QueryAnswer and M is the number of assignments. Hi are the
+     * handles and Li Vi are the assignments Li -> Vi
+     *
+     * @return A std::string with tokens separated by spaces which can be used to rebuild this QueryAnswer.
+     */
+    const string& tokenize();
+
+    /**
+     * Rebuild a QueryAnswer baesd in a list of tokens given in a std::string with tokens separated by spaces.
+     *
+     * The tokenized string looks like this:
+     *
+     * N H1 H2 ... HN M L1 V1 L2 V2 ... LM VM
+     *
+     * N is the number of handles in the QueryAnswer and M is the number of assignments. Hi are the
+     * handles and Li Vi are the assignments Li -> Vi
+     *
+     * @param tokens A std::string with the list of tokens separated by spaces.
+     */
+    void untokenize(const string &tokens);
+
+    /**
      * Returns a string representation of this Variable (mainly for debugging; not optimized to
      * production environment).
      */
     string to_string();
+
+private:
+
+    string token_representation;
 };
 
 } // namespace query_engine

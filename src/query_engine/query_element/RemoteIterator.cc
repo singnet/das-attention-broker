@@ -18,7 +18,9 @@ RemoteIterator::~RemoteIterator() {
 // Public methods
 
 void RemoteIterator::setup_buffers() {
-    this->remote_input_buffer = shared_ptr<QueryNode>(new QueryNodeServer(this->local_id));
+    this->remote_input_buffer = shared_ptr<QueryNode>(new QueryNodeServer(
+        this->local_id,
+        MessageBrokerType::GRPC));
 }
 
 void RemoteIterator::graceful_shutdown() {

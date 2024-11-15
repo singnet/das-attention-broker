@@ -38,6 +38,10 @@ string random_handle() {
     return s;
 }
 
+string sequential_label(unsigned int &count, string prefix) {
+    return prefix + std::to_string(count++);
+}
+
 string prefixed_random_handle(string prefix) {
     char buffer[HANDLE_HASH_SIZE];
     unsigned int key_size = HANDLE_HASH_SIZE - 1;

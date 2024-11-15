@@ -15,6 +15,7 @@ RemoteSink::RemoteSink(
     this->local_id = local_id;
     this->remote_id = remote_id;
     this->queue_processor = NULL;
+    RemoteSink::setup_buffers();
 }
 
 RemoteSink::~RemoteSink() {
@@ -25,8 +26,10 @@ RemoteSink::~RemoteSink() {
 // Public methods
 
 void RemoteSink::setup_buffers() {
-    this->remote_output_buffer = 
-        shared_ptr<QueryNode>(new QueryNodeClient(this->local_id, this->remote_id));
+    this->remote_output_buffer = shared_ptr<QueryNode>(new QueryNodeClient(
+        this->local_id, 
+        this->remote_id, 
+        MessageBrokerType::GRPC));
     this->queue_processor = new thread(&RemoteSink::queue_processor_method, this);
 }
 

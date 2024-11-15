@@ -56,7 +56,9 @@ class QueryNodeServer : public QueryNode {
 
 public:
 
-    QueryNodeServer(const string &node_id);
+    QueryNodeServer(
+        const string &node_id,
+        MessageBrokerType messaging_backend = MessageBrokerType::RAM);
     virtual ~QueryNodeServer();
 
     void node_joined_network(const string &node_id);
@@ -68,7 +70,10 @@ class QueryNodeClient : public QueryNode {
 
 public:
 
-    QueryNodeClient(const string &node_id, const string &server_id);
+    QueryNodeClient(
+        const string &node_id, 
+        const string &server_id,
+        MessageBrokerType messaging_backend = MessageBrokerType::RAM);
     virtual ~QueryNodeClient();
 
     void node_joined_network(const string &node_id);
@@ -84,7 +89,7 @@ class QueryAnswerFlow : public Message {
 
 public:
 
-    QueryAnswerFlow(string command, vector<string> args);
+    QueryAnswerFlow(string command, vector<string> &args);
     void act(shared_ptr<MessageFactory> node);
 
 private:
@@ -96,7 +101,7 @@ class QueryAnswersFinished : public Message {
 
 public:
 
-    QueryAnswersFinished(string command, vector<string> args);
+    QueryAnswersFinished(string command, vector<string> &args);
     void act(shared_ptr<MessageFactory> node);
 };
 

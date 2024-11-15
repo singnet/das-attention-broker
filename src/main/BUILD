@@ -1,13 +1,22 @@
 package(default_visibility = ["//visibility:public"])
 
 cc_library(
-    name = "main_lib",
-    srcs = glob(["*.cc"]),
+    name = "attention_broker_main_lib",
+    srcs = glob(["attention_broker_main.cc"]),
     hdrs = glob(["*.h"]),
     deps = [
         "//attention_broker_server:attention_broker_server_lib",
         "@com_github_singnet_das_proto//:attention_broker_cc_grpc",
         "@com_github_grpc_grpc//:grpc++",
         "@com_github_grpc_grpc//:grpc++_reflection",
+    ],
+)
+
+cc_library(
+    name = "query_engine_main_lib",
+    srcs = glob(["query_engine_main.cc"]),
+    hdrs = glob(["*.h"]),
+    deps = [
+        "//query_engine:query_engine_lib",
     ],
 )

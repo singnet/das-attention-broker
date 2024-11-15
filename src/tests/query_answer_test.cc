@@ -111,3 +111,36 @@ TEST(QueryAnswer, query_answer_basics) {
     EXPECT_FALSE(query_answer3->assignment.assign("v3", "y"));
     EXPECT_TRUE(query_answer3->assignment.assign("v4", "x"));
 }
+
+void query_answers_equal(QueryAnswer *qa1, QueryAnswer *qa2) {
+    EXPECT_TRUE(double_equals(qa1->importance, qa2->importance));
+    EXPECT_EQ(qa1->to_string(), qa2->to_string());
+}
+
+TEST(QueryAnswer, tokenization) {
+
+    unsigned int NUM_TESTS = 100000;
+    unsigned int MAX_HANDLES = 5;
+    unsigned int MAX_ASSIGNMENTS = 10;
+
+    for (unsigned int test = 0; test < NUM_TESTS; test++) {
+        unsigned int num_handles = (rand() % MAX_HANDLES) + 1;
+        unsigned int num_assignments = (rand() % MAX_ASSIGNMENTS);
+        QueryAnswer input(random_importance());
+        for (unsigned int i = 0; i < num_handles; i++) {
+            input.add_handle(strdup(random_handle().c_str()));
+        }
+        unsigned int label_count = 0;
+        for (unsigned int i = 0; i < num_assignments; i++) {
+            input.assignment.assign(
+                strdup(sequential_label(label_count).c_str()),
+                strdup(random_handle().c_str()));
+        }
+
+        query_answers_equal(&input, QueryAnswer::copy(&input));
+        string token_string = input.tokenize();
+        QueryAnswer output(0.0);
+        output.untokenize(token_string);
+        query_answers_equal(&input, &output);
+    }
+}
