@@ -39,6 +39,25 @@ RUN apt-get install -y libmbedtls-dev
 RUN apt-get install -y libevent-dev
 RUN apt-get install -y libssl-dev
 
+COPY assets/3rd-party.tgz ${THIRDPARTY}
+RUN cd ${THIRDPARTY} &&\
+    tar xzvf 3rd-party.tgz &&\
+    rm -f 3rd-party.tgz &&\
+    mkdir -p ${ATTENTION_BROKER_DIR}/src/3rd-party &&\
+    ln -s ${THIRDPARTY} ${ATTENTION_BROKER_DIR}/src/3rd-party &&\
+    mv bazelisk ${BAZEL_DIR}
+    
+ENV CPLUS_INCLUDE_PATH="/opt/3rd-party/mbedcrypto/include/"
+
+ENV CC=/usr/bin/gcc
+RUN ln -s ${BAZEL_DIR}/bazelisk /usr/bin/bazel
+RUN cd ${GRPC_DIR}/grpc &&\
+    ${BAZEL_DIR}/bazelisk build :all
+
+ADD https://raw.githubusercontent.com/singnet/das-query-engine/master/proto/attention_broker.proto ${PROTO_DIR}
+ADD https://raw.githubusercontent.com/singnet/das-query-engine/master/proto/common.proto ${PROTO_DIR}
+ADD https://raw.githubusercontent.com/singnet/das-query-engine/master/proto/echo.proto ${PROTO_DIR}
+
 ################################################################################
 # To be removed when AtomDB is properly integrated
 # Redis client
@@ -72,25 +91,8 @@ RUN cd /tmp &&\
     ln -s /usr/local/include/mongocxx/v_noabi/mongocxx/* /usr/local/include/mongocxx/ &&\
 #    mv install/lib/* /usr/local/lib &&\
     ldconfig
+
 ################################################################################
 
-COPY assets/3rd-party.tgz ${THIRDPARTY}
-RUN cd ${THIRDPARTY} &&\
-    tar xzvf 3rd-party.tgz &&\
-    rm -f 3rd-party.tgz &&\
-    mkdir -p ${ATTENTION_BROKER_DIR}/src/3rd-party &&\
-    ln -s ${THIRDPARTY} ${ATTENTION_BROKER_DIR}/src/3rd-party &&\
-    mv bazelisk ${BAZEL_DIR}
-    
-ENV CPLUS_INCLUDE_PATH="/opt/3rd-party/mbedcrypto/include/"
-
-ENV CC=/usr/bin/gcc
-RUN ln -s ${BAZEL_DIR}/bazelisk /usr/bin/bazel
-RUN cd ${GRPC_DIR}/grpc &&\
-    ${BAZEL_DIR}/bazelisk build :all
-
-ADD https://raw.githubusercontent.com/singnet/das-query-engine/master/proto/attention_broker.proto ${PROTO_DIR}
-ADD https://raw.githubusercontent.com/singnet/das-query-engine/master/proto/common.proto ${PROTO_DIR}
-ADD https://raw.githubusercontent.com/singnet/das-query-engine/master/proto/echo.proto ${PROTO_DIR}
 
 WORKDIR /opt/das-attention-broker
