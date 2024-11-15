@@ -4,3 +4,5 @@
 mv bazel-bin/attention_broker ../bin
 /opt/bazel/bazelisk build --jobs 6 --noenable_bzlmod :query_broker
 mv bazel-bin/query_broker ../bin
+/opt/bazel/bazelisk build --jobs 6 --noenable_bzlmod :query
+mv bazel-bin/query ../bin

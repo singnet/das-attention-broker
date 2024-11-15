@@ -20,3 +20,12 @@ cc_library(
         "//query_engine:query_engine_lib",
     ],
 )
+
+cc_library(
+    name = "query_client_main_lib",
+    srcs = glob(["query_client_main.cc"]),
+    hdrs = glob(["*.h"]),
+    deps = [
+        "//query_engine:query_engine_lib",
+    ],
+)

@@ -12,7 +12,7 @@
 #include "AtomDBAPITypes.h"
 #include "QueryAnswer.h"
 #include "expression_hasher.h"
-#include "RequestQueue.h"
+#include "SharedQueue.h"
 
 #include "AttentionBrokerServer.h"
 #include "attention_broker.grpc.pb.h"
@@ -377,7 +377,7 @@ private:
     shared_ptr<atomdb_api_types::HandleList> fetch_result;
     vector<shared_ptr<atomdb_api_types::AtomDocument>> atom_documents;
     vector<QueryElement *> inner_template;
-    RequestQueue local_buffer;
+    SharedQueue local_buffer;
     thread *local_buffer_processor;
     bool fetch_finished;
     mutex fetch_finished_mutex;

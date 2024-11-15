@@ -1,11 +1,11 @@
-#include "RequestQueue.h"
+#include "SharedQueue.h"
 
 using namespace commons;
 
 // --------------------------------------------------------------------------------
 // Public methods
 
-RequestQueue::RequestQueue(unsigned int initial_size) {
+SharedQueue::SharedQueue(unsigned int initial_size) {
     size = initial_size;
     requests = new void*[size];
     count = 0;
@@ -13,11 +13,11 @@ RequestQueue::RequestQueue(unsigned int initial_size) {
     end = 0;
 }
 
-RequestQueue::~RequestQueue() {
+SharedQueue::~SharedQueue() {
     delete [] requests;
 }
 
-bool RequestQueue::empty() {
+bool SharedQueue::empty() {
     bool answer;
     request_queue_mutex.lock();
     answer = (count == 0);
@@ -25,7 +25,7 @@ bool RequestQueue::empty() {
     return answer;
 }
 
-void RequestQueue::enqueue(void *request) {
+void SharedQueue::enqueue(void *request) {
     request_queue_mutex.lock();
     if (count == size) {
         enlarge_request_queue();
@@ -36,7 +36,7 @@ void RequestQueue::enqueue(void *request) {
     request_queue_mutex.unlock();
 }
 
-void *RequestQueue::dequeue() {
+void *SharedQueue::dequeue() {
     void *answer = NULL;
     request_queue_mutex.lock();
     if (count > 0) {
@@ -51,26 +51,26 @@ void *RequestQueue::dequeue() {
 // --------------------------------------------------------------------------------
 // Protected methods
 
-unsigned int RequestQueue::current_size() {
+unsigned int SharedQueue::current_size() {
     return size;
 }
 
-unsigned int RequestQueue::current_start() {
+unsigned int SharedQueue::current_start() {
     return start;
 }
 
-unsigned int RequestQueue::current_end() {
+unsigned int SharedQueue::current_end() {
     return end;
 }
 
-unsigned int RequestQueue::current_count() {
+unsigned int SharedQueue::current_count() {
     return count;
 }
 
 // --------------------------------------------------------------------------------
 // Private methods
 
-void RequestQueue::enlarge_request_queue() {
+void SharedQueue::enlarge_request_queue() {
     unsigned int _new_size = size * 2;
     void **_new_queue = new void*[_new_size];
     unsigned int _cursor = start;

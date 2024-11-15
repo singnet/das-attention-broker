@@ -4,7 +4,7 @@
 #include <string>
 #include <thread>
 #include "AtomSpaceNode.h"
-#include "RequestQueue.h"
+#include "SharedQueue.h"
 #include "QueryAnswer.h"
 
 using namespace std;
@@ -40,7 +40,7 @@ public:
 
 protected:
 
-    RequestQueue query_answer_queue;
+    SharedQueue query_answer_queue;
     thread *query_answer_processor;
 
 private:
