@@ -12,8 +12,8 @@ const double AttentionBrokerServer::SPREADING_RATE_UPPERBOUND;
   
 AttentionBrokerServer::AttentionBrokerServer() {
     this->global_context = "global";
-    stimulus_requests = new RequestQueue();
-    correlation_requests = new RequestQueue();
+    stimulus_requests = new SharedQueue();
+    correlation_requests = new SharedQueue();
     worker_threads = new WorkerThreads(stimulus_requests, correlation_requests);
     HebbianNetwork *network = new HebbianNetwork();
     hebbian_network[this->global_context] = network;

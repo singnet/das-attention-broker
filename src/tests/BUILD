@@ -1,6 +1,6 @@
 cc_test(
-    name = "request_queue_test",
-    srcs = ["request_queue_test.cc"],
+    name = "shared_queue_test",
+    srcs = ["shared_queue_test.cc"],
     size = "small",
     copts = [
       "-Iexternal/gtest/googletest/include",

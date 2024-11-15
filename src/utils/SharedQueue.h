@@ -1,5 +1,5 @@
-#ifndef _COMMONS_REQUESTQUEUE_H
-#define _COMMONS_REQUESTQUEUE_H
+#ifndef _COMMONS_SHAREDQUEUE_H
+#define _COMMONS_SHAREDQUEUE_H
 
 #include <mutex>
 
@@ -13,18 +13,18 @@ namespace commons {
  * size limit during an insertion. When that happens, the array is doubled in size. Initial size
  * is passed as a constructor's parameter.
  */
-class RequestQueue {
+class SharedQueue {
 
 public:
 
-    RequestQueue(unsigned int initial_size = 1000); // Basic constructor
+    SharedQueue(unsigned int initial_size = 1000); // Basic constructor
 
-    ~RequestQueue(); /// Destructor.
+    ~SharedQueue(); /// Destructor.
 
     /**
      * Enqueues a request.
      *
-     * @param request Request to be queued.
+     * @param request Shared to be queued.
      */
     void enqueue(void *request);
 
@@ -62,4 +62,4 @@ private:
 
 } // namespace commons
 
-#endif // _COMMONS_REQUESTQUEUE_H
+#endif // _COMMONS_SHAREDQUEUE_H
