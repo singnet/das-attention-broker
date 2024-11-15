@@ -16,7 +16,7 @@ RUN mkdir -p ${GRPC_DIR}
 RUN mkdir -p ${BAZEL_DIR}
 RUN mkdir -p ${PROTO_DIR}
 RUN mkdir -p ${THIRDPARTY}
-VOLUME ${ATTENTION_BROKER_DIR}
+#VOLUME ${ATTENTION_BROKER_DIR}
 
 RUN apt-get update -y
 RUN apt-get install -y git
@@ -48,6 +48,7 @@ RUN apt-get install -y libssl-dev
 RUN apt-get install -y pkg-config
 RUN apt-get install -y cmake-data
 COPY assets/hiredis-cluster.tgz /tmp
+COPY assets/mongo-cxx-driver-r3.11.0.tar.gz /tmp
 RUN cd /tmp &&\
     tar xzf hiredis-cluster.tgz &&\
     cd hiredis-cluster &&\
@@ -59,17 +60,17 @@ RUN cd /tmp &&\
     echo "/usr/local/lib" > /etc/ld.so.conf.d/local.conf &&\
     ldconfig
 # MongoDB client
-COPY assets/mongo-cxx-driver-r3.11.0.tar.gz /tmp &&\
+RUN cd /tmp &&\
     tar xzvf mongo-cxx-driver-r3.11.0.tar.gz &&\
     cd /tmp/mongo-cxx-driver-r3.11.0/build/ &&\
     cmake .. -DCMAKE_BUILD_TYPE=Release -DMONGOCXX_OVERRIDE_DEFAULT_INSTALL_PREFIX=OFF &&\
     cmake --build . &&\
-    cmake --build . --target install &&\
-    mv install/include/* /usr/local/include &&\
+    cmake --build . --target install && \
+#    mv install/include/* /usr/local/include &&\
     ln -s /usr/local/include/bsoncxx/v_noabi/bsoncxx/* /usr/local/include/bsoncxx &&\
     ln -s /usr/local/include/bsoncxx/v_noabi/bsoncxx/third_party/mnmlstc/core/ /usr/local/include/core &&\
     ln -s /usr/local/include/mongocxx/v_noabi/mongocxx/* /usr/local/include/mongocxx/ &&\
-    mv install/lib/* /usr/local/lib &&\
+#    mv install/lib/* /usr/local/lib &&\
     ldconfig
 ################################################################################
 
