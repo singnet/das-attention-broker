@@ -191,6 +191,11 @@ public:
     QueryAnswer(double importance);
 
     /**
+     * Empty constructor.
+     */
+    QueryAnswer();
+
+    /**
      * Destructor.
      */
     ~QueryAnswer();

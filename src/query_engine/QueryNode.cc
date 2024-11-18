@@ -6,6 +6,7 @@
 using namespace query_node;
 using namespace std;
 
+string QueryNode::QUERY_ANSWER_TOKENS_FLOW_COMMAND = "query_answer_tokens_flow";
 string QueryNode::QUERY_ANSWER_FLOW_COMMAND = "query_answer_flow";
 string QueryNode::QUERY_ANSWERS_FINISHED_COMMAND = "query_answers_finished";
 
@@ -22,6 +23,11 @@ QueryNode::QueryNode(
     this->query_answer_processor = NULL;
     this->query_answers_finished_flag = false;
     this->shutdown_flag = false;
+    if (messaging_backend == MessageBrokerType::RAM) {
+        this->requires_serialization = false;
+    } else {
+        this->requires_serialization = true;
+    }
 }
 
 QueryNode::~QueryNode() {
@@ -70,6 +76,8 @@ shared_ptr<Message> QueryNode::message_factory(string &command, vector<string> &
     }
     if (command == QueryNode::QUERY_ANSWER_FLOW_COMMAND) {
         return std::shared_ptr<Message>(new QueryAnswerFlow(command, args));
+    } else if (command == QueryNode::QUERY_ANSWER_TOKENS_FLOW_COMMAND) {
+        return std::shared_ptr<Message>(new QueryAnswerTokensFlow(command, args));
     } else if (command == QueryNode::QUERY_ANSWERS_FINISHED_COMMAND) {
         return std::shared_ptr<Message>(new QueryAnswersFinished(command, args));
     }
@@ -130,10 +138,13 @@ void QueryNodeClient::query_answer_processor_method() {
     vector<string> args;
     bool answers_finished_flag = false;
     while (! is_shutting_down()) {
-        query_answer = (QueryAnswer *) this->query_answer_queue.dequeue();
-        while (query_answer != NULL) {
-            args.push_back(to_string((unsigned long) query_answer));
-            query_answer = (QueryAnswer *) this->query_answer_queue.dequeue();
+        while ((query_answer = (QueryAnswer *) this->query_answer_queue.dequeue()) != NULL) {
+            if (this->requires_serialization) {
+                string tokens = query_answer->tokenize();
+                args.push_back(tokens);
+            } else {
+                args.push_back(to_string((unsigned long) query_answer));
+            }
         }
         if (args.empty()) {
             // The order of the AND clauses below matters
@@ -142,7 +153,11 @@ void QueryNodeClient::query_answer_processor_method() {
                 answers_finished_flag = true;
             }
         } else {
-            this->send(QueryNode::QUERY_ANSWER_FLOW_COMMAND, args, this->server_id);
+            if (this->requires_serialization) {
+                this->send(QueryNode::QUERY_ANSWER_TOKENS_FLOW_COMMAND, args, this->server_id);
+            } else {
+                this->send(QueryNode::QUERY_ANSWER_FLOW_COMMAND, args, this->server_id);
+            }
             args.clear();
         }
         Utils::sleep();
@@ -189,6 +204,21 @@ QueryAnswerFlow::QueryAnswerFlow(string command, vector<string> &args) {
 void QueryAnswerFlow::act(shared_ptr<MessageFactory> node) {
     auto query_node = dynamic_pointer_cast<QueryNodeServer>(node);
     for (auto query_answer: this->query_answers) {
+        query_node->add_query_answer(query_answer);
+    }
+}
+
+QueryAnswerTokensFlow::QueryAnswerTokensFlow(string command, vector<string> &args) {
+    for (auto tokens: args) {
+        this->query_answers_tokens.push_back(tokens);
+    }
+}
+
+void QueryAnswerTokensFlow::act(shared_ptr<MessageFactory> node) {
+    auto query_node = dynamic_pointer_cast<QueryNodeServer>(node);
+    for (auto tokens: this->query_answers_tokens) {
+        QueryAnswer *query_answer = new QueryAnswer();
+        query_answer->untokenize(tokens);
         query_node->add_query_answer(query_answer);
     }
 }
