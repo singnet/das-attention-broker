@@ -27,14 +27,13 @@ class TestSource : public Source {
 };
 
 TEST(RemoteSinkIterator, basics) {
-    string producer_id = "localhost:30700";
-    string consumer_id = "localhost:30701";
+    string consumer_id = "localhost:30700";
+    string producer_id = "localhost:30701";
 
     string input_element_id = "test_source";
     TestSource input(input_element_id);
     RemoteIterator consumer(consumer_id);
     RemoteSink producer(&input, producer_id, consumer_id);
-    producer.setup_buffers();
     Utils::sleep(1000);
 
     EXPECT_FALSE(consumer.finished());

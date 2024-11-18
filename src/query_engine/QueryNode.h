@@ -36,12 +36,14 @@ public:
     virtual void query_answer_processor_method() = 0;
 
     static string QUERY_ANSWER_FLOW_COMMAND;
+    static string QUERY_ANSWER_TOKENS_FLOW_COMMAND;
     static string QUERY_ANSWERS_FINISHED_COMMAND;
 
 protected:
 
     SharedQueue query_answer_queue;
     thread *query_answer_processor;
+    bool requires_serialization;
 
 private:
 
@@ -95,6 +97,18 @@ public:
 private:
 
     vector<QueryAnswer *> query_answers;
+};
+
+class QueryAnswerTokensFlow : public Message {
+
+public:
+
+    QueryAnswerTokensFlow(string command, vector<string> &args);
+    void act(shared_ptr<MessageFactory> node);
+
+private:
+
+    vector<string> query_answers_tokens;
 };
 
 class QueryAnswersFinished : public Message {

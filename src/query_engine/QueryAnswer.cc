@@ -101,6 +101,9 @@ string Assignment::to_string() {
 // QueryAnswer
 
 
+QueryAnswer::QueryAnswer() : QueryAnswer(0.0) {
+}
+
 QueryAnswer::QueryAnswer(double importance) {
     this->importance = importance;
     this->handles_size = 0;
