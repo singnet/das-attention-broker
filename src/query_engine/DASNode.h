@@ -24,7 +24,7 @@ public:
     DASNode(const string &node_id, const string &server_id);
     ~DASNode();
 
-    RemoteIterator *pattern_matcher_query(const vector<string> &tokens);
+    RemoteIterator *pattern_matcher_query(const vector<string> &tokens, const string &context = "");
     string next_query_id();
 
     virtual shared_ptr<Message> message_factory(string &command, vector<string> &args);
@@ -65,6 +65,7 @@ private:
 
     QueryElement *root_query_element;
     string requestor_id;
+    string context;
 
 };
 
