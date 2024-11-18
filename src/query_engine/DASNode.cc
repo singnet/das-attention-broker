@@ -39,13 +39,13 @@ void DASNode::initialize() {
 // -------------------------------------------------------------------------------------------------
 // Public client API
 
-RemoteIterator *DASNode::pattern_matcher_query(const vector<string> &tokens) {
+RemoteIterator *DASNode::pattern_matcher_query(const vector<string> &tokens, const string &context) {
     if (this->is_server) {
         Utils::error("pattern_matcher_query() is not available in DASNode server.");
     }
     // TODO XXX change this when requestor is set in basic Message
     string query_id = next_query_id();
-    vector<string> args = {query_id};
+    vector<string> args = {query_id, context};
     args.insert(args.end(), tokens.begin(), tokens.end());
     send(PATTERN_MATCHING_QUERY, args, this->server_id);
     return new RemoteIterator(query_id);
@@ -102,7 +102,7 @@ QueryElement *PatternMatchingQuery::build_link_template(
                 targets[i] = element_stack.top();
                 element_stack.pop();
             }
-            return new LinkTemplate<1>(tokens[cursor + 1], targets);
+            return new LinkTemplate<1>(tokens[cursor + 1], targets, this->context);
         }
         case 2: {
             array<QueryElement *, 2> targets;
@@ -110,7 +110,7 @@ QueryElement *PatternMatchingQuery::build_link_template(
                 targets[i] = element_stack.top();
                 element_stack.pop();
             }
-            return new LinkTemplate<2>(tokens[cursor + 1], targets);
+            return new LinkTemplate<2>(tokens[cursor + 1], targets, this->context);
         }
         case 3: {
             array<QueryElement *, 3> targets;
@@ -118,7 +118,7 @@ QueryElement *PatternMatchingQuery::build_link_template(
                 targets[i] = element_stack.top();
                 element_stack.pop();
             }
-            return new LinkTemplate<3>(tokens[cursor + 1], targets);
+            return new LinkTemplate<3>(tokens[cursor + 1], targets, this->context);
         }
         case 4: {
             array<QueryElement *, 4> targets;
@@ -126,7 +126,7 @@ QueryElement *PatternMatchingQuery::build_link_template(
                 targets[i] = element_stack.top();
                 element_stack.pop();
             }
-            return new LinkTemplate<4>(tokens[cursor + 1], targets);
+            return new LinkTemplate<4>(tokens[cursor + 1], targets, this->context);
         }
         case 5: {
             array<QueryElement *, 5> targets;
@@ -134,7 +134,7 @@ QueryElement *PatternMatchingQuery::build_link_template(
                 targets[i] = element_stack.top();
                 element_stack.pop();
             }
-            return new LinkTemplate<5>(tokens[cursor + 1], targets);
+            return new LinkTemplate<5>(tokens[cursor + 1], targets, this->context);
         }
         case 6: {
             array<QueryElement *, 6> targets;
@@ -142,7 +142,7 @@ QueryElement *PatternMatchingQuery::build_link_template(
                 targets[i] = element_stack.top();
                 element_stack.pop();
             }
-            return new LinkTemplate<6>(tokens[cursor + 1], targets);
+            return new LinkTemplate<6>(tokens[cursor + 1], targets, this->context);
         }
         case 7: {
             array<QueryElement *, 7> targets;
@@ -150,7 +150,7 @@ QueryElement *PatternMatchingQuery::build_link_template(
                 targets[i] = element_stack.top();
                 element_stack.pop();
             }
-            return new LinkTemplate<7>(tokens[cursor + 1], targets);
+            return new LinkTemplate<7>(tokens[cursor + 1], targets, this->context);
         }
         case 8: {
             array<QueryElement *, 8> targets;
@@ -158,7 +158,7 @@ QueryElement *PatternMatchingQuery::build_link_template(
                 targets[i] = element_stack.top();
                 element_stack.pop();
             }
-            return new LinkTemplate<8>(tokens[cursor + 1], targets);
+            return new LinkTemplate<8>(tokens[cursor + 1], targets, this->context);
         }
         case 9: {
             array<QueryElement *, 9> targets;
@@ -166,7 +166,7 @@ QueryElement *PatternMatchingQuery::build_link_template(
                 targets[i] = element_stack.top();
                 element_stack.pop();
             }
-            return new LinkTemplate<9>(tokens[cursor + 1], targets);
+            return new LinkTemplate<9>(tokens[cursor + 1], targets, this->context);
         }
         case 10: {
             array<QueryElement *, 10> targets;
@@ -174,7 +174,7 @@ QueryElement *PatternMatchingQuery::build_link_template(
                 targets[i] = element_stack.top();
                 element_stack.pop();
             }
-            return new LinkTemplate<10>(tokens[cursor + 1], targets);
+            return new LinkTemplate<10>(tokens[cursor + 1], targets, this->context);
         }
         default: {
             Utils::error("PatternMatchingQuery message: max supported arity for LINK_TEMPLATE: 10");
@@ -385,7 +385,8 @@ PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &token
     stack<unsigned int> execution_stack;
     stack<QueryElement *> element_stack;
     this->requestor_id = tokens[0];
-    unsigned int cursor = 1; // TODO XXX: change this when requestor is set in basic Message
+    this->context = tokens[1];
+    unsigned int cursor = 2; // TODO XXX: change this when requestor is set in basic Message
     unsigned int tokens_count = tokens.size();
 
     while (cursor < tokens_count) {

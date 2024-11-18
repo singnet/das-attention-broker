@@ -74,8 +74,15 @@ public:
      *
      * @param type Link type or WILDCARD to indicate that the link type doesn't matter.
      * @param targets An array with targets which can each be a Terminal or a nested LinkTemplate.
+     * @param context An optional string defining the context used by the AttentionBroker to
+     *        consider STI (short term importance).
      */
-    LinkTemplate(const string &type, const array<QueryElement *, ARITY> &targets) {
+    LinkTemplate(
+        const string &type, 
+        const array<QueryElement *, ARITY> &targets, 
+        const string &context = "") {
+
+        this->context = context;
         this->arity = ARITY;
         this->type = type;
         this->target_template = targets;
@@ -216,6 +223,7 @@ private:
         unsigned int answer_count = this->fetch_result->size();
         if (answer_count > 0) {
             dasproto::HandleList handle_list;
+            handle_list.set_context(this->context);
             for (unsigned int i = 0; i < answer_count; i++) {
                 handle_list.add_list(this->fetch_result->get_handle(i));
             }
@@ -389,6 +397,7 @@ private:
     vector<QueryAnswer *> inner_answers;
     unsigned int local_answers_size;
     mutex local_answers_mutex;
+    string context;
 };
 
 } // namespace query_element
