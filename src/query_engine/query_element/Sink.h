@@ -30,7 +30,11 @@ public:
      * @param delete_precedent_on_destructor If true, the destructor of this QueryElement will
      * also destruct the passed precedent QueryElement (defaulted to false).
      */
-    Sink(QueryElement *precedent, const string &id, bool delete_precedent_on_destructor = false);
+    Sink(
+        QueryElement *precedent, 
+        const string &id, 
+        bool delete_precedent_on_destructor = false,
+        bool setup_buffers_flag = true);
 
     /**
      * Destructor.

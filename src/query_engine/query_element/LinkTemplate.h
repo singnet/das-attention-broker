@@ -218,7 +218,6 @@ private:
     }
 
     void fetch_links() {
-        Utils::sleep(10000);
 #ifdef DEBUG
         cout << "fetch_links() BEGIN" << endl;
         cout << "fetch_links() Pattern handle: " << this->handle << endl;

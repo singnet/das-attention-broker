@@ -10,7 +10,7 @@ RemoteSink::RemoteSink(
     const string &local_id,
     const string &remote_id,
     bool delete_precedent_on_destructor) : 
-    Sink(precedent, "RemoteSink(" + precedent->id + ")", delete_precedent_on_destructor) {
+    Sink(precedent, "RemoteSink(" + precedent->id + ")", delete_precedent_on_destructor, false) {
 #ifdef DEBUG
     cout << "RemoteSink::RemoteSink() BEGIN" << endl;
     cout << "RemoteSink::RemoteSink() local_id: " << local_id << endl;
@@ -20,6 +20,7 @@ RemoteSink::RemoteSink(
     this->local_id = local_id;
     this->remote_id = remote_id;
     this->queue_processor = NULL;
+    Sink::setup_buffers();
     RemoteSink::setup_buffers();
 #ifdef DEBUG
     cout << "RemoteSink::RemoteSink() END" << endl;
