@@ -35,9 +35,15 @@ ExactCountHebbianUpdater::~ExactCountHebbianUpdater() {
 }
 
 void ExactCountHebbianUpdater::correlation(dasproto::HandleList *request) {
+    cout << "XXXXX ExactCountHebbianUpdater::correlation() BEGIN" << endl;
+
     HebbianNetwork *network = (HebbianNetwork *) request->hebbian_network();
     if (network != NULL) {
+        cout << "XXXXX ExactCountHebbianUpdater::correlation() 1" << endl;
         for (const string &s: ((dasproto::HandleList *) request)->list()) {
+            cout << "XXXXX ExactCountHebbianUpdater::correlation() 2" << endl;
+            cout << "XXXXX " << s << endl;
+            cout << "XXXXX ExactCountHebbianUpdater::correlation() 3" << endl;
             network->add_node(s);
         }
         HebbianNetwork::Node *node1;

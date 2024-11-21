@@ -433,5 +433,6 @@ void PatternMatchingQuery::act(shared_ptr<MessageFactory> node) {
     RemoteSink *remote_sink = new RemoteSink(
         this->root_query_element,
         das_node->next_query_id(),
-        this->requestor_id);
+        this->requestor_id,
+        false); // XXXXXXX
 }

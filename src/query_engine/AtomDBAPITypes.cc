@@ -1,3 +1,5 @@
+#include <cstring>
+
 #include "Utils.h"
 #include "expression_hasher.h"
 #include "AtomDBAPITypes.h"
@@ -31,6 +33,34 @@ unsigned int RedisSet::size() {
     return this->handles_size;
 }
 
+RedisStringBundle::RedisStringBundle(redisReply *reply) : HandleList() {
+    unsigned int handle_length = (HANDLE_HASH_SIZE - 1);
+    this->redis_reply = reply;
+    this->handles_size = reply->len / handle_length;
+    this->handles = new char *[this->handles_size];
+    for (unsigned int i = 0; i < this->handles_size; i++) {
+        handles[i] = strndup(reply->str + (i * handle_length), handle_length);
+    }
+}
+
+RedisStringBundle::~RedisStringBundle() {
+    for (unsigned int i = 0; i < this->handles_size; i++) {
+        free(this->handles[i]);
+    }
+    delete [] this->handles;
+    freeReplyObject(this->redis_reply);
+}
+
+const char *RedisStringBundle::get_handle(unsigned int index) {
+    if (index > this->handles_size) {
+        Utils::error("Handle index out of bounds: " + to_string(index) + " Answer handles size: " + to_string(this->handles_size));
+    }
+    return handles[index];
+}
+
+unsigned int RedisStringBundle::size() {
+    return this->handles_size;
+}
 
 MongodbDocument::MongodbDocument(core::v1::optional<bsoncxx::v_noabi::document::value>& document) {
     this->document = document;

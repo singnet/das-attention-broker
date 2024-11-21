@@ -22,6 +22,7 @@ int main(int argc, char* argv[]) {
         exit(1);
     }
 
+    AtomDBSingleton::init();
     string server_id = "localhost:" + string(argv[1]);
     signal(SIGINT, &ctrl_c_handler);
     DASNode server(server_id);

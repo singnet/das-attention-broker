@@ -67,5 +67,6 @@ TEST(RemoteSinkIterator, basics) {
     EXPECT_FALSE((qa = consumer.pop()) == NULL);
     EXPECT_TRUE(strcmp(qa->handles[0], "h2") == 0);
     EXPECT_TRUE(double_equals(qa->importance, 0.2));
+    Utils::sleep(5000); // XXXXXXXXXXXXXXXXXXXXXXXXXXX
     EXPECT_TRUE(consumer.finished());
 }

@@ -43,6 +43,7 @@ public:
 
     static string WILDCARD;
     static string REDIS_PATTERNS_PREFIX;
+    static string REDIS_TARGETS_PREFIX;
     static string MONGODB_DB_NAME;
     static string MONGODB_COLLECTION_NAME;
     static string MONGODB_FIELD_NAME[MONGODB_FIELD::size];
@@ -50,12 +51,15 @@ public:
     static void initialize_statics() {
         WILDCARD = "*";
         REDIS_PATTERNS_PREFIX = "patterns";
+        REDIS_TARGETS_PREFIX = "outgoing_set";
         MONGODB_DB_NAME = "das";
         MONGODB_COLLECTION_NAME = "atoms";
         MONGODB_FIELD_NAME[MONGODB_FIELD::ID] = "_id";
     }
 
     shared_ptr<atomdb_api_types::HandleList> query_for_pattern(shared_ptr<char> pattern_handle);
+    shared_ptr<atomdb_api_types::HandleList> query_for_targets(shared_ptr<char> link_handle);
+    shared_ptr<atomdb_api_types::HandleList> query_for_targets(char *link_handle_ptr);
     shared_ptr<atomdb_api_types::AtomDocument> get_atom_document(const char *handle);
 
 private:

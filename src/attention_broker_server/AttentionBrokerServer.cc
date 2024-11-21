@@ -12,26 +12,26 @@ const double AttentionBrokerServer::SPREADING_RATE_UPPERBOUND;
   
 AttentionBrokerServer::AttentionBrokerServer() {
     this->global_context = "global";
-    stimulus_requests = new SharedQueue();
-    correlation_requests = new SharedQueue();
-    worker_threads = new WorkerThreads(stimulus_requests, correlation_requests);
+    this->stimulus_requests = new SharedQueue();
+    this->correlation_requests = new SharedQueue();
+    this->worker_threads = new WorkerThreads(stimulus_requests, correlation_requests);
     HebbianNetwork *network = new HebbianNetwork();
-    hebbian_network[this->global_context] = network;
+    this->hebbian_network[this->global_context] = network;
 }
 
 AttentionBrokerServer::~AttentionBrokerServer() {
     graceful_shutdown();
-    delete worker_threads;
-    delete stimulus_requests;
-    delete correlation_requests;
-    for (auto pair:hebbian_network) {
+    delete this->worker_threads;
+    delete this->stimulus_requests;
+    delete this->correlation_requests;
+    for (auto pair:this->hebbian_network) {
         delete pair.second;
     }
 }
 
 void AttentionBrokerServer::graceful_shutdown() {
-    rpc_api_enabled = false;
-    worker_threads->graceful_stop();
+    this->rpc_api_enabled = false;
+    this->worker_threads->graceful_stop();
 }
 
 // RPC API
@@ -46,10 +46,11 @@ Status AttentionBrokerServer::ping(ServerContext* grpc_context, const dasproto::
 }
 
 Status AttentionBrokerServer::stimulate(ServerContext* grpc_context, const dasproto::HandleCount *request, dasproto::Ack* reply) {
+    cout << "XXXXX AttentionBrokerServer::stimulate()" << endl;
     if (request->map_size() > 0) {
         HebbianNetwork *network = select_hebbian_network(request->context());
         ((dasproto::HandleCount *) request)->set_hebbian_network((long) network);
-        stimulus_requests->enqueue((void *) request);
+        this->stimulus_requests->enqueue((void *) request);
     }
     reply->set_msg("STIMULATE");
     if (rpc_api_enabled) {
@@ -60,10 +61,11 @@ Status AttentionBrokerServer::stimulate(ServerContext* grpc_context, const daspr
 }
 
 Status AttentionBrokerServer::correlate(ServerContext* grpc_context, const dasproto::HandleList *request, dasproto::Ack* reply) {
+    cout << "XXXXX AttentionBrokerServer::correlate()" << endl;
     if (request->list_size() > 0) {
         HebbianNetwork *network = select_hebbian_network(request->context());
         ((dasproto::HandleList *) request)->set_hebbian_network((long) network);
-        correlation_requests->enqueue((void *) request);
+        this->correlation_requests->enqueue((void *) request);
     }
     reply->set_msg("CORRELATE");
     if (rpc_api_enabled) {
@@ -74,7 +76,8 @@ Status AttentionBrokerServer::correlate(ServerContext* grpc_context, const daspr
 }
 
 Status AttentionBrokerServer::get_importance(ServerContext *grpc_context, const dasproto::HandleList *request, dasproto::ImportanceList *reply) {
-    if (rpc_api_enabled) {
+    cout << "XXXXX AttentionBrokerServer::get_importance() BEGIN" << endl;
+    if (this->rpc_api_enabled) {
         int num_handles = request->list_size();
         if (num_handles > 0) {
             HebbianNetwork *network = select_hebbian_network(request->context());
@@ -83,8 +86,10 @@ Status AttentionBrokerServer::get_importance(ServerContext *grpc_context, const 
                 reply->add_list(importance);
             }
         }
+        cout << "XXXXX AttentionBrokerServer::get_importance() END OK" << endl;
         return Status::OK;
     } else {
+        cout << "XXXXX AttentionBrokerServer::get_importance() END CANCELLED" << endl;
         return Status::CANCELLED;
     }
 }
@@ -95,17 +100,17 @@ Status AttentionBrokerServer::get_importance(ServerContext *grpc_context, const 
 
 HebbianNetwork *AttentionBrokerServer::select_hebbian_network(const string &context) {
     HebbianNetwork *network;
-    if ((context != "") && (hebbian_network.find(context) != hebbian_network.end())) {
-        network = hebbian_network[context];
+    if ((context != "") && (this->hebbian_network.find(context) != this->hebbian_network.end())) {
+        network = this->hebbian_network[context];
     }
     if (context == "") {
-        network = hebbian_network[this->global_context];
+        network = this->hebbian_network[this->global_context];
     } else {
-        if (hebbian_network.find(context) == hebbian_network.end()) {
+        if (this->hebbian_network.find(context) == this->hebbian_network.end()) {
             network = new HebbianNetwork();
-            hebbian_network[context] = network;
+            this->hebbian_network[context] = network;
         } else {
-            network = hebbian_network[context];
+            network = this->hebbian_network[context];
         }
     }
     return network;

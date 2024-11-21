@@ -10,6 +10,7 @@ using namespace commons;
 
 string AtomDB::WILDCARD;
 string AtomDB::REDIS_PATTERNS_PREFIX;
+string AtomDB::REDIS_TARGETS_PREFIX;
 string AtomDB::MONGODB_DB_NAME;
 string AtomDB::MONGODB_COLLECTION_NAME;
 string AtomDB::MONGODB_FIELD_NAME[MONGODB_FIELD::size];
@@ -96,10 +97,34 @@ shared_ptr<atomdb_api_types::HandleList> AtomDB::query_for_pattern(shared_ptr<ch
         Utils::error("Redis error");
     }
     if (reply->type != REDIS_REPLY_SET && reply->type != REDIS_REPLY_ARRAY) {
-        Utils::error("Invalid Redis response");
+        Utils::error("Invalid Redis response: " + std::to_string(reply->type));
     }
     // NOTE: Intentionally, we aren't destroying 'reply' objects.'reply' objects are destroyed in ~RedisSet().
     return shared_ptr<atomdb_api_types::RedisSet>(new atomdb_api_types::RedisSet(reply));
+}
+
+shared_ptr<atomdb_api_types::HandleList> AtomDB::query_for_targets(shared_ptr<char> link_handle) {
+    return query_for_targets(link_handle.get());
+}
+
+shared_ptr<atomdb_api_types::HandleList> AtomDB::query_for_targets(char *link_handle_ptr) {
+    cout << "XXXXXXXXX GET " << REDIS_TARGETS_PREFIX << ":" << string(link_handle_ptr) << endl;;
+    redisReply *reply = (redisReply *) redisCommand(this->redis_single, "GET %s:%s", REDIS_TARGETS_PREFIX.c_str(), link_handle_ptr);
+    /*
+    if (reply == NULL) {
+        Utils::error("Redis error");
+    }
+    */
+    if ((reply == NULL) || (reply->type == REDIS_REPLY_NIL)) {
+        cout << "XXXXXXXXX Not Found" << endl;;
+        return shared_ptr<atomdb_api_types::HandleList>(NULL);
+    }
+    if (reply->type != REDIS_REPLY_STRING) {
+        Utils::error("Invalid Redis response: " + std::to_string(reply->type) +
+            " != " + std::to_string(REDIS_REPLY_STRING));
+    }
+    // NOTE: Intentionally, we aren't destroying 'reply' objects.'reply' objects are destroyed in ~RedisSet().
+    return shared_ptr<atomdb_api_types::RedisStringBundle>(new atomdb_api_types::RedisStringBundle(reply));
 }
 
 shared_ptr<atomdb_api_types::AtomDocument> AtomDB::get_atom_document(const char *handle) {
