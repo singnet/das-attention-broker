@@ -4,8 +4,6 @@
 #include "Terminal.h"
 #include "RemoteSink.h"
 
-#define DEBUG
-
 using namespace query_engine;
 
 string DASNode::PATTERN_MATCHING_QUERY = "pattern_matching_query";
