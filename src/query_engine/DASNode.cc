@@ -452,7 +452,7 @@ PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &token
 void PatternMatchingQuery::act(shared_ptr<MessageFactory> node) {
 #ifdef DEBUG
     cout << "PatternMatchingQuery::act() BEGIN" << endl;
-    cout << "this->requestor_id: " this->requestor_id << endl;
+    cout << "this->requestor_id: " << this->requestor_id << endl;
 #endif
     auto das_node = dynamic_pointer_cast<DASNode>(node);
 
