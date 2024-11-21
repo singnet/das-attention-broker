@@ -459,7 +459,7 @@ void PatternMatchingQuery::act(shared_ptr<MessageFactory> node) {
         this->root_query_element,
         das_node->next_query_id(),
         this->requestor_id,
-        true);
+        false); // Set True to activate attention broker
 
 #ifdef DEBUG
     cout << "PatternMatchingQuery::act() END" << endl;
