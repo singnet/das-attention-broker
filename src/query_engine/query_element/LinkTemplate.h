@@ -119,6 +119,9 @@ public:
      * Destructor.
      */
     virtual ~LinkTemplate() {
+#ifdef DEBUG
+        cout << "LinkTemplate::LinkTemplate() DESTRUCTOR BEGIN" << endl;
+#endif
         graceful_shutdown();
         local_answers_mutex.lock();
         if (local_answers_size > 0) {
@@ -127,6 +130,9 @@ public:
             delete [] this->next_inner_answer;
         }
         local_answers_mutex.unlock();
+#ifdef DEBUG
+        cout << "LinkTemplate::LinkTemplate() DESTRUCTOR END" << endl;
+#endif
     }
 
     // --------------------------------------------------------------------------------------------
