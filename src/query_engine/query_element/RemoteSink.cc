@@ -39,6 +39,7 @@ void RemoteSink::setup_buffers() {
         this->local_id, 
         this->remote_id, 
         MessageBrokerType::GRPC));
+    Utils::sleep();
     this->queue_processor = new thread(&RemoteSink::queue_processor_method, this);
 }
 
