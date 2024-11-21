@@ -45,7 +45,7 @@ RemoteIterator *DASNode::pattern_matcher_query(const vector<string> &tokens, con
 #ifdef DEBUG
     cout << "DASNode::pattern_matcher_query() BEGIN" << endl;
     cout << "tokens.size(): " << tokens.size() << endl;
-    cout << "context: " << contex << endl;
+    cout << "context: " << context << endl;
 #endif
     if (this->is_server) {
         Utils::error("pattern_matcher_query() is not available in DASNode server.");
