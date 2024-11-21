@@ -1,6 +1,7 @@
 #include <iostream>
 #include <algorithm>
 #include <string>
+#include <mutex>
 #include <memory>
 #include "AtomDB.h"
 #include "Utils.h"
