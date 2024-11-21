@@ -20,8 +20,8 @@ RemoteSink::RemoteSink(
     this->local_id = local_id;
     this->remote_id = remote_id;
     this->queue_processor = NULL;
-    Sink::setup_buffers();
     RemoteSink::setup_buffers();
+    Sink::setup_buffers();
 #ifdef DEBUG
     cout << "RemoteSink::RemoteSink() END" << endl;
 #endif
