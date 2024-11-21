@@ -128,9 +128,11 @@ shared_ptr<atomdb_api_types::HandleList> AtomDB::query_for_targets(char *link_ha
 }
 
 shared_ptr<atomdb_api_types::AtomDocument> AtomDB::get_atom_document(const char *handle) {
+    this->mongodb_mutex.lock();
     auto reply = this->mongodb_collection.find_one(
         bsoncxx::v_noabi::builder::basic::make_document(
             bsoncxx::v_noabi::builder::basic::kvp(MONGODB_FIELD_NAME[MONGODB_FIELD::ID], handle)));
     //cout << bsoncxx::to_json(*reply) << endl; // Note to reviewer: please let this dead code here
+    this->mongodb_mutex.unlock();
     return shared_ptr<atomdb_api_types::MongodbDocument>(new atomdb_api_types::MongodbDocument(reply));
 }

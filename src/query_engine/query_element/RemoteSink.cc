@@ -23,7 +23,12 @@ RemoteSink::RemoteSink(
     bool update_attention_broker_flag,
     const string &context,
     bool delete_precedent_on_destructor) : 
-    Sink(precedent, "RemoteSink(" + precedent->id + ")", delete_precedent_on_destructor) {
+    Sink(precedent, "RemoteSink(" + precedent->id + ")", delete_precedent_on_destructor, false) {
+#ifdef DEBUG
+    cout << "RemoteSink::RemoteSink() BEGIN" << endl;
+    cout << "RemoteSink::RemoteSink() local_id: " << local_id << endl;
+    cout << "RemoteSink::RemoteSink() remote_id: " << remote_id << endl;
+#endif
 
     this->attention_broker_address = "localhost:" + RemoteSink::DEFAULT_ATTENTION_BROKER_PORT;
     this->query_context = context;
@@ -33,6 +38,11 @@ RemoteSink::RemoteSink(
     this->attention_broker_postprocess = NULL;
     this->update_attention_broker_flag = update_attention_broker_flag;
     RemoteSink::setup_buffers();
+    Sink::setup_buffers();
+    this->queue_processor = new thread(&RemoteSink::queue_processor_method, this);
+#ifdef DEBUG
+    cout << "RemoteSink::RemoteSink() END" << endl;
+#endif
 }
 
 RemoteSink::~RemoteSink() {
@@ -48,15 +58,16 @@ void RemoteSink::setup_buffers() {
         this->remote_id, 
         MessageBrokerType::GRPC));
     this->queue_processor = new thread(&RemoteSink::queue_processor_method, this);
-    /* XXXXX Re-enable this
     if (this->update_attention_broker_flag) {
         this->attention_broker_postprocess = new \
             thread(&RemoteSink::attention_broker_postprocess_method, this);
     }
-    */
 }
 
 void RemoteSink::graceful_shutdown() {
+#ifdef DEBUG
+    cout << "RemoteSink::graceful_shutdown() BEGIN" << endl;
+#endif
     Sink::graceful_shutdown();
     set_flow_finished();
     set_attention_broker_postprocess_finished();
@@ -67,12 +78,18 @@ void RemoteSink::graceful_shutdown() {
         this->attention_broker_postprocess->join();
     }
     this->remote_output_buffer->graceful_shutdown();
+#ifdef DEBUG
+    cout << "RemoteSink::graceful_shutdown() END" << endl;
+#endif
 }
 
 // -------------------------------------------------------------------------------------------------
 // Private methods
 
 void RemoteSink::queue_processor_method() {
+#ifdef DEBUG
+    cout << "RemoteSink::queue_processor_method() BEGIN" << endl;
+#endif
     do {
         if (is_flow_finished() || 
            (this->input_buffer->is_query_answers_finished() && 
@@ -84,21 +101,25 @@ void RemoteSink::queue_processor_method() {
         QueryAnswer *query_answer;
         while ((query_answer = this->input_buffer->pop_query_answer()) != NULL) {
             this->remote_output_buffer->add_query_answer(query_answer);
-            /*
             if (this->update_attention_broker_flag) {
                 this->attention_broker_queue.enqueue((void *) query_answer);
                 update_attention_broker((QueryAnswer *) query_answer);
             }
-            */
             idle_flag = false;
         }
         if (idle_flag) {
             Utils::sleep();
         }
     } while (true);
+#ifdef DEBUG
+    cout << "RemoteSink::queue_processor_method() ready to return" << endl;
+#endif
     this->remote_output_buffer->query_answers_finished();
     set_flow_finished();
-    //set_attention_broker_postprocess_finished();
+    set_attention_broker_postprocess_finished();
+#ifdef DEBUG
+    cout << "RemoteSink::queue_processor_method() END" << endl;
+#endif
 }
 
 void RemoteSink::update_attention_broker(QueryAnswer *query_answer) {

@@ -6,6 +6,8 @@
 #include "Utils.h"
 #include "QueryNode.h"
 
+//#define DEBUG
+
 using namespace std;
 using namespace query_node;
 using namespace commons;

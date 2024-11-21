@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include <mutex>
 #include <hiredis_cluster/hircluster.h>
 #include <bsoncxx/json.hpp>
 #include <mongocxx/client.hpp>
@@ -70,6 +71,7 @@ private:
     mongocxx::client *mongodb_client;
     mongocxx::database mongodb;
     mongocxx::v_noabi::collection mongodb_collection;
+    mutex mongodb_mutex;
 
     void redis_setup();
     void mongodb_setup();

@@ -40,6 +40,11 @@ void DASNode::initialize() {
 // Public client API
 
 RemoteIterator *DASNode::pattern_matcher_query(const vector<string> &tokens, const string &context) {
+#ifdef DEBUG
+    cout << "DASNode::pattern_matcher_query() BEGIN" << endl;
+    cout << "DASNode::pattern_matcher_query() tokens.size(): " << tokens.size() << endl;
+    cout << "DASNode::pattern_matcher_query() context: " << context << endl;
+#endif
     if (this->is_server) {
         Utils::error("pattern_matcher_query() is not available in DASNode server.");
     }
@@ -48,6 +53,9 @@ RemoteIterator *DASNode::pattern_matcher_query(const vector<string> &tokens, con
     vector<string> args = {query_id, context};
     args.insert(args.end(), tokens.begin(), tokens.end());
     send(PATTERN_MATCHING_QUERY, args, this->server_id);
+#ifdef DEBUG
+    cout << "DASNode::pattern_matcher_query() END" << endl;
+#endif
     return new RemoteIterator(query_id);
 }
 
@@ -68,6 +76,9 @@ string DASNode::next_query_id() {
             this->next_query_port = (this->first_query_port + this->last_query_port) / 2; 
         }
     }
+#ifdef DEBUG
+    cout << "DASNode::next_query_id(): " << this->local_host + ":" + std::to_string(port) << endl;
+#endif
     return this->local_host + ":" + std::to_string(port);
 }
 
@@ -382,6 +393,10 @@ QueryElement *PatternMatchingQuery::build_link(
 
 PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &tokens) {
 
+#ifdef DEBUG
+    cout << "PatternMatchingQuery::PatternMatchingQuery() BEGIN" << endl;
+#endif
+
     stack<unsigned int> execution_stack;
     stack<QueryElement *> element_stack;
     this->requestor_id = tokens[0];
@@ -389,6 +404,9 @@ PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &token
     unsigned int cursor = 2; // TODO XXX: change this when requestor is set in basic Message
     unsigned int tokens_count = tokens.size();
 
+#ifdef DEBUG
+    cout << "PatternMatchingQuery::PatternMatchingQuery() tokens_count: " << tokens_count << endl;
+#endif
     while (cursor < tokens_count) {
         execution_stack.push(cursor);
         if ((tokens[cursor] == "VARIABLE") || (tokens[cursor] == "AND")) {
@@ -424,9 +442,16 @@ PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &token
     }
     this->root_query_element = element_stack.top();
     element_stack.pop();
+#ifdef DEBUG
+    cout << "PatternMatchingQuery::PatternMatchingQuery() END" << endl;
+#endif
 }
 
 void PatternMatchingQuery::act(shared_ptr<MessageFactory> node) {
+#ifdef DEBUG
+    cout << "PatternMatchingQuery::act() BEGIN" << endl;
+    cout << "PatternMatchingQuery::act() this->requestor_id: " << this->requestor_id << endl;
+#endif
     auto das_node = dynamic_pointer_cast<DASNode>(node);
 
     // TODO XXX Remove memory leak
@@ -435,4 +460,8 @@ void PatternMatchingQuery::act(shared_ptr<MessageFactory> node) {
         das_node->next_query_id(),
         this->requestor_id,
         false); // XXXXXXX
+
+#ifdef DEBUG
+    cout << "PatternMatchingQuery::act() END" << endl;
+#endif
 }

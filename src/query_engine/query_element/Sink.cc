@@ -5,11 +5,18 @@ using namespace query_element;
 // ------------------------------------------------------------------------------------------------
 // Constructors and destructors
 
-Sink::Sink(QueryElement *precedent, const string &id, bool delete_precedent_on_destructor) {
+Sink::Sink(
+    QueryElement *precedent, 
+    const string &id, 
+    bool delete_precedent_on_destructor,
+    bool setup_buffers_flag) {
+
     this->precedent = precedent;
     this->id = id;
     this->delete_precedent_on_destructor = delete_precedent_on_destructor;
-    setup_buffers();
+    if (setup_buffers_flag) {
+        setup_buffers();
+    }
 }
 
 Sink::~Sink() {
