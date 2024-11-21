@@ -66,6 +66,7 @@ private:
     mongocxx::client *mongodb_client;
     mongocxx::database mongodb;
     mongocxx::v_noabi::collection mongodb_collection;
+    mutex mongodb_mutex;
 
     void redis_setup();
     void mongodb_setup();

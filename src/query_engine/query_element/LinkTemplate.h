@@ -235,13 +235,11 @@ private:
         cout << "fetch_links() answer_count: " << answer_count << endl;
 #endif
         if (answer_count > 0) {
-cout << "XXXXXXX 1" << endl;
             dasproto::HandleList handle_list;
             handle_list.set_context(this->context);
             for (unsigned int i = 0; i < answer_count; i++) {
                 handle_list.add_list(this->fetch_result->get_handle(i));
             }
-cout << "XXXXXXX 2" << endl;
             dasproto::ImportanceList importance_list;
             grpc::ClientContext context;
             auto stub = dasproto::AttentionBroker::NewStub(grpc::CreateChannel(
@@ -253,19 +251,15 @@ cout << "XXXXXXX 2" << endl;
                     std::to_string(importance_list.list_size()) +
                     " Expected size: " + std::to_string(answer_count));
             }
-cout << "XXXXXXX 3" << endl;
             this->atom_document = new shared_ptr<atomdb_api_types::AtomDocument>[answer_count];
             this->local_answers = new QueryAnswer *[answer_count];
             this->next_inner_answer = new unsigned int[answer_count];
-cout << "XXXXXXX 4" << endl;
             for (unsigned int i = 0; i < answer_count; i++) {
-//cout << "XXXXXXX 5" << endl;
                 this->atom_document[i] = db->get_atom_document(this->fetch_result->get_handle(i));
                 QueryAnswer *query_answer = new QueryAnswer(
                     this->fetch_result->get_handle(i),
                     importance_list.list(i));
                 const char *s = this->atom_document[i]->get("targets", 0);
-//cout << "XXXXXXX 6" << endl;
                 for (unsigned int j = 0; j < this->arity; j++) {
                     if (this->target_template[j]->is_terminal) {
                         Terminal *terminal = (Terminal *) this->target_template[j];
@@ -282,7 +276,6 @@ cout << "XXXXXXX 4" << endl;
                         }
                     }
                 }
-//cout << "XXXXXXX 7" << endl;
                 if (this->inner_template.size() == 0) {
                     this->local_buffer.enqueue((void *) query_answer);
                 } else {
@@ -294,15 +287,12 @@ cout << "XXXXXXX 4" << endl;
                     break;
                 }
             }
-cout << "XXXXXXX 8" << endl;
             if (this->inner_template.size() == 0) {
                 set_flow_finished();
             }
-cout << "XXXXXXX 9" << endl;
         } else {
             set_flow_finished();
         }
-cout << "XXXXXXX 10" << endl;
 #ifdef DEBUG
         cout << "fetch_links() END" << endl;
 #endif
