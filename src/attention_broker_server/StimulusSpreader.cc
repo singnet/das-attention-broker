@@ -101,7 +101,7 @@ static bool consolidate_stimulus(HandleTrie::TrieNode *node, void *data) {
 // Public methods
 
 void TokenSpreader::distribute_wages(
-    dasproto::HandleCount *handle_count,
+    const dasproto::HandleCount *handle_count,
     ImportanceType &total_to_spread,
     DATA *data) {
 
@@ -118,16 +118,12 @@ void TokenSpreader::distribute_wages(
     }
 }
 
-void TokenSpreader::spread_stimuli(dasproto::HandleCount *request) {
-
-    cout << "XXXXX TokenSpreader::spread_stimuli()() BEGIN" << endl;
+void TokenSpreader::spread_stimuli(const dasproto::HandleCount *request) {
 
     HebbianNetwork *network = (HebbianNetwork *) request->hebbian_network();
-    cout << "XXXXX TokenSpreader::spread_stimuli()() 1" << endl;
     if (network == NULL) {
         return;
     }
-    cout << "XXXXX TokenSpreader::spread_stimuli()() 2" << endl;
 
     DATA data;
     data.importance_changes = new HandleTrie(HANDLE_HASH_SIZE - 1);
@@ -137,24 +133,18 @@ void TokenSpreader::spread_stimuli(dasproto::HandleCount *request) {
         AttentionBrokerServer::SPREADING_RATE_UPPERBOUND - AttentionBrokerServer::SPREADING_RATE_LOWERBOUND;
     data.largest_arity = network->largest_arity;
     data.total_rent = 0.0;
-    cout << "XXXXX TokenSpreader::spread_stimuli()() 3" << endl;
 
     // Collect rent
     network->visit_nodes(true, &collect_rent, (void *) &data);
-    cout << "XXXXX TokenSpreader::spread_stimuli()() 4" << endl;
 
     // Distribute wages
     ImportanceType total_to_spread = network->alienate_tokens();
     total_to_spread += data.total_rent;
-    cout << "XXXXX TokenSpreader::spread_stimuli()() 4.1" << endl;
     distribute_wages(request, total_to_spread, &data);
-    cout << "XXXXX TokenSpreader::spread_stimuli()() 5" << endl;
 
     // Consolidate changes
     network->visit_nodes(true, &consolidate_rent_and_wages, (void *) &data);
-    cout << "XXXXX TokenSpreader::spread_stimuli()() 6" << endl;
 
     // Spread activation (1 cycle)
     network->visit_nodes(true, &consolidate_stimulus, &data);
-    cout << "XXXXX TokenSpreader::spread_stimuli()() 7" << endl;
 }

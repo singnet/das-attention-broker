@@ -1,12 +1,16 @@
 #ifndef _ATTENTION_BROKER_SERVER_ATTENTIONBROKERSERVER_H
 #define _ATTENTION_BROKER_SERVER_ATTENTIONBROKERSERVER_H
 
+#define DEBUG
+
 #include <string>
 #include <unordered_map>
 #include "attention_broker.grpc.pb.h"
 #include "SharedQueue.h"
 #include "WorkerThreads.h"
 #include "HebbianNetwork.h"
+#include "HebbianNetworkUpdater.h"
+#include "StimulusSpreader.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -134,6 +138,9 @@ class AttentionBrokerServer final: public AttentionBroker::Service {
         SharedQueue *correlation_requests;
         WorkerThreads *worker_threads;
         unordered_map<string, HebbianNetwork *> hebbian_network;
+        HebbianNetworkUpdater *updater;
+        StimulusSpreader *stimulus_spreader;
+
 
         HebbianNetwork *select_hebbian_network(const string &context);
 };

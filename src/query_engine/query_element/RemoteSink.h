@@ -75,10 +75,10 @@ private:
     string query_context;
 
     void queue_processor_method();
-    //void attention_broker_postprocess_method();
+    void attention_broker_postprocess_method();
     bool is_attention_broker_postprocess_finished();
     void set_attention_broker_postprocess_finished();
-    void update_attention_broker(QueryAnswer *query_answer);
+    //void update_attention_broker(QueryAnswer *query_answer);
 
 };
 

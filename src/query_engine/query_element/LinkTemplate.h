@@ -142,15 +142,24 @@ public:
      * Gracefully shuts down this QueryElement's processor thread.
      */
     virtual void graceful_shutdown() {
+#ifdef DEBUG
+        cout << "LinkTemplate::graceful_shutdown() BEGIN" << endl;
+#endif
         set_flow_finished();
         if (this->local_buffer_processor != NULL) {
             this->local_buffer_processor->join();
             this->local_buffer_processor = NULL;
         }
         Source::graceful_shutdown();
+#ifdef DEBUG
+        cout << "LinkTemplate::graceful_shutdown() END" << endl;
+#endif
     }
 
     virtual void setup_buffers() {
+#ifdef DEBUG
+        cout << "LinkTemplate::setup_buffers() BEGIN" << endl;
+#endif
         Source::setup_buffers();
         if (this->inner_template.size() > 0) {
             switch(this->inner_template.size()) {
@@ -202,6 +211,9 @@ public:
             &LinkTemplate::local_buffer_processor_method, 
             this);
         fetch_links();
+#ifdef DEBUG
+        cout << "LinkTemplate::setup_buffers() END" << endl;
+#endif
     }
 
 private:
@@ -371,7 +383,18 @@ private:
                         }
                     }
                 } else {
-                    Utils::sleep();
+                    if (this->inner_template_iterator->finished()) {
+                        for (unsigned int i = 0; i < size; i++) {
+                            if (this->local_answers[i] != NULL) {
+                                if (is_feasible(i)) {
+                                    this->output_buffer->add_query_answer(this->local_answers[i]);
+                                }
+                                this->local_answers[i] = NULL;
+                            }
+                        }
+                    } else {
+                        Utils::sleep();
+                    }
                 }
                 bool finished_flag = true;
                 for (unsigned int i = 0; i < size; i++) {
@@ -380,7 +403,7 @@ private:
                         break;
                     }
                 }
-                if (finished_flag) {
+                if (this->inner_template_iterator->finished()) {
                     set_flow_finished();
                 }
             }

@@ -40,6 +40,10 @@ RemoteSink::RemoteSink(
     RemoteSink::setup_buffers();
     Sink::setup_buffers();
     this->queue_processor = new thread(&RemoteSink::queue_processor_method, this);
+    if (this->update_attention_broker_flag) {
+        this->attention_broker_postprocess = new \
+            thread(&RemoteSink::attention_broker_postprocess_method, this);
+    }
 #ifdef DEBUG
     cout << "RemoteSink::RemoteSink() END" << endl;
 #endif
@@ -53,15 +57,16 @@ RemoteSink::~RemoteSink() {
 // Public methods
 
 void RemoteSink::setup_buffers() {
+#ifdef DEBUG
+    cout << "RemoteSink::setup_buffers() BEGIN" << endl;
+#endif
     this->remote_output_buffer = shared_ptr<QueryNode>(new QueryNodeClient(
         this->local_id, 
         this->remote_id, 
         MessageBrokerType::GRPC));
-    this->queue_processor = new thread(&RemoteSink::queue_processor_method, this);
-    if (this->update_attention_broker_flag) {
-        this->attention_broker_postprocess = new \
-            thread(&RemoteSink::attention_broker_postprocess_method, this);
-    }
+#ifdef DEBUG
+    cout << "RemoteSink::setup_buffers() END" << endl;
+#endif
 }
 
 void RemoteSink::graceful_shutdown() {
@@ -103,7 +108,7 @@ void RemoteSink::queue_processor_method() {
             this->remote_output_buffer->add_query_answer(query_answer);
             if (this->update_attention_broker_flag) {
                 this->attention_broker_queue.enqueue((void *) query_answer);
-                update_attention_broker((QueryAnswer *) query_answer);
+                //update_attention_broker((QueryAnswer *) query_answer);
             }
             idle_flag = false;
         }
@@ -122,6 +127,7 @@ void RemoteSink::queue_processor_method() {
 #endif
 }
 
+/*
 void RemoteSink::update_attention_broker(QueryAnswer *query_answer) {
 
     // GRPC stuff
@@ -187,8 +193,8 @@ void RemoteSink::update_attention_broker(QueryAnswer *query_answer) {
         Utils::error("Failed GRPC command: AttentionBroker::correlate()"); // XXXXX
     }
 }
+*/
 
-/*
 void RemoteSink::attention_broker_postprocess_method() {
 
     // GRPC stuff
@@ -248,16 +254,19 @@ void RemoteSink::attention_broker_postprocess_method() {
             //handle_list.clear_list();
             auto stub = dasproto::AttentionBroker::NewStub(grpc::CreateChannel(
                 this->attention_broker_address,
-                grpc::InsecureChannelCredentials()));
+                grpc::InsecureChannelCredentials())); // XXXXX Move this up
             handle_list = new dasproto::HandleList();
             handle_list->set_context(this->query_context);
             for (auto handle_it: single_answer) {
                 handle_list->add_list(handle_it);
             }
             ack = new dasproto::Ack();
+#ifdef DEBUG
+            cout << "RemoteSink::attention_broker_postprocess_method() requesting CORRELATE" << endl;
+#endif
             stub->correlate(new grpc::ClientContext(), *handle_list, ack);
             if (ack->msg() != "CORRELATE") {
-                //Utils::error("Failed GRPC command: AttentionBroker::correlate()"); // XXXXX
+                Utils::error("Failed GRPC command: AttentionBroker::correlate()");
             }
             Utils::sleep(5000);
             idle_flag = false;
@@ -276,13 +285,15 @@ void RemoteSink::attention_broker_postprocess_method() {
     auto stub = dasproto::AttentionBroker::NewStub(grpc::CreateChannel(
         this->attention_broker_address,
         grpc::InsecureChannelCredentials()));
+#ifdef DEBUG
+    cout << "RemoteSink::attention_broker_postprocess_method() requesting STIMULATE" << endl;
+#endif
     stub->stimulate(new grpc::ClientContext(), handle_count, ack);
     if (ack->msg() != "STIMULATE") {
         Utils::error("Failed GRPC command: AttentionBroker::stimulate()");
     }
     set_attention_broker_postprocess_finished();
 }
-*/
 
 void RemoteSink::set_attention_broker_postprocess_finished() {
     this->attention_broker_postprocess_finished_mutex.lock();

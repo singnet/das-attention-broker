@@ -51,7 +51,7 @@ public:
      *
      * @param request A list of handles of atoms which appeared in the same query answer.
      */
-    virtual void correlation(dasproto::HandleList* request) = 0;
+    virtual void correlation(const dasproto::HandleList* request) = 0;
 
 protected:
 
@@ -93,7 +93,7 @@ public:
      *
      * @param request A list of handles of atoms which appeared in the same query answer.
      */
-    void correlation(dasproto::HandleList *request); /// Process a correlation evidence.
+    void correlation(const dasproto::HandleList *request); /// Process a correlation evidence.
 };
 
 } // namespace attention_broker_server

@@ -62,15 +62,11 @@ void WorkerThreads::worker_thread(
         if (request.second != NULL) {
             switch (request.first) {
                 case RequestType::STIMULUS: {
-                    cout << "XXXXX WorkerThreads::worker_thread() STIMULATE begin" << endl;
                     stimulus_spreader->spread_stimuli((dasproto::HandleCount *) request.second);
-                    cout << "XXXXX WorkerThreads::worker_thread() STIMULATE end" << endl;
                     break;
                 }
                 case RequestType::CORRELATION: {
-                    cout << "XXXXX WorkerThreads::worker_thread() CORRELATE begin" << endl;
                     updater->correlation((dasproto::HandleList *) request.second);
-                    cout << "XXXXX WorkerThreads::worker_thread() CORRELATE end" << endl;
                     break;
                 }
                 default: {

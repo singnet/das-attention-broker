@@ -17,6 +17,9 @@ AttentionBrokerServer::AttentionBrokerServer() {
     this->worker_threads = new WorkerThreads(stimulus_requests, correlation_requests);
     HebbianNetwork *network = new HebbianNetwork();
     this->hebbian_network[this->global_context] = network;
+    this->updater = HebbianNetworkUpdater::factory(HebbianNetworkUpdaterType::EXACT_COUNT);
+    this->stimulus_spreader = StimulusSpreader::factory(StimulusSpreaderType::TOKEN);
+
 }
 
 AttentionBrokerServer::~AttentionBrokerServer() {
@@ -24,6 +27,8 @@ AttentionBrokerServer::~AttentionBrokerServer() {
     delete this->worker_threads;
     delete this->stimulus_requests;
     delete this->correlation_requests;
+    delete this->updater;
+    delete this->stimulus_spreader;
     for (auto pair:this->hebbian_network) {
         delete pair.second;
     }
@@ -46,13 +51,19 @@ Status AttentionBrokerServer::ping(ServerContext* grpc_context, const dasproto::
 }
 
 Status AttentionBrokerServer::stimulate(ServerContext* grpc_context, const dasproto::HandleCount *request, dasproto::Ack* reply) {
-    cout << "XXXXX AttentionBrokerServer::stimulate()" << endl;
+#ifdef DEBUG
+    cout << "AttentionBrokerServer::stimulate() BEGIN" << endl;
+#endif
     if (request->map_size() > 0) {
         HebbianNetwork *network = select_hebbian_network(request->context());
         ((dasproto::HandleCount *) request)->set_hebbian_network((long) network);
-        this->stimulus_requests->enqueue((void *) request);
+        //this->stimulus_requests->enqueue((void *) request);
+        this->stimulus_spreader->spread_stimuli(request);
     }
     reply->set_msg("STIMULATE");
+#ifdef DEBUG
+    cout << "AttentionBrokerServer::stimulate() END" << endl;
+#endif
     if (rpc_api_enabled) {
         return Status::OK;
     } else{
@@ -61,13 +72,19 @@ Status AttentionBrokerServer::stimulate(ServerContext* grpc_context, const daspr
 }
 
 Status AttentionBrokerServer::correlate(ServerContext* grpc_context, const dasproto::HandleList *request, dasproto::Ack* reply) {
-    cout << "XXXXX AttentionBrokerServer::correlate()" << endl;
+#ifdef DEBUG
+    cout << "AttentionBrokerServer::correlate() BEGIN" << endl;
+#endif
     if (request->list_size() > 0) {
         HebbianNetwork *network = select_hebbian_network(request->context());
         ((dasproto::HandleList *) request)->set_hebbian_network((long) network);
-        this->correlation_requests->enqueue((void *) request);
+        //this->correlation_requests->enqueue((void *) request);
+        this->updater->correlation(request);
     }
     reply->set_msg("CORRELATE");
+#ifdef DEBUG
+    cout << "AttentionBrokerServer::correlate() END" << endl;
+#endif
     if (rpc_api_enabled) {
         return Status::OK;
     } else {
@@ -76,7 +93,9 @@ Status AttentionBrokerServer::correlate(ServerContext* grpc_context, const daspr
 }
 
 Status AttentionBrokerServer::get_importance(ServerContext *grpc_context, const dasproto::HandleList *request, dasproto::ImportanceList *reply) {
-    cout << "XXXXX AttentionBrokerServer::get_importance() BEGIN" << endl;
+#ifdef DEBUG
+    cout << "AttentionBrokerServer::get_importance() BEGIN" << endl;
+#endif
     if (this->rpc_api_enabled) {
         int num_handles = request->list_size();
         if (num_handles > 0) {
@@ -86,10 +105,11 @@ Status AttentionBrokerServer::get_importance(ServerContext *grpc_context, const 
                 reply->add_list(importance);
             }
         }
-        cout << "XXXXX AttentionBrokerServer::get_importance() END OK" << endl;
+#ifdef DEBUG
+        cout << "AttentionBrokerServer::get_importance() END" << endl;
+#endif
         return Status::OK;
     } else {
-        cout << "XXXXX AttentionBrokerServer::get_importance() END CANCELLED" << endl;
         return Status::CANCELLED;
     }
 }
