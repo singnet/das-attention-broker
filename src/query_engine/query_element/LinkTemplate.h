@@ -220,13 +220,13 @@ private:
     void fetch_links() {
 #ifdef DEBUG
         cout << "fetch_links() BEGIN" << endl;
-        cout << "Pattern handle: " << this->handle << endl;
+        cout << "fetch_links() Pattern handle: " << this->handle << endl;
 #endif
         shared_ptr<AtomDB> db = AtomDBSingleton::get_instance();
         this->fetch_result = db->query_for_pattern(this->handle);
         unsigned int answer_count = this->fetch_result->size();
 #ifdef DEBUG
-        cout << "answer_count: " << answer_count << endl;
+        cout << "fetch_links() answer_count: " << answer_count << endl;
 #endif
         if (answer_count > 0) {
             dasproto::HandleList handle_list;
@@ -284,6 +284,8 @@ private:
             if (this->inner_template.size() == 0) {
                 set_flow_finished();
             }
+        } else {
+            set_flow_finished();
         }
 #ifdef DEBUG
         cout << "fetch_links() END" << endl;

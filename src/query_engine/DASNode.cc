@@ -44,8 +44,8 @@ void DASNode::initialize() {
 RemoteIterator *DASNode::pattern_matcher_query(const vector<string> &tokens, const string &context) {
 #ifdef DEBUG
     cout << "DASNode::pattern_matcher_query() BEGIN" << endl;
-    cout << "tokens.size(): " << tokens.size() << endl;
-    cout << "context: " << context << endl;
+    cout << "DASNode::pattern_matcher_query() tokens.size(): " << tokens.size() << endl;
+    cout << "DASNode::pattern_matcher_query() context: " << context << endl;
 #endif
     if (this->is_server) {
         Utils::error("pattern_matcher_query() is not available in DASNode server.");
@@ -407,7 +407,7 @@ PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &token
     unsigned int tokens_count = tokens.size();
 
 #ifdef DEBUG
-    cout << "tokens_count: " << tokens_count << endl;
+    cout << "PatternMatchingQuery::PatternMatchingQuery() tokens_count: " << tokens_count << endl;
 #endif
     while (cursor < tokens_count) {
         execution_stack.push(cursor);
@@ -452,7 +452,7 @@ PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &token
 void PatternMatchingQuery::act(shared_ptr<MessageFactory> node) {
 #ifdef DEBUG
     cout << "PatternMatchingQuery::act() BEGIN" << endl;
-    cout << "this->requestor_id: " << this->requestor_id << endl;
+    cout << "PatternMatchingQuery::act() this->requestor_id: " << this->requestor_id << endl;
 #endif
     auto das_node = dynamic_pointer_cast<DASNode>(node);
 
