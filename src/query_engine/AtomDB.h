@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <memory>
+#include <mutex>
 #include <hiredis_cluster/hircluster.h>
 #include <bsoncxx/json.hpp>
 #include <mongocxx/client.hpp>
