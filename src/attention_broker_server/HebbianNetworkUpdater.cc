@@ -34,7 +34,7 @@ ExactCountHebbianUpdater::ExactCountHebbianUpdater() {
 ExactCountHebbianUpdater::~ExactCountHebbianUpdater() {
 }
 
-void ExactCountHebbianUpdater::correlation(dasproto::HandleList *request) {
+void ExactCountHebbianUpdater::correlation(const dasproto::HandleList *request) {
     HebbianNetwork *network = (HebbianNetwork *) request->hebbian_network();
     if (network != NULL) {
         for (const string &s: ((dasproto::HandleList *) request)->list()) {

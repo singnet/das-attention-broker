@@ -61,6 +61,23 @@ private:
     redisReply *redis_reply;
 };
 
+class RedisStringBundle : public HandleList {
+
+public:
+
+    RedisStringBundle(redisReply *reply);
+    ~RedisStringBundle();
+
+    const char *get_handle(unsigned int index);
+    unsigned int size();
+
+private:
+
+    unsigned int handles_size;
+    char **handles;
+    redisReply *redis_reply;
+};
+
 class AtomDocument {
 
 public:

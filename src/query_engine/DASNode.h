@@ -1,6 +1,8 @@
 #ifndef _QUERY_ENGINE_DASNODE_H
 #define _QUERY_ENGINE_DASNODE_H
 
+#define DEBUG
+
 #include <stack>
 #include "StarNode.h"
 #include "RemoteIterator.h"
