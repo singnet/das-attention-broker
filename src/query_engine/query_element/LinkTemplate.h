@@ -218,6 +218,7 @@ private:
     }
 
     void fetch_links() {
+        Utils::sleep(10000);
 #ifdef DEBUG
         cout << "fetch_links() BEGIN" << endl;
         cout << "fetch_links() Pattern handle: " << this->handle << endl;
@@ -253,13 +254,13 @@ cout << "XXXXXXX 3" << endl;
             this->next_inner_answer = new unsigned int[answer_count];
 cout << "XXXXXXX 4" << endl;
             for (unsigned int i = 0; i < answer_count; i++) {
-cout << "XXXXXXX 5" << endl;
+//cout << "XXXXXXX 5" << endl;
                 this->atom_document[i] = db->get_atom_document(this->fetch_result->get_handle(i));
                 QueryAnswer *query_answer = new QueryAnswer(
                     this->fetch_result->get_handle(i),
                     importance_list.list(i));
                 const char *s = this->atom_document[i]->get("targets", 0);
-cout << "XXXXXXX 6" << endl;
+//cout << "XXXXXXX 6" << endl;
                 for (unsigned int j = 0; j < this->arity; j++) {
                     if (this->target_template[j]->is_terminal) {
                         Terminal *terminal = (Terminal *) this->target_template[j];
@@ -276,7 +277,7 @@ cout << "XXXXXXX 6" << endl;
                         }
                     }
                 }
-cout << "XXXXXXX 7" << endl;
+//cout << "XXXXXXX 7" << endl;
                 if (this->inner_template.size() == 0) {
                     this->local_buffer.enqueue((void *) query_answer);
                 } else {
