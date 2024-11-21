@@ -4,7 +4,7 @@
 #include "Terminal.h"
 #include "RemoteSink.h"
 
-#define DEBUG
+//#define DEBUG
 
 using namespace query_engine;
 

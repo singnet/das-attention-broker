@@ -294,7 +294,6 @@ cout << "XXXXXXX 8" << endl;
             }
 cout << "XXXXXXX 9" << endl;
         } else {
-            Utils::sleep();
             set_flow_finished();
         }
 cout << "XXXXXXX 10" << endl;
