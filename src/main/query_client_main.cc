@@ -49,6 +49,9 @@ int main(int argc, char* argv[]) {
             }
         }
     }
+    if (count == 0) {
+        cout << "No match for query" << endl;
+    }
 
     delete response;
     return 0;
