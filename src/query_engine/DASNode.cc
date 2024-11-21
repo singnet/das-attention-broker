@@ -42,6 +42,11 @@ void DASNode::initialize() {
 // Public client API
 
 RemoteIterator *DASNode::pattern_matcher_query(const vector<string> &tokens, const string &context) {
+#ifdef DEBUG
+    cout << "DASNode::pattern_matcher_query() BEGIN" << endl;
+    cout << "tokens.size(): " << tokens.size() << endl;
+    cout << "context: " << contex << endl;
+#endif
     if (this->is_server) {
         Utils::error("pattern_matcher_query() is not available in DASNode server.");
     }
@@ -50,6 +55,9 @@ RemoteIterator *DASNode::pattern_matcher_query(const vector<string> &tokens, con
     vector<string> args = {query_id, context};
     args.insert(args.end(), tokens.begin(), tokens.end());
     send(PATTERN_MATCHING_QUERY, args, this->server_id);
+#ifdef DEBUG
+    cout << "DASNode::pattern_matcher_query() END" << endl;
+#endif
     return new RemoteIterator(query_id);
 }
 
@@ -70,6 +78,9 @@ string DASNode::next_query_id() {
             this->next_query_port = (this->first_query_port + this->last_query_port) / 2; 
         }
     }
+#ifdef DEBUG
+    cout << "DASNode::next_query_id(): " << this->local_host + ":" + std::to_string(port) << endl;
+#endif
     return this->local_host + ":" + std::to_string(port);
 }
 
@@ -439,6 +450,10 @@ PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &token
 }
 
 void PatternMatchingQuery::act(shared_ptr<MessageFactory> node) {
+#ifdef DEBUG
+    cout << "PatternMatchingQuery::act() BEGIN" << endl;
+    cout << "this->requestor_id: " this->requestor_id << endl;
+#endif
     auto das_node = dynamic_pointer_cast<DASNode>(node);
 
     // TODO XXX Remove memory leak
@@ -446,4 +461,7 @@ void PatternMatchingQuery::act(shared_ptr<MessageFactory> node) {
         this->root_query_element,
         das_node->next_query_id(),
         this->requestor_id);
+#ifdef DEBUG
+    cout << "PatternMatchingQuery::act() END" << endl;
+#endif
 }
