@@ -22,6 +22,7 @@ RemoteSink::RemoteSink(
     this->queue_processor = NULL;
     RemoteSink::setup_buffers();
     Sink::setup_buffers();
+    this->queue_processor = new thread(&RemoteSink::queue_processor_method, this);
 #ifdef DEBUG
     cout << "RemoteSink::RemoteSink() END" << endl;
 #endif
@@ -39,8 +40,6 @@ void RemoteSink::setup_buffers() {
         this->local_id, 
         this->remote_id, 
         MessageBrokerType::GRPC));
-    Utils::sleep();
-    this->queue_processor = new thread(&RemoteSink::queue_processor_method, this);
 }
 
 void RemoteSink::graceful_shutdown() {
