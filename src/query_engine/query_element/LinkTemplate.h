@@ -366,8 +366,8 @@ cout << "XXXXXXX 10" << endl;
             }
         } else {
             while (! this->is_flow_finished()) {
+                unsigned int size = get_local_answers_size();
                 if (ingest_newly_arrived_answers()) {
-                    unsigned int size = get_local_answers_size();
                     for (unsigned int i = 0; i < size; i++) {
                         if (this->local_answers[i] != NULL) {
                             if (is_feasible(i)) {
