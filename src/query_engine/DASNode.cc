@@ -4,6 +4,8 @@
 #include "Terminal.h"
 #include "RemoteSink.h"
 
+#define DEBUG
+
 using namespace query_engine;
 
 string DASNode::PATTERN_MATCHING_QUERY = "pattern_matching_query";
@@ -382,6 +384,10 @@ QueryElement *PatternMatchingQuery::build_link(
 
 PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &tokens) {
 
+#ifdef DEBUG
+    cout << "PatternMatchingQuery::PatternMatchingQuery() BEGIN" << endl;
+#endif
+
     stack<unsigned int> execution_stack;
     stack<QueryElement *> element_stack;
     this->requestor_id = tokens[0];
@@ -389,6 +395,9 @@ PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &token
     unsigned int cursor = 2; // TODO XXX: change this when requestor is set in basic Message
     unsigned int tokens_count = tokens.size();
 
+#ifdef DEBUG
+    cout << "tokens_count: " << tokens_count << endl;
+#endif
     while (cursor < tokens_count) {
         execution_stack.push(cursor);
         if ((tokens[cursor] == "VARIABLE") || (tokens[cursor] == "AND")) {
@@ -424,6 +433,9 @@ PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &token
     }
     this->root_query_element = element_stack.top();
     element_stack.pop();
+#ifdef DEBUG
+    cout << "PatternMatchingQuery::PatternMatchingQuery() END" << endl;
+#endif
 }
 
 void PatternMatchingQuery::act(shared_ptr<MessageFactory> node) {
