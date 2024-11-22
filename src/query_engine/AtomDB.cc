@@ -49,9 +49,9 @@ void AtomDB::attention_broker_setup() {
         grpc::InsecureChannelCredentials()));
     status = stub->ping(&context, empty, &ack);
     if (status.ok()) {
-        Utils::error("Couldn't connect to AttentionBroker at " + attention_broker_address);
-    } else {
         std::cout << "Connected to AttentionBroker at " << attention_broker_address << endl;
+    } else {
+        Utils::error("Couldn't connect to AttentionBroker at " + attention_broker_address);
     }
     if (ack.msg() != "PING") {
         Utils::error("Invalid AttentionBroker answer for PING");
