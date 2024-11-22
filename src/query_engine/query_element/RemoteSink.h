@@ -3,10 +3,10 @@
 
 #include "Sink.h"
 #include "SharedQueue.h"
-#include "HandleTrie.h"
+//#include "HandleTrie.h"
 
 using namespace std;
-using namespace attention_broker_server;
+//using namespace attention_broker_server;
 
 namespace query_element {
 
@@ -84,6 +84,7 @@ private:
 
 };
 
+/*
 class AccumulatorValue: public HandleTrie::TrieValue {
 public:
     unsigned int count;
@@ -94,6 +95,7 @@ public:
         count += ((AccumulatorValue *) other)->count;
     }
 };
+*/
 
 } // namespace query_element
 
