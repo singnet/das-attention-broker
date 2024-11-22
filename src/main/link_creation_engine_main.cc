@@ -51,23 +51,11 @@ int main(int argc, char* argv[]) {
 
     vector<string> query_word = {
         link_template, expression, "3", 
-            node symbol, contains, 
+            node, symbol, contains, 
             variable, sentence1, 
             link, expression, "2", 
                 node, symbol, word, 
-                node, symbol, "\"" + rword_tag + "\""
-    }
-        /*
-        and_operator, "2",
-            link_template, expression, "3",
-                node, symbol, contains,
-                variable, sentence1,
-                variable, word1,
-            link_template, expression, "3",
-                node, symbol, contains,
-                variable, sentence2,
-                variable, word1
-                */
+                node, symbol, "\"" + word_tag + "\""
     };
 
     DASNode client(client_id, server_id);
