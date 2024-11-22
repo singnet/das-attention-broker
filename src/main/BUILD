@@ -29,3 +29,12 @@ cc_library(
         "//query_engine:query_engine_lib",
     ],
 )
+
+cc_library(
+    name = "link_engine_main_lib",
+    srcs = glob(["link_creation_engine_main.cc"]),
+    hdrs = glob(["*.h"]),
+    deps = [
+        "//query_engine:query_engine_lib",
+    ],
+)
