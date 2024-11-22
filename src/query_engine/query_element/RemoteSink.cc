@@ -128,73 +128,13 @@ void RemoteSink::queue_processor_method() {
 #endif
 }
 
-/*
-void RemoteSink::update_attention_broker(QueryAnswer *query_answer) {
-
-    // GRPC stuff
-    auto channel = CreateChannel("localhost:37007", grpc::InsecureChannelCredentials());
-    auto stub = dasproto::AttentionBroker::NewStub(channel);
-    //auto stub = dasproto::AttentionBroker::NewStub(grpc::CreateChannel(
-    //    this->attention_broker_address,
-    //    grpc::InsecureChannelCredentials()));
-
-    // TODO: XXX Review allocation performance in all this method
-    set<string> single_answer; // Auxiliary set of handles.
-    map<string, unsigned int> joint_answer; // Auxiliary joint count of handles.
-
-    // Protobuf data structures
-    dasproto::HandleList *handle_list; // will contain single_answer (can't be used directly
-                                      // because it's a list, not a set.
-    dasproto::HandleCount handle_count; // Counting of how many times each handle appeared
-                                        // in all single_entry
-    dasproto::Ack *ack; // Command return
-
-    shared_ptr<AtomDB> db = AtomDBSingleton::get_instance();
-    shared_ptr<atomdb_api_types::HandleList> query_result;
-    stack<string> execution_stack;
-    unsigned int weight_sum;
-    string handle;
-    unsigned int count;
-
-    for (unsigned int i = 0; i < query_answer->handles_size; i++) {
-        execution_stack.push(string(query_answer->handles[i]));
-    }
-
-    while (! execution_stack.empty()) {
-        handle = execution_stack.top();
-        execution_stack.pop();
-        // Updates single_answer (correlation)
-        single_answer.insert(handle);
-        // Updates joint answer (stimulation)
-        if (joint_answer.find(handle) != joint_answer.end()) {
-            count = joint_answer[handle] + 1;
-        } else {
-            count = 1;
-        }
-        joint_answer[handle] = count;
-        // Gets targets and stack them
-        query_result = db->query_for_targets((char *) handle.c_str());
-        if (query_result != NULL) { // if handle is link
-            unsigned int query_result_size = query_result->size();
-            for (unsigned int i = 0; i < query_result_size; i++) {
-                execution_stack.push(string(query_result->get_handle(i)));
-            }
-        }
-    }
-    //handle_list.mutable_list()->Clear();
-    //handle_list.clear_list();
-    handle_list = new dasproto::HandleList();
-    handle_list->set_context(this->query_context);
-    for (auto handle_it: single_answer) {
-        handle_list->add_list(handle_it);
-    }
-    ack = new dasproto::Ack();
-    stub->correlate(new grpc::ClientContext(), *handle_list, ack);
-    if (ack->msg() != "CORRELATE") {
-        Utils::error("Failed GRPC command: AttentionBroker::correlate()"); // XXXXX
-    }
+static bool visit_function(HandleTrie::TrieNode *node, void *data) {
+    ((unordered_map<string, unsigned int> *) data)->insert({
+        node->suffix,
+        ((AccumulatorValue *) node->value)->count
+        });
+    return false;
 }
-*/
 
 void RemoteSink::attention_broker_postprocess_method() {
 
@@ -202,7 +142,8 @@ void RemoteSink::attention_broker_postprocess_method() {
 
     // TODO: XXX Review allocation performance in all this method
     set<string> single_answer; // Auxiliary set of handles.
-    unordered_map<string, unsigned int> joint_answer; // Auxiliary joint count of handles.
+    unordered_map<string, unsigned int> joint_answer_map; // Auxiliary joint count of handles.
+    HandleTrie *joint_answer = new HandleTrie(HANDLE_HASH_SIZE - 1);
 
     // Protobuf data structures
     dasproto::HandleList *handle_list; // will contain single_answer (can't be used directly
@@ -229,12 +170,12 @@ void RemoteSink::attention_broker_postprocess_method() {
         bool idle_flag = true;
         QueryAnswer *query_answer;
         string handle;
-        unsigned int count;
+        //unsigned int count;
         while ((query_answer = (QueryAnswer *) this->attention_broker_queue.dequeue()) != NULL) {
 #ifdef DEBUG
             count_total_processed++;
             if ((count_total_processed % 10) == 0) {
-                cout << "RemoteSink::attention_broker_postprocess_method() count_total_processed: " << count_total_processed;
+                cout << "RemoteSink::attention_broker_postprocess_method() count_total_processed: " << count_total_processed << endl;
             }
 #endif
             for (unsigned int i = 0; i < query_answer->handles_size; i++) {
@@ -246,12 +187,15 @@ void RemoteSink::attention_broker_postprocess_method() {
                 // Updates single_answer (correlation)
                 single_answer.insert(handle);
                 // Updates joint answer (stimulation)
+                /*
                 if (joint_answer.find(handle) != joint_answer.end()) {
                     count = joint_answer[handle] + 1;
                 } else {
                     count = 1;
                 }
                 joint_answer[handle] = count;
+                */
+                joint_answer->insert(handle, new AccumulatorValue());
                 // Gets targets and stack them
                 query_result = db->query_for_targets((char *) handle.c_str());
                 if (query_result != NULL) { // if handle is link
@@ -285,8 +229,9 @@ void RemoteSink::attention_broker_postprocess_method() {
             Utils::sleep();
         }
     } while (true);
+    joint_answer->traverse(true, &visit_function, &joint_answer_map);
     weight_sum = 0;
-    for (auto const& pair: joint_answer) {
+    for (auto const& pair: joint_answer_map) {
         (*handle_count.mutable_map())[pair.first] = pair.second;
         weight_sum += pair.second;
     }
@@ -302,6 +247,7 @@ void RemoteSink::attention_broker_postprocess_method() {
     if (ack->msg() != "STIMULATE") {
         Utils::error("Failed GRPC command: AttentionBroker::stimulate()");
     }
+    delete joint_answer;
     set_attention_broker_postprocess_finished();
 }
 
