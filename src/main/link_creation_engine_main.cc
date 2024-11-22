@@ -10,7 +10,7 @@
 #include "AtomDB.h"
 #include "Utils.h"
 
-#define MAX_QUERY_ANSWERS ((unsigned int) 1000)
+#define MAX_QUERY_ANSWERS ((unsigned int) 100)
 
 using namespace std;
 
@@ -118,9 +118,11 @@ void build_sim1_link(const string &str1, const string &str2) {
     double v1 = compute_sim1(tokens1, tokens2);
     double v2 = 0.0;
 
-    cout << str1 << " " << v1 << endl;
-    cout << str2 << " " << v2 << endl;
-    cout << endl;
+    if (v1 > 0.3) {
+        cout << str1 << " " << v1 << endl;
+        cout << str2 << " " << v2 << endl;
+        cout << endl;
+    }
 }
 
 int main(int argc, char* argv[]) {

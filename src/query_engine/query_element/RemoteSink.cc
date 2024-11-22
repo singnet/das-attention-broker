@@ -10,6 +10,8 @@
 #include <grpcpp/grpcpp.h>
 #include "attention_broker.pb.h"
 
+#define MAX_CORRELATIONS_WITHOUT_STIMULATE 10000
+
 using namespace query_element;
 
 string RemoteSink::DEFAULT_ATTENTION_BROKER_PORT = "37007";
@@ -216,6 +218,7 @@ void RemoteSink::attention_broker_postprocess_method() {
             for (auto handle_it: single_answer) {
                 handle_list->add_list(handle_it);
             }
+            single_answer.clear();
             ack = new dasproto::Ack();
 #ifdef DEBUG
             cout << "RemoteSink::attention_broker_postprocess_method() requesting CORRELATE" << endl;
@@ -225,7 +228,7 @@ void RemoteSink::attention_broker_postprocess_method() {
                 Utils::error("Failed GRPC command: AttentionBroker::correlate()");
             }
             idle_flag = false;
-            if (++correlated_count == 100) {
+            if (++correlated_count == MAX_CORRELATIONS_WITHOUT_STIMULATE) {
                 correlated_count = 0;
                 for (auto const& pair: joint_answer) {
                     (*handle_count.mutable_map())[pair.first] = pair.second;
