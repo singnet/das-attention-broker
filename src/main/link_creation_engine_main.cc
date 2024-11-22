@@ -22,17 +22,21 @@ void ctrl_c_handler(int) {
 
 int main(int argc, char* argv[]) {
 
-    if (argc < 3) {
-        cerr << "Usage: " << argv[0] << " <context> <link type tag>" << endl;
+    if (argc < 4) {
+        cerr << "Usage: " << argv[0] << " <context> <link type tag> <word tag>" << endl;
         exit(1);
     }
     signal(SIGINT, &ctrl_c_handler);
+    string context = argv[1];
+    string link_type_tag = argv[2];
+    string word_tag = argv[3];
 
     string server_id = "localhost:31700";
     string client_id = "localhost:31701";
 
     string and_operator = "AND";
     string link_template = "LINK_TEMPLATE";
+    string link = "LINK";
     string node = "NODE";
     string variable = "VARIABLE";
     string expression = "Expression";
@@ -46,6 +50,14 @@ int main(int argc, char* argv[]) {
     string word2 = "word2";
 
     vector<string> query_word = {
+        link_template, expression, "3", 
+            node symbol, contains, 
+            variable, sentence1, 
+            link, expression, "2", 
+                node, symbol, word, 
+                node, symbol, "\"" + rword_tag + "\""
+    }
+        /*
         and_operator, "2",
             link_template, expression, "3",
                 node, symbol, contains,
@@ -55,6 +67,7 @@ int main(int argc, char* argv[]) {
                 node, symbol, contains,
                 variable, sentence2,
                 variable, word1
+                */
     };
 
     DASNode client(client_id, server_id);
