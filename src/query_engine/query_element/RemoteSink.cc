@@ -268,7 +268,6 @@ void RemoteSink::attention_broker_postprocess_method() {
             if (ack->msg() != "CORRELATE") {
                 Utils::error("Failed GRPC command: AttentionBroker::correlate()");
             }
-            Utils::sleep(5000);
             idle_flag = false;
         }
         if (idle_flag) {
