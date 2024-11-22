@@ -5,6 +5,11 @@
 #include "AtomDB.h"
 #include "Utils.h"
 
+#include "AttentionBrokerServer.h"
+#include "attention_broker.grpc.pb.h"
+#include <grpcpp/grpcpp.h>
+#include "attention_broker.pb.h"
+
 using namespace query_engine;
 using namespace commons;
 
@@ -18,6 +23,7 @@ string AtomDB::MONGODB_FIELD_NAME[MONGODB_FIELD::size];
 AtomDB::AtomDB() {
     redis_setup();
     mongodb_setup();
+    attention_broker_setup();
 }
 
 AtomDB::~AtomDB() {
@@ -28,6 +34,28 @@ AtomDB::~AtomDB() {
         redisFree(this->redis_single);
     }
     delete this->mongodb_client;
+}
+
+void AtomDB::attention_broker_setup() {
+
+    grpc::ClientContext context;
+    grpc::Status status;
+    dasproto::Empty empty;
+    dasproto::Ack ack;
+    string attention_broker_address = "localhost:37007";
+
+    auto stub = dasproto::AttentionBroker::NewStub(grpc::CreateChannel(
+        attention_broker_address,
+        grpc::InsecureChannelCredentials()));
+    status = stub->ping(&context, empty, &ack);
+    if (status.ok()) {
+        Utils::error("Couldn't connect to AttentionBroker at " + attention_broker_address);
+    } else {
+        std::cout << "Connected to AttentionBroker at " << attention_broker_address << endl;
+    }
+    if (ack.msg() != "PING") {
+        Utils::error("Invalid AttentionBroker answer for PING");
+    }
 }
 
 void AtomDB::redis_setup() {
