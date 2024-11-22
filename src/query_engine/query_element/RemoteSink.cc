@@ -1,5 +1,6 @@
 #include <cstring>
 #include <stack>
+#include <unordered_map>
 #include "RemoteSink.h"
 #include "AtomDBSingleton.h"
 #include "AtomDBAPITypes.h"
@@ -201,7 +202,7 @@ void RemoteSink::attention_broker_postprocess_method() {
 
     // TODO: XXX Review allocation performance in all this method
     set<string> single_answer; // Auxiliary set of handles.
-    map<string, unsigned int> joint_answer; // Auxiliary joint count of handles.
+    unordered_map<string, unsigned int> joint_answer; // Auxiliary joint count of handles.
 
     // Protobuf data structures
     dasproto::HandleList *handle_list; // will contain single_answer (can't be used directly
@@ -215,6 +216,10 @@ void RemoteSink::attention_broker_postprocess_method() {
     stack<string> execution_stack;
     unsigned int weight_sum;
 
+#ifdef DEBUG
+    unsigned int count_total_processed = 0;
+#endif
+
     //handle_list.set_context(this->query_context);
     do {
         if (is_attention_broker_postprocess_finished() ||
@@ -226,6 +231,12 @@ void RemoteSink::attention_broker_postprocess_method() {
         string handle;
         unsigned int count;
         while ((query_answer = (QueryAnswer *) this->attention_broker_queue.dequeue()) != NULL) {
+#ifdef DEBUG
+            count_total_processed++;
+            if ((count_total_processed % 10) == 0) {
+                cout << "RemoteSink::attention_broker_postprocess_method() count_total_processed: " << count_total_processed;
+            }
+#endif
             for (unsigned int i = 0; i < query_answer->handles_size; i++) {
                 execution_stack.push(string(query_answer->handles[i]));
             }
