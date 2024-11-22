@@ -31,7 +31,7 @@ cc_library(
 )
 
 cc_library(
-    name = "link_engine_main_lib",
+    name = "link_creation_engine_main_lib",
     srcs = glob(["link_creation_engine_main.cc"]),
     hdrs = glob(["*.h"]),
     deps = [

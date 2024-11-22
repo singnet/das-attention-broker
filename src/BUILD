@@ -44,7 +44,7 @@ cc_binary(
     srcs = [],
     defines = ["BAZEL_BUILD"],
     deps = [
-        "//main:link_engine_main_lib",
+        "//main:link_creation_engine_main_lib",
         "//utils:utils_lib",
         "@mbedcrypto//:lib",
     ],
