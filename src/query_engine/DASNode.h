@@ -60,6 +60,11 @@ private:
         unsigned int cursor,
         stack<QueryElement *> &element_stack);
 
+    QueryElement *build_or(
+        vector<string> &tokens,
+        unsigned int cursor,
+        stack<QueryElement *> &element_stack);
+
     QueryElement *build_link(
         vector<string> &tokens,
         unsigned int cursor,
