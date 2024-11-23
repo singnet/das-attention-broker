@@ -38,3 +38,12 @@ cc_library(
         "//query_engine:query_engine_lib",
     ],
 )
+
+cc_library(
+    name = "word_query_main_lib",
+    srcs = glob(["qord_query_main.cc"]),
+    hdrs = glob(["*.h"]),
+    deps = [
+        "//query_engine:query_engine_lib",
+    ],
+)
