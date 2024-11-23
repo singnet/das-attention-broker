@@ -145,10 +145,11 @@ void run(
             to_highlight.insert(word_tag);
             string sentence_name = string(sentence_name_document->get("name"));
             string highlighted_sentence_name = highlight(sentence_name, to_highlight);
+            string w = "\"" + word_tag + "\"";
             string line = "(Contains (Sentence " +
                           highlighted_sentence_name +
                           ") (Word \"" +
-                          word_tag +
+                          highlight(w, to_highlight) +
                           "\"))";
             cout << line << endl;
             if (++count == MAX_QUERY_ANSWERS) {
