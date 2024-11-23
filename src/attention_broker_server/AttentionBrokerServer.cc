@@ -53,6 +53,7 @@ Status AttentionBrokerServer::ping(ServerContext* grpc_context, const dasproto::
 Status AttentionBrokerServer::stimulate(ServerContext* grpc_context, const dasproto::HandleCount *request, dasproto::Ack* reply) {
 #ifdef DEBUG
     cout << "AttentionBrokerServer::stimulate() BEGIN" << endl;
+    cout << "Context: " << request->context() << endl;
 #endif
     if (request->map_size() > 0) {
         HebbianNetwork *network = select_hebbian_network(request->context());
@@ -74,6 +75,7 @@ Status AttentionBrokerServer::stimulate(ServerContext* grpc_context, const daspr
 Status AttentionBrokerServer::correlate(ServerContext* grpc_context, const dasproto::HandleList *request, dasproto::Ack* reply) {
 #ifdef DEBUG
     cout << "AttentionBrokerServer::correlate() BEGIN" << endl;
+    cout << "Context: " << request->context() << endl;
 #endif
     if (request->list_size() > 0) {
         HebbianNetwork *network = select_hebbian_network(request->context());
@@ -95,6 +97,7 @@ Status AttentionBrokerServer::correlate(ServerContext* grpc_context, const daspr
 Status AttentionBrokerServer::get_importance(ServerContext *grpc_context, const dasproto::HandleList *request, dasproto::ImportanceList *reply) {
 #ifdef DEBUG
     cout << "AttentionBrokerServer::get_importance() BEGIN" << endl;
+    cout << "Context: " << request->context() << endl;
 #endif
     if (this->rpc_api_enabled) {
         int num_handles = request->list_size();

@@ -10,7 +10,8 @@
 #include <grpcpp/grpcpp.h>
 #include "attention_broker.pb.h"
 
-#define MAX_CORRELATIONS_WITHOUT_STIMULATE 1000
+#define MAX_CORRELATIONS_WITHOUT_STIMULATE ((unsigned int) 1000)
+#define MAX_STIMULATE_COUNT ((unsigned int) 1)
 
 using namespace query_element;
 
@@ -161,6 +162,7 @@ void RemoteSink::attention_broker_postprocess_method() {
     stack<string> execution_stack;
     unsigned int weight_sum;
     unsigned int correlated_count = 0;
+    unsigned int stimulated_count = 0;
 
 #ifdef DEBUG
     unsigned int count_total_processed = 0;
@@ -177,7 +179,7 @@ void RemoteSink::attention_broker_postprocess_method() {
         string handle;
         unsigned int count;
         while ((query_answer = (QueryAnswer *) this->attention_broker_queue.dequeue()) != NULL) {
-            if (correlated_count == MAX_CORRELATIONS_WITHOUT_STIMULATE) {
+            if (stimulated_count == MAX_STIMULATE_COUNT) {
                 continue;
             }
 #ifdef DEBUG
@@ -245,7 +247,9 @@ void RemoteSink::attention_broker_postprocess_method() {
 #ifdef DEBUG
                 cout << "RemoteSink::attention_broker_postprocess_method() requesting STIMULATE" << endl;
 #endif
+                handle_count.set_context(this->query_context);
                 stub->stimulate(new grpc::ClientContext(), handle_count, ack);
+                stimulated_count++;
                 if (ack->msg() != "STIMULATE") {
                     Utils::error("Failed GRPC command: AttentionBroker::stimulate()");
                 }
@@ -271,7 +275,9 @@ void RemoteSink::attention_broker_postprocess_method() {
 #ifdef DEBUG
         cout << "RemoteSink::attention_broker_postprocess_method() requesting STIMULATE" << endl;
 #endif
+        handle_count.set_context(this->query_context);
         stub->stimulate(new grpc::ClientContext(), handle_count, ack);
+        stimulated_count++;
         if (ack->msg() != "STIMULATE") {
             Utils::error("Failed GRPC command: AttentionBroker::stimulate()");
         }
