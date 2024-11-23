@@ -218,6 +218,13 @@ public:
 
 private:
 
+    struct less_than_query_answer {
+        inline bool operator() (const QueryAnswer *qa1, const QueryAnswer *qa2) {
+            // Reversed check as we want descending sort
+            return (qa1->importance > qa2->importance);
+        }
+    };
+
     // --------------------------------------------------------------------------------------------
     // Private methods
 
@@ -290,6 +297,7 @@ private:
                 }
                 fetched_answers.push_back(query_answer);
             }
+            std::sort(fetched_answers.begin(), fetched_answers.end(), less_than_query_answer());
             for (unsigned int i = 0; i < answer_count; i++) {
                 if (this->inner_template.size() == 0) {
                     this->local_buffer.enqueue((void *) fetched_answers[i]);
