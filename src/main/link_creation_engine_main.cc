@@ -52,7 +52,7 @@ double compute_sim1(const vector<string> tokens1, const vector<string> tokens2) 
 }
 
 string highlight(const string &s, const set<string> &highlighted) {
-    vector<string> tokens = split(s, " ");
+    vector<string> tokens = split(s.substr(1, s.size() - 2), " ");
     string answer = "";
     for (unsigned int i = 0; i < tokens.size(); i++) {
         if (highlighted.find(tokens[i]) != highlighted.end()) {
