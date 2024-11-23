@@ -459,7 +459,8 @@ void PatternMatchingQuery::act(shared_ptr<MessageFactory> node) {
         this->root_query_element,
         das_node->next_query_id(),
         this->requestor_id,
-        true);
+        true,
+        this->context);
 
 #ifdef DEBUG
     cout << "PatternMatchingQuery::act() END" << endl;
