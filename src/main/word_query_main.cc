@@ -20,6 +20,39 @@ void ctrl_c_handler(int) {
     exit(0);
 }
 
+
+
+string handle_to_atom(const char *handle) {
+
+    shared_ptr<AtomDB> db = AtomDBSingleton::get_instance();
+    shared_ptr<atomdb_api_types::AtomDocument> document = db->get_atom_document(handle);
+    shared_ptr<atomdb_api_types::HandleList> targets = db->query_for_targets((char *) handle);
+    string answer;
+
+    if (targets != NULL) {
+        // is link
+        answer += "<";
+        answer += document->get("named_type");
+        answer += ": [";
+        for (unsigned int i = 0; i < targets->size(); i++) {
+            answer += handle_to_atom(targets->get_handle(i));
+            if (i < (targets->size() - 1)) {
+                answer += ", ";
+            }
+        }
+        answer += ">";
+    } else {
+        // is node
+        answer += "(";
+        answer += document->get("named_type");
+        answer += ": ";
+        answer += document->get("name");
+        answer += ")";
+    }
+
+    return answer;
+}
+
 void run(
     const string &context,
     const string &word_tag) {
@@ -65,10 +98,18 @@ void run(
         if ((query_answer = response->pop()) == NULL) {
             Utils::sleep();
         } else {
+            //cout << "------------------------------------------" << endl;
             //cout << query_answer->to_string() << endl;
-            sentence_document = db->get_atom_document(query_answer->assignment.get(sentence1.c_str()));
-            word_document = db->get_atom_document(sentence_document->get("targets", 1));
-            cout << string(word_document->get("name"));
+            const char *handle;
+            handle = query_answer->assignment.get(sentence1.c_str());
+            //cout << string(handle) << endl;
+            //cout << handle_to_atom(handle) << endl;
+            sentence_document = db->get_atom_document(handle);
+            handle = sentence_document->get("targets", 1);
+            //cout << string(handle) << endl;
+            //cout << handle_to_atom(handle) << endl;
+            word_document = db->get_atom_document(handle);
+            cout << string(word_document->get("name")) << endl;
             if (++count == MAX_QUERY_ANSWERS) {
                 break;
             }
@@ -90,7 +131,7 @@ int main(int argc, char* argv[]) {
     }
     signal(SIGINT, &ctrl_c_handler);
     string context = argv[1];
-    string word_tag = argv[3];
+    string word_tag = argv[2];
 
     run(context, word_tag);
     return 0;

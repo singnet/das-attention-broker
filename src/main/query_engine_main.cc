@@ -18,7 +18,7 @@ void ctrl_c_handler(int) {
 int main(int argc, char* argv[]) {
 
     if (argc != 2) {
-        cerr << "Usage: " << argv[0] << " PORT" << endl;
+        cerr << "Usage: " << argv[0] << "<port>" << endl;
         exit(1);
     }
 

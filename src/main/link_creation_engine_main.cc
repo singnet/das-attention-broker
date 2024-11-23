@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <stack>
 
 #include <signal.h>
 
@@ -50,7 +51,7 @@ double compute_sim1(const vector<string> tokens1, const vector<string> tokens2) 
     return ((1.0) * count) / tokens1.size();
 }
 
-void build_sim1_link(const string str1, const string str2, double threshold) {
+void build_sim1_link(const string str1, const string str2, double threshold, stack<string> &output) {
 
     vector<string> tokens1 = split(str1.substr(1, str1.size() - 2), " ");
     vector<string> tokens2 = split(str2.substr(1, str2.size() - 2), " ");
@@ -59,9 +60,8 @@ void build_sim1_link(const string str1, const string str2, double threshold) {
     double v2 = 0.0;
 
     if (v1 >= threshold) {
-        cout << str1 << " " << v1 << endl;
-        cout << str2 << " " << v2 << endl;
-        cout << endl;
+        output.push(str1 + " " + std::to_string(v1));
+        output.push(str2 + " " + std::to_string(v2));
     }
 }
 
@@ -143,6 +143,7 @@ void run(
     shared_ptr<atomdb_api_types::AtomDocument> sentence_document2;
     shared_ptr<atomdb_api_types::AtomDocument> sentence_symbol_document1;
     shared_ptr<atomdb_api_types::AtomDocument> sentence_symbol_document2;
+    stack<string> output;
     while (! response->finished()) {
         if ((query_answer = response->pop()) == NULL) {
             Utils::sleep();
@@ -159,7 +160,7 @@ void run(
             sentence_symbol_document2 = db->get_atom_document(sentence_document2->get("targets", 1));
             string s1 = string(sentence_symbol_document1->get("name"));
             string s2 = string(sentence_symbol_document2->get("name"));
-            build_sim1_link(s1, s2, 0.0);
+            build_sim1_link(s1, s2, 0.0, output);
 
             if (++count == MAX_QUERY_ANSWERS) {
                 break;
@@ -168,6 +169,14 @@ void run(
     }
     if (count == 0) {
         cout << "No match for query" << endl;
+    } else {
+        while (! output.empty()) {
+            cout << output.top() << endl;
+            output.pop();
+            cout << output.top() << endl;
+            output.pop();
+            cout << endl;
+        }
     }
 
     delete response;

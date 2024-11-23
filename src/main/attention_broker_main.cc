@@ -39,6 +39,7 @@ void run_server(unsigned int port) {
 
 int main(int argc, char* argv[]) {
     if (argc != 2) {
+        cerr << "Attention broker" << endl;
         cerr << "Usage: " << argv[0] << " PORT" << endl;
         exit(1);
     }
