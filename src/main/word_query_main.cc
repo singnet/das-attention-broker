@@ -10,7 +10,7 @@
 #include "AtomDB.h"
 #include "Utils.h"
 
-#define MAX_QUERY_ANSWERS ((unsigned int) 100)
+#define MAX_QUERY_ANSWERS ((unsigned int) 500)
 
 using namespace std;
 

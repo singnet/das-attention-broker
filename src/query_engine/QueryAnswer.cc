@@ -2,6 +2,7 @@
 #include "Utils.h"
 #include <cmath>
 #include <cstring>
+#include <iostream>
 
 using namespace query_engine;
 using namespace commons;
@@ -167,7 +168,7 @@ string QueryAnswer::to_string() {
             answer += ", ";
         }
     }
-    answer += "] " + this->assignment.to_string();
+    answer += "] " + this->assignment.to_string() + " " + std::to_string(this->importance);
     return answer;
 }
 
