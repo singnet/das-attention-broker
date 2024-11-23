@@ -169,6 +169,7 @@ string QueryAnswer::to_string() {
         }
     }
     answer += "] " + this->assignment.to_string() + " " + std::to_string(this->importance);
+    //answer += "] " + this->assignment.to_string();
     return answer;
 }
 

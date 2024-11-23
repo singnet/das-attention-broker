@@ -246,6 +246,8 @@ private:
 #ifdef DEBUG
         cout << "fetch_links() answer_count: " << answer_count << endl;
 #endif
+        QueryAnswer *query_answer;
+        vector<QueryAnswer *> fetched_answers;
         if (answer_count > 0) {
             dasproto::HandleList handle_list;
             handle_list.set_context(this->context);
@@ -268,9 +270,7 @@ private:
             this->next_inner_answer = new unsigned int[answer_count];
             for (unsigned int i = 0; i < answer_count; i++) {
                 this->atom_document[i] = db->get_atom_document(this->fetch_result->get_handle(i));
-                QueryAnswer *query_answer = new QueryAnswer(
-                    this->fetch_result->get_handle(i),
-                    importance_list.list(i));
+                query_answer = new QueryAnswer(this->fetch_result->get_handle(i), importance_list.list(i));
                 const char *s = this->atom_document[i]->get("targets", 0);
                 for (unsigned int j = 0; j < this->arity; j++) {
                     if (this->target_template[j]->is_terminal) {
@@ -288,15 +288,15 @@ private:
                         }
                     }
                 }
+                fetched_answers.push_back(query_answer);
+            }
+            for (unsigned int i = 0; i < answer_count; i++) {
                 if (this->inner_template.size() == 0) {
-                    this->local_buffer.enqueue((void *) query_answer);
+                    this->local_buffer.enqueue((void *) fetched_answers[i]);
                 } else {
-                    this->local_answers[i] = query_answer;
+                    this->local_answers[i] = fetched_answers[i];
                     this->next_inner_answer[i] = 0;
                     this->increment_local_answers_size();
-                }
-                if (is_flow_finished()) {
-                    break;
                 }
             }
             if (this->inner_template.size() == 0) {

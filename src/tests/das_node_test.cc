@@ -11,11 +11,12 @@ void check_query(
     vector<string> &query,
     unsigned int expected_count,
     DASNode *das,
-    DASNode *requestor) {
+    DASNode *requestor,
+    const string &context) {
 
     cout << "XXXXXXXXXXXXXXXX DASNode.queries CHECK BEGIN" << endl;
     QueryAnswer *query_answer;
-    RemoteIterator *response = requestor->pattern_matcher_query(query);
+    RemoteIterator *response = requestor->pattern_matcher_query(query, context);
     unsigned int count = 0;
     while (! response->finished()) {
         while ((query_answer = response->pop()) == NULL) {
@@ -93,10 +94,10 @@ TEST(DASNode, queries) {
                 "VARIABLE", "v3"
     };
 
-    check_query(q1, 14, das, requestor);
-    check_query(q2, 3, das, requestor);
-    check_query(q3, 1, das, requestor);
-    check_query(q4, 26, das, requestor); // TODO: FIX THIS count should be == 1
+    check_query(q1, 14, das, requestor, "DASNode.queries");
+    check_query(q2, 3, das, requestor, "DASNode.queries");
+    check_query(q3, 1, das, requestor, "DASNode.queries");
+    check_query(q4, 26, das, requestor, "DASNode.queries"); // TODO: FIX THIS count should be == 1
 
     delete(requestor);
     delete(das);
