@@ -51,7 +51,24 @@ double compute_sim1(const vector<string> tokens1, const vector<string> tokens2) 
     return ((1.0) * count) / tokens1.size();
 }
 
-void build_sim1_link(const string str1, const string str2, double threshold, stack<string> &output) {
+string highlight(const string &s, const set<string> &highlighted) {
+    vector<string> tokens = split(s, " ");
+    string answer = "";
+    for (unsigned int i = 0; i < tokens.size(); i++) {
+        if (highlighted.find(tokens[i]) != highlighted.end()) {
+            //"\033[31;1;4mHello\033[0m"
+            answer += "\033[1;4m" + tokens[i] + "\033[0m";
+        } else {
+            answer += tokens[i];
+        }
+        if (i != (tokens.size() - 1)) {
+            answer += " ";
+        }
+    }
+    return answer;
+}
+
+void build_sim1_link(const string str1, const string str2, double threshold, stack<string> &output, const set<string> &highlighted) {
 
     vector<string> tokens1 = split(str1.substr(1, str1.size() - 2), " ");
     vector<string> tokens2 = split(str2.substr(1, str2.size() - 2), " ");
@@ -60,8 +77,8 @@ void build_sim1_link(const string str1, const string str2, double threshold, sta
     double v2 = 0.0;
 
     if (v1 >= threshold) {
-        output.push(str1 + " " + std::to_string(v1));
-        output.push(str2 + " " + std::to_string(v2));
+        output.push(highlight(str1, highlighted) + " " + std::to_string(v1));
+        output.push(highlight(str2, highlighted) + " " + std::to_string(v2));
     }
 }
 
@@ -98,7 +115,8 @@ string handle_to_atom(const char *handle) {
 
 void run(
     const string &context,
-    const string &link_type_tag) {
+    const string &link_type_tag,
+    const set<string> highlighted) {
 
     string server_id = "localhost:31700";
     string client_id = "localhost:31701";
@@ -160,7 +178,7 @@ void run(
             sentence_symbol_document2 = db->get_atom_document(sentence_document2->get("targets", 1));
             string s1 = string(sentence_symbol_document1->get("name"));
             string s2 = string(sentence_symbol_document2->get("name"));
-            build_sim1_link(s1, s2, 0.0, output);
+            build_sim1_link(s1, s2, 0.0, output, highlighted);
 
             if (++count == MAX_QUERY_ANSWERS) {
                 break;
@@ -185,13 +203,18 @@ void run(
 int main(int argc, char* argv[]) {
 
     if (argc < 3) {
-        cerr << "Usage: " << argv[0] << " <context> <link type tag>" << endl;
+        cerr << "Usage: " << argv[0] << " <context> <link type tag> <word>*" << endl;
         exit(1);
     }
     signal(SIGINT, &ctrl_c_handler);
     string context = argv[1];
     string link_type_tag = argv[2];
 
-    run(context, link_type_tag);
+    set<string> highlighted;
+    for (int i = 3; i < argc; i++) {
+        highlighted.insert(string(argv[i]));
+    }
+
+    run(context, link_type_tag, highlighted);
     return 0;
 }
