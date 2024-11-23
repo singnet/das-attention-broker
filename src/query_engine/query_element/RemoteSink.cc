@@ -10,7 +10,7 @@
 #include <grpcpp/grpcpp.h>
 #include "attention_broker.pb.h"
 
-#define MAX_CORRELATIONS_WITHOUT_STIMULATE 10000
+#define MAX_CORRELATIONS_WITHOUT_STIMULATE 1000
 
 using namespace query_element;
 
@@ -177,9 +177,12 @@ void RemoteSink::attention_broker_postprocess_method() {
         string handle;
         unsigned int count;
         while ((query_answer = (QueryAnswer *) this->attention_broker_queue.dequeue()) != NULL) {
+            if (correlated_count == MAX_CORRELATIONS_WITHOUT_STIMULATE) {
+                continue;
+            }
 #ifdef DEBUG
             count_total_processed++;
-            if ((count_total_processed % 10) == 0) {
+            if ((count_total_processed % 1000) == 0) {
                 cout << "RemoteSink::attention_broker_postprocess_method() count_total_processed: " << count_total_processed << endl;
             }
 #endif
@@ -221,7 +224,7 @@ void RemoteSink::attention_broker_postprocess_method() {
             single_answer.clear();
             ack = new dasproto::Ack();
 #ifdef DEBUG
-            cout << "RemoteSink::attention_broker_postprocess_method() requesting CORRELATE" << endl;
+            //cout << "RemoteSink::attention_broker_postprocess_method() requesting CORRELATE" << endl;
 #endif
             stub->correlate(new grpc::ClientContext(), *handle_list, ack);
             if (ack->msg() != "CORRELATE") {
@@ -229,7 +232,7 @@ void RemoteSink::attention_broker_postprocess_method() {
             }
             idle_flag = false;
             if (++correlated_count == MAX_CORRELATIONS_WITHOUT_STIMULATE) {
-                correlated_count = 0;
+                //correlated_count = 0;
                 for (auto const& pair: joint_answer) {
                     (*handle_count.mutable_map())[pair.first] = pair.second;
                     weight_sum += pair.second;
@@ -254,6 +257,7 @@ void RemoteSink::attention_broker_postprocess_method() {
         }
     } while (true);
     //joint_answer->traverse(true, &visit_function, &joint_answer_map);
+    /*
     if (correlated_count > 0) {
         weight_sum = 0;
         for (auto const& pair: joint_answer) {
@@ -273,6 +277,7 @@ void RemoteSink::attention_broker_postprocess_method() {
             Utils::error("Failed GRPC command: AttentionBroker::stimulate()");
         }
     }
+    */
     //delete joint_answer;
     set_attention_broker_postprocess_finished();
 }

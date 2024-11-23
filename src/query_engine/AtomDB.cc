@@ -136,7 +136,6 @@ shared_ptr<atomdb_api_types::HandleList> AtomDB::query_for_targets(shared_ptr<ch
 }
 
 shared_ptr<atomdb_api_types::HandleList> AtomDB::query_for_targets(char *link_handle_ptr) {
-    cout << "XXXXXXXXX GET " << REDIS_TARGETS_PREFIX << ":" << string(link_handle_ptr) << endl;;
     redisReply *reply = (redisReply *) redisCommand(this->redis_single, "GET %s:%s", REDIS_TARGETS_PREFIX.c_str(), link_handle_ptr);
     /*
     if (reply == NULL) {
@@ -144,7 +143,6 @@ shared_ptr<atomdb_api_types::HandleList> AtomDB::query_for_targets(char *link_ha
     }
     */
     if ((reply == NULL) || (reply->type == REDIS_REPLY_NIL)) {
-        cout << "XXXXXXXXX Not Found" << endl;;
         return shared_ptr<atomdb_api_types::HandleList>(NULL);
     }
     if (reply->type != REDIS_REPLY_STRING) {
