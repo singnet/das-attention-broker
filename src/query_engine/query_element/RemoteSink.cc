@@ -232,7 +232,7 @@ void RemoteSink::attention_broker_postprocess_method() {
             }
             idle_flag = false;
             if (++correlated_count == MAX_CORRELATIONS_WITHOUT_STIMULATE) {
-                //correlated_count = 0;
+                correlated_count = 0;
                 for (auto const& pair: joint_answer) {
                     (*handle_count.mutable_map())[pair.first] = pair.second;
                     weight_sum += pair.second;
@@ -257,7 +257,6 @@ void RemoteSink::attention_broker_postprocess_method() {
         }
     } while (true);
     //joint_answer->traverse(true, &visit_function, &joint_answer_map);
-    /*
     if (correlated_count > 0) {
         weight_sum = 0;
         for (auto const& pair: joint_answer) {
@@ -277,7 +276,6 @@ void RemoteSink::attention_broker_postprocess_method() {
             Utils::error("Failed GRPC command: AttentionBroker::stimulate()");
         }
     }
-    */
     //delete joint_answer;
     set_attention_broker_postprocess_finished();
 }
