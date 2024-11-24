@@ -258,11 +258,19 @@ private:
             return;
         }
 
+#ifdef DEBUG
+        cout << "get_importance() paginating" << endl;
+        unsigned int page_count = 1;
+#endif
+
         dasproto::HandleList small_handle_list;
         dasproto::ImportanceList small_importance_list;
         unsigned int remaining = handle_list.list_size();
         unsigned int cursor = 0;
         while (remaining > 0) {
+#ifdef DEBUG
+        cout << "get_importance() page: " << page_count++ << endl;
+#endif
             for (unsigned int i = 0; i < MAX_GET_IMPORTANCE_BUNDLE_SIZE; i++) {
                 if (cursor == handle_list.list_size()) {
                     break;
@@ -270,6 +278,9 @@ private:
                 small_handle_list.add_list(handle_list.list(cursor++));
                 remaining--;
             }
+#ifdef DEBUG
+        cout << "discharging: " << small_handle_list.list_size() << endl;
+#endif
             stub->get_importance(&context, small_handle_list, &small_importance_list);
             for (unsigned int i = 0; i < small_importance_list.list_size(); i++) {
                 importance_list.add_list(small_importance_list.list(i));
