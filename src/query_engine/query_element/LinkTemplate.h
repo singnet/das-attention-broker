@@ -248,13 +248,12 @@ private:
         const dasproto::HandleList &handle_list, 
         dasproto::ImportanceList &importance_list) {
 
-        grpc::ClientContext context;
         auto stub = dasproto::AttentionBroker::NewStub(grpc::CreateChannel(
             this->attention_broker_address, 
             grpc::InsecureChannelCredentials()));
 
         if (handle_list.list_size() <= MAX_GET_IMPORTANCE_BUNDLE_SIZE) {
-            stub->get_importance(&context, handle_list, &importance_list);
+            stub->get_importance(new grpc::ClientContext(), handle_list, &importance_list);
             return;
         }
 
@@ -281,7 +280,7 @@ private:
 #ifdef DEBUG
         cout << "discharging: " << small_handle_list.list_size() << endl;
 #endif
-            stub->get_importance(&context, small_handle_list, &small_importance_list);
+            stub->get_importance(new grpc::ClientContext(), small_handle_list, &small_importance_list);
             for (unsigned int i = 0; i < small_importance_list.list_size(); i++) {
                 importance_list.add_list(small_importance_list.list(i));
             }
