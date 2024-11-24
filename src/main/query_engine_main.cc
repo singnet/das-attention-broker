@@ -26,6 +26,7 @@ int main(int argc, char* argv[]) {
     signal(SIGINT, &ctrl_c_handler);
     AtomDBSingleton::init();
     DASNode server(server_id);
+    cout << "#############################     READY     ##################################" << endl;
     do {
         Utils::sleep(1000);
     } while (true);

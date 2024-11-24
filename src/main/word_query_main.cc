@@ -121,7 +121,7 @@ void run(
     DASNode client(client_id, server_id);
     QueryAnswer *query_answer;
     unsigned int count = 0;
-    RemoteIterator *response = client.pattern_matcher_query(query_word, context);
+    RemoteIterator *response = client.pattern_matcher_query(query_word, context, true);
     shared_ptr<atomdb_api_types::AtomDocument> sentence_document;
     shared_ptr<atomdb_api_types::AtomDocument> sentence_name_document;
     vector<string> sentences;

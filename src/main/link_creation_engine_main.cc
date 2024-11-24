@@ -35,9 +35,25 @@ std::vector<std::string> split(string s, string delimiter) {
     return tokens;
 }
 
-double compute_sim1(const vector<string> tokens1, const vector<string> tokens2) {
+double compute_sim1(const vector<string> &tokens1, const vector<string> &tokens2) {
 
     unsigned int count = 0;
+
+    /*
+    for (unsigned int i = 0; i < tokens1.size(); i++) {
+        for (unsigned int j = 0; j < tokens2.size(); j++) {
+            count++;
+            break;
+        }
+    }
+
+    for (unsigned int i = 0; i < tokens2.size(); i++) {
+        for (unsigned int j = 0; j < tokens2.size(); j++) {
+            count++;
+            break;
+        }
+    }
+    */
 
     for (auto token1: tokens1) {
         for (auto token2: tokens2) {
@@ -48,37 +64,100 @@ double compute_sim1(const vector<string> tokens1, const vector<string> tokens2) 
         }
     }
 
-    return ((1.0) * count) / tokens1.size();
+    for (auto token2: tokens2) {
+        for (auto token1: tokens1) {
+            if (token2 == token1) {
+                count++;
+                break;
+            }
+        }
+    }
+
+    return ((1.0) * count) / (tokens1.size() + tokens2.size());
 }
 
-string highlight(const string &s, const set<string> &highlighted) {
-    vector<string> tokens = split(s.substr(1, s.size() - 2), " ");
-    string answer = "";
-    for (unsigned int i = 0; i < tokens.size(); i++) {
-        if (highlighted.find(tokens[i]) != highlighted.end()) {
-            //"\033[31;1;4mHello\033[0m"
-            answer += "\033[1;4m" + tokens[i] + "\033[0m";
-        } else {
-            answer += tokens[i];
+double compute_sim2(const vector<string> &tokens1, const vector<string> &tokens2) {
+
+    if (tokens1.size() != tokens2.size()) {
+        return 0.0;
+    }
+    unsigned int count = 0;
+    unsigned int total_length = 0;
+    for (unsigned int i = 0; i < tokens1.size(); i++) {
+        for (unsigned int j = 0; j < tokens1[i].length(); j++) {
+            if (tokens1[i][j] == tokens2[i][j]) {
+                count++;
+            }
         }
-        if (i != (tokens.size() - 1)) {
+        total_length += tokens1[i].length();
+    }
+    return (1.0 * count) / total_length;
+}
+
+string highlight(const vector<string> &tokens1, const vector<string> &tokens2, const set<string> &highlighted) {
+    //printf("\033[31;1;4mHello\033[0m");
+    string answer = "";
+    bool token_flag, char_flag, word_flag;
+    for (unsigned int i = 0; i < tokens1.size(); i++) {
+        token_flag = (highlighted.find(tokens1[i]) != highlighted.end());
+        word_flag = false;
+        for (auto token: tokens2) {
+            if (tokens1[i] == token) {
+                word_flag = true;
+                break;
+            }
+        }
+        for (unsigned int j = 0; j < tokens1[i].length(); j++) {
+            if (tokens1.size() == tokens2.size()) {
+                char_flag = (tokens1[i][j] == tokens2[i][j]);
+            } else {
+                char_flag = false;
+            }
+            if (token_flag || char_flag || word_flag) {
+                answer += "\033[";
+                if (token_flag) {
+                    answer += "1";
+                    if (char_flag || word_flag) {
+                        answer += ";";
+                    }
+                }
+                if (char_flag) {
+                    answer += "4";
+                    if (word_flag) {
+                        answer += ";";
+                    }
+                }
+                if (word_flag) {
+                    answer += "7";
+                }
+                answer += "m";
+                answer += tokens1[i][j];
+                answer += "\033[0m";
+            } else {
+                answer += tokens1[i][j];
+            }
+        }
+        if (i != (tokens1.size() - 1)) {
             answer += " ";
         }
     }
     return answer;
 }
 
-void build_sim1_link(const string str1, const string str2, double threshold, stack<string> &output, const set<string> &highlighted) {
+void build_link(const string &link_type_tag, const string str1, const string str2, double threshold, stack<string> &output, const set<string> &highlighted) {
 
-    vector<string> tokens1 = split(str1.substr(1, str1.size() - 2), " ");
-    vector<string> tokens2 = split(str2.substr(1, str2.size() - 2), " ");
+    string sentence1 = str1.substr(1, str1.size() - 2);
+    string sentence2 = str2.substr(1, str2.size() - 2);
+
+    vector<string> tokens1 = split(sentence1, " ");
+    vector<string> tokens2 = split(sentence2, " ");
 
     double v1 = compute_sim1(tokens1, tokens2);
-    double v2 = 0.0;
+    double v2 = compute_sim2(tokens1, tokens2);
 
     if (v1 >= threshold) {
-        output.push(highlight(str1, highlighted) + " " + std::to_string(v1));
-        output.push(highlight(str2, highlighted) + " " + std::to_string(v2));
+        output.push(std::to_string(v1) + ": " + highlight(tokens1, tokens2, highlighted));
+        output.push(std::to_string(v2) + ": " + highlight(tokens2, tokens1, highlighted));
     }
 }
 
@@ -133,6 +212,7 @@ void run(
     string symbol = "Symbol";
     string sentence = "Sentence";
     string word = "Word";
+    string similarity = "Similarity";
     string contains = "Contains";
     string sentence1 = "sentence1";
     string sentence2 = "sentence2";
@@ -141,7 +221,7 @@ void run(
 
     // (Contains (Sentence "aef cbe dfb fbe eca eff bad") (Word "eff"))
 
-    vector<string> query_word = {
+    vector<string> query_same_word = {
         and_operator, "2",
             link_template, expression, "3",
                 node, symbol, contains,
@@ -153,10 +233,27 @@ void run(
                 variable, word1
     };
 
+    vector<string> query_same_size {
+        and_operator, "1",
+        link_template, expression, "3",
+            node, symbol, similarity,
+            variable, sentence1,
+            variable, sentence2
+    };
+
     DASNode client(client_id, server_id);
     QueryAnswer *query_answer;
     unsigned int count = 0;
-    RemoteIterator *response = client.pattern_matcher_query(query_word, context);
+    RemoteIterator *response;
+
+    if (link_type_tag == "LINK1") {
+        response = client.pattern_matcher_query(query_same_word, context);
+    } else if (link_type_tag == "LINK2") {
+        response = client.pattern_matcher_query(query_same_size, context, true);
+    } else {
+        Utils::error("Invalid link_type_tag: " + link_type_tag);
+    }
+
     shared_ptr<atomdb_api_types::AtomDocument> sentence_document1;
     shared_ptr<atomdb_api_types::AtomDocument> sentence_document2;
     shared_ptr<atomdb_api_types::AtomDocument> sentence_symbol_document1;
@@ -178,7 +275,7 @@ void run(
             sentence_symbol_document2 = db->get_atom_document(sentence_document2->get("targets", 1));
             string s1 = string(sentence_symbol_document1->get("name"));
             string s2 = string(sentence_symbol_document2->get("name"));
-            build_sim1_link(s1, s2, 0.0, output, highlighted);
+            build_link(link_type_tag, s1, s2, 0.0, output, highlighted);
 
             if (++count == MAX_QUERY_ANSWERS) {
                 break;
@@ -209,6 +306,10 @@ int main(int argc, char* argv[]) {
     signal(SIGINT, &ctrl_c_handler);
     string context = argv[1];
     string link_type_tag = argv[2];
+
+    if ((link_type_tag != "LINK1") && (link_type_tag != "LINK2")) {
+        Utils::error("Invalid link_type_tag: " + link_type_tag);
+    }
 
     set<string> highlighted;
     for (int i = 3; i < argc; i++) {
