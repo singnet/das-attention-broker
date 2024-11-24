@@ -40,18 +40,22 @@ void DASNode::initialize() {
 // -------------------------------------------------------------------------------------------------
 // Public client API
 
-RemoteIterator *DASNode::pattern_matcher_query(const vector<string> &tokens, const string &context) {
+RemoteIterator *DASNode::pattern_matcher_query(
+    const vector<string> &tokens, 
+    const string &context,
+    bool update_attention_broker) {
 #ifdef DEBUG
     cout << "DASNode::pattern_matcher_query() BEGIN" << endl;
     cout << "DASNode::pattern_matcher_query() tokens.size(): " << tokens.size() << endl;
     cout << "DASNode::pattern_matcher_query() context: " << context << endl;
+    cout << "DASNode::pattern_matcher_query() update_attention_broker: " << update_attention_broker << endl;
 #endif
     if (this->is_server) {
         Utils::error("pattern_matcher_query() is not available in DASNode server.");
     }
     // TODO XXX change this when requestor is set in basic Message
     string query_id = next_query_id();
-    vector<string> args = {query_id, context};
+    vector<string> args = {query_id, context, std::to_string(update_attention_broker)};
     args.insert(args.end(), tokens.begin(), tokens.end());
     send(PATTERN_MATCHING_QUERY, args, this->server_id);
 #ifdef DEBUG
@@ -500,7 +504,8 @@ PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &token
     stack<QueryElement *> element_stack;
     this->requestor_id = tokens[0];
     this->context = tokens[1];
-    unsigned int cursor = 2; // TODO XXX: change this when requestor is set in basic Message
+    this->update_attention_broker = (tokens[2] == "1");
+    unsigned int cursor = 3; // TODO XXX: change this when requestor is set in basic Message
     unsigned int tokens_count = tokens.size();
 
 #ifdef DEBUG
@@ -560,7 +565,7 @@ void PatternMatchingQuery::act(shared_ptr<MessageFactory> node) {
         this->root_query_element,
         das_node->next_query_id(),
         this->requestor_id,
-        true,
+        this->update_attention_broker,
         this->context);
 
 #ifdef DEBUG
