@@ -19,6 +19,8 @@
 #include <grpcpp/grpcpp.h>
 #include "attention_broker.pb.h"
 
+#define MAX_GET_IMPORTANCE_BUNDLE_SIZE ((unsigned int) 100000)
+
 using namespace std;
 using namespace query_engine;
 using namespace attention_broker_server;
@@ -242,6 +244,41 @@ private:
         return answer;
     }
 
+    void get_importance(
+        const dasproto::HandleList &handle_list, 
+        dasproto::ImportanceList &importance_list) {
+
+        grpc::ClientContext context;
+        auto stub = dasproto::AttentionBroker::NewStub(grpc::CreateChannel(
+            this->attention_broker_address, 
+            grpc::InsecureChannelCredentials()));
+
+        if (handle_list.list_size() <= MAX_GET_IMPORTANCE_BUNDLE_SIZE) {
+            stub->get_importance(&context, handle_list, &importance_list);
+            return;
+        }
+
+        dasproto::HandleList small_handle_list;
+        dasproto::ImportanceList small_importance_list;
+        unsigned int remaining = handle_list.list_size();
+        unsigned int cursor = 0;
+        while (remaining > 0) {
+            for (unsigned int i = 0; i < MAX_GET_IMPORTANCE_BUNDLE_SIZE; i++) {
+                if (cursor == handle_list.list_size()) {
+                    break;
+                }
+                small_handle_list.add_list(handle_list.list(cursor++));
+                remaining--;
+            }
+            stub->get_importance(&context, small_handle_list, &small_importance_list);
+            for (unsigned int i = 0; i < small_importance_list.list_size(); i++) {
+                importance_list.add_list(small_importance_list.list(i));
+            }
+            small_handle_list.clear_list();
+            small_importance_list.clear_list();
+        }
+    }
+
     void fetch_links() {
 #ifdef DEBUG
         cout << "fetch_links() BEGIN" << endl;
@@ -262,11 +299,7 @@ private:
                 handle_list.add_list(this->fetch_result->get_handle(i));
             }
             dasproto::ImportanceList importance_list;
-            grpc::ClientContext context;
-            auto stub = dasproto::AttentionBroker::NewStub(grpc::CreateChannel(
-                this->attention_broker_address, 
-                grpc::InsecureChannelCredentials()));
-            stub->get_importance(&context, handle_list, &importance_list);
+            get_importance(handle_list, importance_list);
             if (importance_list.list_size() != answer_count) {
                 Utils::error("Invalid AttentionBroker answer. Size: " + 
                     std::to_string(importance_list.list_size()) +
