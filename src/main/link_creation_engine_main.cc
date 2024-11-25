@@ -204,6 +204,7 @@ void run(
     shared_ptr<AtomDB> db = AtomDBSingleton::get_instance();
 
     string and_operator = "AND";
+    string or_operator = "OR";
     string link_template = "LINK_TEMPLATE";
     string link = "LINK";
     string node = "NODE";
@@ -218,6 +219,7 @@ void run(
     string sentence2 = "sentence2";
     string word1 = "word1";
     string word2 = "word2";
+    string tv1 = "tv1";
 
     // (Contains (Sentence "aef cbe dfb fbe eca eff bad") (Word "eff"))
 
@@ -234,11 +236,12 @@ void run(
     };
 
     vector<string> query_same_size {
-        and_operator, "1",
-        link_template, expression, "3",
+        or_operator, "1",
+        link_template, expression, "4",
             node, symbol, similarity,
             variable, sentence1,
-            variable, sentence2
+            variable, sentence2,
+            variable, tv1
     };
 
     DASNode client(client_id, server_id);
