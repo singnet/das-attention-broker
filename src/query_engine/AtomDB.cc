@@ -33,7 +33,8 @@ AtomDB::~AtomDB() {
     if (this->redis_single != NULL) {
         redisFree(this->redis_single);
     }
-    delete this->mongodb_client;
+    delete this->mongodb_pool;
+   // delete this->mongodb_client;
 }
 
 void AtomDB::attention_broker_setup() {
@@ -91,6 +92,11 @@ void AtomDB::redis_setup() {
     }
 }
 
+mongocxx::database AtomDB::get_database(){
+    auto database = this->mongodb_pool->acquire();
+    return database[MONGODB_DB_NAME];
+}
+
 void AtomDB::mongodb_setup() {
 
     string host = Utils::get_environment("DAS_MONGODB_HOSTNAME");
@@ -107,8 +113,11 @@ void AtomDB::mongodb_setup() {
     try {
         mongocxx::instance instance;
         auto uri = mongocxx::uri{url};
-        this->mongodb_client = new mongocxx::client(uri);
-        this->mongodb = (*this->mongodb_client)[MONGODB_DB_NAME];
+        this->mongodb_pool = new mongocxx::pool(uri);
+        this->mongodb = get_database();
+
+        // this->mongodb_client = new mongocxx::client(uri);
+        // this->mongodb = (*this->mongodb_client)[MONGODB_DB_NAME];
         const auto ping_cmd = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("ping", 1));
         this->mongodb.run_command(ping_cmd.view());
         this->mongodb_collection = this->mongodb[MONGODB_COLLECTION_NAME];
@@ -155,7 +164,8 @@ shared_ptr<atomdb_api_types::HandleList> AtomDB::query_for_targets(char *link_ha
 
 shared_ptr<atomdb_api_types::AtomDocument> AtomDB::get_atom_document(const char *handle) {
     this->mongodb_mutex.lock();
-    auto reply = this->mongodb_collection.find_one(
+    auto mongodb_collection = get_database()[MONGODB_COLLECTION_NAME];
+    auto reply = mongodb_collection.find_one(
         bsoncxx::v_noabi::builder::basic::make_document(
             bsoncxx::v_noabi::builder::basic::kvp(MONGODB_FIELD_NAME[MONGODB_FIELD::ID], handle)));
     //cout << bsoncxx::to_json(*reply) << endl; // Note to reviewer: please let this dead code here
