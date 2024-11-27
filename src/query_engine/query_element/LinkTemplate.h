@@ -298,7 +298,7 @@ private:
         this->fetch_result = db->query_for_pattern(this->handle);
         unsigned int answer_count = this->fetch_result->size();
 #ifdef DEBUG
-        cout << "fetch_links() answer_count: " << answer_count << endl;
+        cout << "fetch_links() ac: " << answer_count << endl;
 #endif
         QueryAnswer *query_answer;
         vector<QueryAnswer *> fetched_answers;

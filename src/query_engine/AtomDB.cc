@@ -121,8 +121,9 @@ void AtomDB::mongodb_setup() {
         const auto ping_cmd = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("ping", 1));
         this->mongodb.run_command(ping_cmd.view());
         this->mongodb_collection = this->mongodb[MONGODB_COLLECTION_NAME];
-        auto atom_count = this->mongodb_collection.count_documents({});
-        std::cout << "Connected to MongoDB at " << address << " Atom count: " << atom_count << endl;
+        //auto atom_count = this->mongodb_collection.count_documents({});
+        //std::cout << "Connected to MongoDB at " << address << " Atom count: " << atom_count << endl;
+        std::cout << "Connected to MongoDB at " << address << endl;
     } catch (const std::exception& e) {
         Utils::error(e.what());
     }

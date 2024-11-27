@@ -11,7 +11,7 @@
 #include "AtomDB.h"
 #include "Utils.h"
 
-#define MAX_QUERY_ANSWERS ((unsigned int) 100)
+#define MAX_QUERY_ANSWERS ((unsigned int) 1000)
 
 using namespace std;
 
@@ -101,10 +101,12 @@ string highlight(const vector<string> &tokens1, const vector<string> &tokens2, c
     for (unsigned int i = 0; i < tokens1.size(); i++) {
         token_flag = (highlighted.find(tokens1[i]) != highlighted.end());
         word_flag = false;
-        for (auto token: tokens2) {
-            if (tokens1[i] == token) {
-                word_flag = true;
-                break;
+        if (highlighted.size() == 0) {
+            for (auto token: tokens2) {
+                if (tokens1[i] == token) {
+                    word_flag = true;
+                    break;
+                }
             }
         }
         for (unsigned int j = 0; j < tokens1[i].length(); j++) {
@@ -113,10 +115,11 @@ string highlight(const vector<string> &tokens1, const vector<string> &tokens2, c
             } else {
                 char_flag = false;
             }
+            char_flag = false; // XXXXX
             if (token_flag || char_flag || word_flag) {
                 answer += "\033[";
                 if (token_flag) {
-                    answer += "1";
+                    answer += "1;4";
                     if (char_flag || word_flag) {
                         answer += ";";
                     }
@@ -153,11 +156,13 @@ void build_link(const string &link_type_tag, const string str1, const string str
     vector<string> tokens2 = split(sentence2, " ");
 
     double v1 = compute_sim1(tokens1, tokens2);
-    double v2 = compute_sim2(tokens1, tokens2);
+    //double v2 = compute_sim2(tokens1, tokens2);
 
     if (v1 >= threshold) {
-        output.push(std::to_string(v1) + ": " + highlight(tokens1, tokens2, highlighted));
-        output.push(std::to_string(v2) + ": " + highlight(tokens2, tokens1, highlighted));
+        //output.push(std::to_string(v1) + ": " + highlight(tokens1, tokens2, highlighted));
+        //output.push(std::to_string(v2) + ": " + highlight(tokens2, tokens1, highlighted));
+        output.push(highlight(tokens1, tokens2, highlighted));
+        output.push(highlight(tokens2, tokens1, highlighted));
     }
 }
 
@@ -262,6 +267,7 @@ void run(
     shared_ptr<atomdb_api_types::AtomDocument> sentence_symbol_document1;
     shared_ptr<atomdb_api_types::AtomDocument> sentence_symbol_document2;
     stack<string> output;
+    set<string> already_inserted_links;
     while (! response->finished()) {
         if ((query_answer = response->pop()) == NULL) {
             Utils::sleep();
@@ -278,7 +284,12 @@ void run(
             sentence_symbol_document2 = db->get_atom_document(sentence_document2->get("targets", 1));
             string s1 = string(sentence_symbol_document1->get("name"));
             string s2 = string(sentence_symbol_document2->get("name"));
-            build_link(link_type_tag, s1, s2, 0.0, output, highlighted);
+            if ((already_inserted_links.find(s1 + s2) == already_inserted_links.end()) && 
+                (already_inserted_links.find(s2 + s1) == already_inserted_links.end())) {
+                build_link(link_type_tag, s1, s2, 0.0, output, highlighted);
+                already_inserted_links.insert(s1 + s2);
+                already_inserted_links.insert(s2 + s1);
+            }
 
             if (++count == MAX_QUERY_ANSWERS) {
                 break;
