@@ -191,6 +191,7 @@ void RemoteSink::attention_broker_postprocess_method() {
             for (unsigned int i = 0; i < query_answer->handles_size; i++) {
                 execution_stack.push(string(query_answer->handles[i]));
             }
+            delete query_answer;
             while (! execution_stack.empty()) {
                 handle = execution_stack.top();
                 execution_stack.pop();
