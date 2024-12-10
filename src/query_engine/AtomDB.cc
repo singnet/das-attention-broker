@@ -5,6 +5,11 @@
 #include "AtomDB.h"
 #include "Utils.h"
 
+#include "AttentionBrokerServer.h"
+#include "attention_broker.grpc.pb.h"
+#include <grpcpp/grpcpp.h>
+#include "attention_broker.pb.h"
+
 using namespace query_engine;
 using namespace commons;
 
@@ -18,6 +23,7 @@ string AtomDB::MONGODB_FIELD_NAME[MONGODB_FIELD::size];
 AtomDB::AtomDB() {
     redis_setup();
     mongodb_setup();
+    attention_broker_setup();
 }
 
 AtomDB::~AtomDB() {
@@ -27,7 +33,30 @@ AtomDB::~AtomDB() {
     if (this->redis_single != NULL) {
         redisFree(this->redis_single);
     }
-    delete this->mongodb_client;
+    delete this->mongodb_pool;
+   // delete this->mongodb_client;
+}
+
+void AtomDB::attention_broker_setup() {
+
+    grpc::ClientContext context;
+    grpc::Status status;
+    dasproto::Empty empty;
+    dasproto::Ack ack;
+    string attention_broker_address = "localhost:37007";
+
+    auto stub = dasproto::AttentionBroker::NewStub(grpc::CreateChannel(
+        attention_broker_address,
+        grpc::InsecureChannelCredentials()));
+    status = stub->ping(&context, empty, &ack);
+    if (status.ok()) {
+        std::cout << "Connected to AttentionBroker at " << attention_broker_address << endl;
+    } else {
+        Utils::error("Couldn't connect to AttentionBroker at " + attention_broker_address);
+    }
+    if (ack.msg() != "PING") {
+        Utils::error("Invalid AttentionBroker answer for PING");
+    }
 }
 
 void AtomDB::redis_setup() {
@@ -63,6 +92,11 @@ void AtomDB::redis_setup() {
     }
 }
 
+mongocxx::database AtomDB::get_database(){
+    auto database = this->mongodb_pool->acquire();
+    return database[MONGODB_DB_NAME];
+}
+
 void AtomDB::mongodb_setup() {
 
     string host = Utils::get_environment("DAS_MONGODB_HOSTNAME");
@@ -79,13 +113,17 @@ void AtomDB::mongodb_setup() {
     try {
         mongocxx::instance instance;
         auto uri = mongocxx::uri{url};
-        this->mongodb_client = new mongocxx::client(uri);
-        this->mongodb = (*this->mongodb_client)[MONGODB_DB_NAME];
+        this->mongodb_pool = new mongocxx::pool(uri);
+        this->mongodb = get_database();
+
+        // this->mongodb_client = new mongocxx::client(uri);
+        // this->mongodb = (*this->mongodb_client)[MONGODB_DB_NAME];
         const auto ping_cmd = bsoncxx::builder::basic::make_document(bsoncxx::builder::basic::kvp("ping", 1));
         this->mongodb.run_command(ping_cmd.view());
         this->mongodb_collection = this->mongodb[MONGODB_COLLECTION_NAME];
-        auto atom_count = this->mongodb_collection.count_documents({});
-        std::cout << "Connected to MongoDB at " << address << " Atom count: " << atom_count << endl;
+        //auto atom_count = this->mongodb_collection.count_documents({});
+        //std::cout << "Connected to MongoDB at " << address << " Atom count: " << atom_count << endl;
+        std::cout << "Connected to MongoDB at " << address << endl;
     } catch (const std::exception& e) {
         Utils::error(e.what());
     }
@@ -108,7 +146,6 @@ shared_ptr<atomdb_api_types::HandleList> AtomDB::query_for_targets(shared_ptr<ch
 }
 
 shared_ptr<atomdb_api_types::HandleList> AtomDB::query_for_targets(char *link_handle_ptr) {
-    cout << "XXXXXXXXX GET " << REDIS_TARGETS_PREFIX << ":" << string(link_handle_ptr) << endl;;
     redisReply *reply = (redisReply *) redisCommand(this->redis_single, "GET %s:%s", REDIS_TARGETS_PREFIX.c_str(), link_handle_ptr);
     /*
     if (reply == NULL) {
@@ -116,7 +153,6 @@ shared_ptr<atomdb_api_types::HandleList> AtomDB::query_for_targets(char *link_ha
     }
     */
     if ((reply == NULL) || (reply->type == REDIS_REPLY_NIL)) {
-        cout << "XXXXXXXXX Not Found" << endl;;
         return shared_ptr<atomdb_api_types::HandleList>(NULL);
     }
     if (reply->type != REDIS_REPLY_STRING) {
@@ -129,7 +165,8 @@ shared_ptr<atomdb_api_types::HandleList> AtomDB::query_for_targets(char *link_ha
 
 shared_ptr<atomdb_api_types::AtomDocument> AtomDB::get_atom_document(const char *handle) {
     this->mongodb_mutex.lock();
-    auto reply = this->mongodb_collection.find_one(
+    auto mongodb_collection = get_database()[MONGODB_COLLECTION_NAME];
+    auto reply = mongodb_collection.find_one(
         bsoncxx::v_noabi::builder::basic::make_document(
             bsoncxx::v_noabi::builder::basic::kvp(MONGODB_FIELD_NAME[MONGODB_FIELD::ID], handle)));
     //cout << bsoncxx::to_json(*reply) << endl; // Note to reviewer: please let this dead code here

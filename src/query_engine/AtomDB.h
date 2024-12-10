@@ -7,6 +7,7 @@
 #include <hiredis_cluster/hircluster.h>
 #include <bsoncxx/json.hpp>
 #include <mongocxx/client.hpp>
+#include <mongocxx/pool.hpp>
 #include <mongocxx/instance.hpp>
 #include "AtomDBAPITypes.h"
 
@@ -72,9 +73,13 @@ private:
     mongocxx::database mongodb;
     mongocxx::v_noabi::collection mongodb_collection;
     mutex mongodb_mutex;
+    mongocxx::pool *mongodb_pool;
+
+    mongocxx::database get_database();
 
     void redis_setup();
     void mongodb_setup();
+    void attention_broker_setup();
 };
 
 } // namespace query_engine

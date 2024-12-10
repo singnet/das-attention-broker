@@ -2,6 +2,7 @@
 #include "DASNode.h"
 #include "LinkTemplate.h"
 #include "Terminal.h"
+#include "Or.h"
 #include "RemoteSink.h"
 
 using namespace query_engine;
@@ -39,18 +40,22 @@ void DASNode::initialize() {
 // -------------------------------------------------------------------------------------------------
 // Public client API
 
-RemoteIterator *DASNode::pattern_matcher_query(const vector<string> &tokens, const string &context) {
+RemoteIterator *DASNode::pattern_matcher_query(
+    const vector<string> &tokens, 
+    const string &context,
+    bool update_attention_broker) {
 #ifdef DEBUG
     cout << "DASNode::pattern_matcher_query() BEGIN" << endl;
     cout << "DASNode::pattern_matcher_query() tokens.size(): " << tokens.size() << endl;
     cout << "DASNode::pattern_matcher_query() context: " << context << endl;
+    cout << "DASNode::pattern_matcher_query() update_attention_broker: " << update_attention_broker << endl;
 #endif
     if (this->is_server) {
         Utils::error("pattern_matcher_query() is not available in DASNode server.");
     }
     // TODO XXX change this when requestor is set in basic Message
     string query_id = next_query_id();
-    vector<string> args = {query_id, context};
+    vector<string> args = {query_id, context, std::to_string(update_attention_broker)};
     args.insert(args.end(), tokens.begin(), tokens.end());
     send(PATTERN_MATCHING_QUERY, args, this->server_id);
 #ifdef DEBUG
@@ -293,6 +298,104 @@ QueryElement *PatternMatchingQuery::build_and(
     return NULL; // Just to avoid warnings. This is not actually reachable.
 }
 
+QueryElement *PatternMatchingQuery::build_or(
+    vector<string> &tokens, 
+    unsigned int cursor,
+    stack<QueryElement *> &element_stack) {
+
+    unsigned int num_clauses = std::stoi(tokens[cursor + 1]);
+    if (element_stack.size() < num_clauses) {
+        Utils::error("PatternMatchingQuery message: parse error in tokens - too few arguments for OR");
+    }
+    switch (num_clauses) {
+        // TODO: consider replacing each "case" below by a pre-processor macro call
+        case 1: {
+            array<QueryElement *, 1> clauses;
+            for (unsigned int i = 0; i < 1; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new Or<1>(clauses);
+        }
+        case 2: {
+            array<QueryElement *, 2> clauses;
+            for (unsigned int i = 0; i < 2; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new Or<2>(clauses);
+        }
+        case 3: {
+            array<QueryElement *, 3> clauses;
+            for (unsigned int i = 0; i < 3; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new Or<3>(clauses);
+        }
+        case 4: {
+            array<QueryElement *, 4> clauses;
+            for (unsigned int i = 0; i < 4; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new Or<4>(clauses);
+        }
+        case 5: {
+            array<QueryElement *, 5> clauses;
+            for (unsigned int i = 0; i < 5; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new Or<5>(clauses);
+        }
+        case 6: {
+            array<QueryElement *, 6> clauses;
+            for (unsigned int i = 0; i < 6; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new Or<6>(clauses);
+        }
+        case 7: {
+            array<QueryElement *, 7> clauses;
+            for (unsigned int i = 0; i < 7; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new Or<7>(clauses);
+        }
+        case 8: {
+            array<QueryElement *, 8> clauses;
+            for (unsigned int i = 0; i < 8; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new Or<8>(clauses);
+        }
+        case 9: {
+            array<QueryElement *, 9> clauses;
+            for (unsigned int i = 0; i < 9; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new Or<9>(clauses);
+        }
+        case 10: {
+            array<QueryElement *, 10> clauses;
+            for (unsigned int i = 0; i < 10; i++) {
+                clauses[i] = element_stack.top();
+                element_stack.pop();
+            }
+            return new Or<10>(clauses);
+        }
+        default: {
+            Utils::error("PatternMatchingQuery message: max supported num_clauses for OR: 10");
+        }
+    }
+    return NULL; // Just to avoid warnings. This is not actually reachable.
+}
+
 QueryElement *PatternMatchingQuery::build_link(
     vector<string> &tokens, 
     unsigned int cursor,
@@ -401,7 +504,8 @@ PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &token
     stack<QueryElement *> element_stack;
     this->requestor_id = tokens[0];
     this->context = tokens[1];
-    unsigned int cursor = 2; // TODO XXX: change this when requestor is set in basic Message
+    this->update_attention_broker = (tokens[2] == "1");
+    unsigned int cursor = 3; // TODO XXX: change this when requestor is set in basic Message
     unsigned int tokens_count = tokens.size();
 
 #ifdef DEBUG
@@ -409,7 +513,7 @@ PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &token
 #endif
     while (cursor < tokens_count) {
         execution_stack.push(cursor);
-        if ((tokens[cursor] == "VARIABLE") || (tokens[cursor] == "AND")) {
+        if ((tokens[cursor] == "VARIABLE") || (tokens[cursor] == "AND") || ((tokens[cursor] == "OR"))) {
             cursor += 2;
         } else {
             cursor += 3;
@@ -431,6 +535,8 @@ PatternMatchingQuery::PatternMatchingQuery(string command, vector<string> &token
             element_stack.push(build_link_template(tokens, cursor, element_stack));
         } else if (tokens[cursor] == "AND") {
             element_stack.push(build_and(tokens, cursor, element_stack));
+        } else if (tokens[cursor] == "OR") {
+            element_stack.push(build_or(tokens, cursor, element_stack));
         } else {
             Utils::error("Invalid token " + tokens[cursor] + " in PatternMatchingQuery message");
         }
@@ -459,7 +565,8 @@ void PatternMatchingQuery::act(shared_ptr<MessageFactory> node) {
         this->root_query_element,
         das_node->next_query_id(),
         this->requestor_id,
-        true);
+        this->update_attention_broker,
+        this->context);
 
 #ifdef DEBUG
     cout << "PatternMatchingQuery::act() END" << endl;

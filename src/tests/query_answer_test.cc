@@ -3,9 +3,11 @@
 #include "gtest/gtest.h"
 
 #include "QueryAnswer.h"
+#include "Utils.h"
 #include "test_utils.h"
 
 using namespace query_engine;
+using namespace commons;
 
 TEST(QueryAnswer, assignments_basics) {
 
@@ -126,7 +128,7 @@ TEST(QueryAnswer, tokenization) {
     for (unsigned int test = 0; test < NUM_TESTS; test++) {
         unsigned int num_handles = (rand() % MAX_HANDLES) + 1;
         unsigned int num_assignments = (rand() % MAX_ASSIGNMENTS);
-        QueryAnswer input(random_importance());
+        QueryAnswer input(Utils::flip_coin() ? 1 : 0);
         for (unsigned int i = 0; i < num_handles; i++) {
             input.add_handle(strdup(random_handle().c_str()));
         }

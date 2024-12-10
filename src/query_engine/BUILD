@@ -8,7 +8,7 @@ cc_library(
     deps = [
         "//utils:utils_lib",
         "//hasher:hasher_lib",
-        "//main:attention_broker_main_lib",
+        "//attention_broker_server:attention_broker_server_lib",
         "@com_github_singnet_das_node//:atomspacenode",
     ],
     linkopts = [

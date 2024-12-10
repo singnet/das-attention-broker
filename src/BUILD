@@ -38,3 +38,27 @@ cc_binary(
     ],
     linkstatic = 1
 )
+
+cc_binary(
+    name = "link_creation_engine",
+    srcs = [],
+    defines = ["BAZEL_BUILD"],
+    deps = [
+        "//main:link_creation_engine_main_lib",
+        "//utils:utils_lib",
+        "@mbedcrypto//:lib",
+    ],
+    linkstatic = 1
+)
+
+cc_binary(
+    name = "word_query",
+    srcs = [],
+    defines = ["BAZEL_BUILD"],
+    deps = [
+        "//main:word_query_main_lib",
+        "//utils:utils_lib",
+        "@mbedcrypto//:lib",
+    ],
+    linkstatic = 1
+)

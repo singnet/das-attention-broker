@@ -19,6 +19,8 @@
 #include <grpcpp/grpcpp.h>
 #include "attention_broker.pb.h"
 
+#define MAX_GET_IMPORTANCE_BUNDLE_SIZE ((unsigned int) 100000)
+
 using namespace std;
 using namespace query_engine;
 using namespace attention_broker_server;
@@ -218,6 +220,13 @@ public:
 
 private:
 
+    struct less_than_query_answer {
+        inline bool operator() (const QueryAnswer *qa1, const QueryAnswer *qa2) {
+            // Reversed check as we want descending sort
+            return (qa1->importance > qa2->importance);
+        }
+    };
+
     // --------------------------------------------------------------------------------------------
     // Private methods
 
@@ -235,6 +244,51 @@ private:
         return answer;
     }
 
+    void get_importance(
+        const dasproto::HandleList &handle_list, 
+        dasproto::ImportanceList &importance_list) {
+
+        auto stub = dasproto::AttentionBroker::NewStub(grpc::CreateChannel(
+            this->attention_broker_address, 
+            grpc::InsecureChannelCredentials()));
+
+        if (handle_list.list_size() <= MAX_GET_IMPORTANCE_BUNDLE_SIZE) {
+            stub->get_importance(new grpc::ClientContext(), handle_list, &importance_list);
+            return;
+        }
+
+#ifdef DEBUG
+        cout << "get_importance() paginating" << endl;
+        unsigned int page_count = 1;
+#endif
+
+        dasproto::HandleList small_handle_list;
+        dasproto::ImportanceList small_importance_list;
+        unsigned int remaining = handle_list.list_size();
+        unsigned int cursor = 0;
+        while (remaining > 0) {
+#ifdef DEBUG
+        cout << "get_importance() page: " << page_count++ << endl;
+#endif
+            for (unsigned int i = 0; i < MAX_GET_IMPORTANCE_BUNDLE_SIZE; i++) {
+                if (cursor == handle_list.list_size()) {
+                    break;
+                }
+                small_handle_list.add_list(handle_list.list(cursor++));
+                remaining--;
+            }
+#ifdef DEBUG
+        cout << "discharging: " << small_handle_list.list_size() << endl;
+#endif
+            stub->get_importance(new grpc::ClientContext(), small_handle_list, &small_importance_list);
+            for (unsigned int i = 0; i < small_importance_list.list_size(); i++) {
+                importance_list.add_list(small_importance_list.list(i));
+            }
+            small_handle_list.clear_list();
+            small_importance_list.clear_list();
+        }
+    }
+
     void fetch_links() {
 #ifdef DEBUG
         cout << "fetch_links() BEGIN" << endl;
@@ -244,8 +298,10 @@ private:
         this->fetch_result = db->query_for_pattern(this->handle);
         unsigned int answer_count = this->fetch_result->size();
 #ifdef DEBUG
-        cout << "fetch_links() answer_count: " << answer_count << endl;
+        cout << "fetch_links() ac: " << answer_count << endl;
 #endif
+        QueryAnswer *query_answer;
+        vector<QueryAnswer *> fetched_answers;
         if (answer_count > 0) {
             dasproto::HandleList handle_list;
             handle_list.set_context(this->context);
@@ -253,11 +309,7 @@ private:
                 handle_list.add_list(this->fetch_result->get_handle(i));
             }
             dasproto::ImportanceList importance_list;
-            grpc::ClientContext context;
-            auto stub = dasproto::AttentionBroker::NewStub(grpc::CreateChannel(
-                this->attention_broker_address, 
-                grpc::InsecureChannelCredentials()));
-            stub->get_importance(&context, handle_list, &importance_list);
+            get_importance(handle_list, importance_list);
             if (importance_list.list_size() != answer_count) {
                 Utils::error("Invalid AttentionBroker answer. Size: " + 
                     std::to_string(importance_list.list_size()) +
@@ -268,9 +320,7 @@ private:
             this->next_inner_answer = new unsigned int[answer_count];
             for (unsigned int i = 0; i < answer_count; i++) {
                 this->atom_document[i] = db->get_atom_document(this->fetch_result->get_handle(i));
-                QueryAnswer *query_answer = new QueryAnswer(
-                    this->fetch_result->get_handle(i),
-                    importance_list.list(i));
+                query_answer = new QueryAnswer(this->fetch_result->get_handle(i), importance_list.list(i));
                 const char *s = this->atom_document[i]->get("targets", 0);
                 for (unsigned int j = 0; j < this->arity; j++) {
                     if (this->target_template[j]->is_terminal) {
@@ -288,15 +338,16 @@ private:
                         }
                     }
                 }
+                fetched_answers.push_back(query_answer);
+            }
+            std::sort(fetched_answers.begin(), fetched_answers.end(), less_than_query_answer());
+            for (unsigned int i = 0; i < answer_count; i++) {
                 if (this->inner_template.size() == 0) {
-                    this->local_buffer.enqueue((void *) query_answer);
+                    this->local_buffer.enqueue((void *) fetched_answers[i]);
                 } else {
-                    this->local_answers[i] = query_answer;
+                    this->local_answers[i] = fetched_answers[i];
                     this->next_inner_answer[i] = 0;
                     this->increment_local_answers_size();
-                }
-                if (is_flow_finished()) {
-                    break;
                 }
             }
             if (this->inner_template.size() == 0) {

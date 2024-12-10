@@ -11,4 +11,3 @@ docker run \
     bash
 
 sleep 1
-docker rm $CONTAINER_NAME >& /dev/null
